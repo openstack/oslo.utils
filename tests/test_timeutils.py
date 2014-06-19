@@ -22,7 +22,7 @@ import mock
 from oslotest import base as test_base
 from testtools import matchers
 
-from openstack.common import timeutils
+from oslo.utils import timeutils
 
 
 class TimeUtilsTest(test_base.BaseTestCase):

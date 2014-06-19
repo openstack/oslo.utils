@@ -21,8 +21,8 @@ import socket
 
 from six.moves.urllib import parse
 
-from openstack.common.gettextutils import _LW
-from openstack.common import log as logging
+from oslo.utils.openstack.common.gettextutils import _LW
+from oslo.utils.openstack.common import log as logging
 
 LOG = logging.getLogger(__name__)
 
@@ -160,4 +160,4 @@ def set_tcp_keepalive(sock, tcp_keepalive=True,
                             socket.TCP_KEEPCNT,
                             tcp_keepalive_count)
         else:
-            LOG.warning(_LW('tcp_keepknt not available on your system'))
+            LOG.warning(_LW('tcp_keepcnt not available on your system'))

@@ -18,7 +18,7 @@ import sys
 
 from oslotest import base as test_base
 
-from openstack.common import importutils
+from oslo.utils import importutils
 
 
 class ImportUtilsTest(test_base.BaseTestCase):
@@ -39,64 +39,64 @@ class ImportUtilsTest(test_base.BaseTestCase):
         self.assertEqual(sys.modules['datetime'], dt)
 
     def test_import_object_optional_arg_not_present(self):
-        obj = importutils.import_object('tests.unit.fake.FakeDriver')
+        obj = importutils.import_object('tests.fake.FakeDriver')
         self.assertEqual(obj.__class__.__name__, 'FakeDriver')
 
     def test_import_object_optional_arg_present(self):
-        obj = importutils.import_object('tests.unit.fake.FakeDriver',
+        obj = importutils.import_object('tests.fake.FakeDriver',
                                         first_arg=False)
         self.assertEqual(obj.__class__.__name__, 'FakeDriver')
 
     def test_import_object_required_arg_not_present(self):
         # arg 1 isn't optional here
         self.assertRaises(TypeError, importutils.import_object,
-                          'tests.unit.fake.FakeDriver2')
+                          'tests.fake.FakeDriver2')
 
     def test_import_object_required_arg_present(self):
-        obj = importutils.import_object('tests.unit.fake.FakeDriver2',
+        obj = importutils.import_object('tests.fake.FakeDriver2',
                                         first_arg=False)
         self.assertEqual(obj.__class__.__name__, 'FakeDriver2')
 
     # namespace tests
     def test_import_object_ns_optional_arg_not_present(self):
-        obj = importutils.import_object_ns('tests.unit', 'fake.FakeDriver')
+        obj = importutils.import_object_ns('tests', 'fake.FakeDriver')
         self.assertEqual(obj.__class__.__name__, 'FakeDriver')
 
     def test_import_object_ns_optional_arg_present(self):
-        obj = importutils.import_object_ns('tests.unit', 'fake.FakeDriver',
+        obj = importutils.import_object_ns('tests', 'fake.FakeDriver',
                                            first_arg=False)
         self.assertEqual(obj.__class__.__name__, 'FakeDriver')
 
     def test_import_object_ns_required_arg_not_present(self):
         # arg 1 isn't optional here
         self.assertRaises(TypeError, importutils.import_object_ns,
-                          'tests.unit', 'fake.FakeDriver2')
+                          'tests', 'fake.FakeDriver2')
 
     def test_import_object_ns_required_arg_present(self):
-        obj = importutils.import_object_ns('tests.unit', 'fake.FakeDriver2',
+        obj = importutils.import_object_ns('tests', 'fake.FakeDriver2',
                                            first_arg=False)
         self.assertEqual(obj.__class__.__name__, 'FakeDriver2')
 
     # namespace tests
     def test_import_object_ns_full_optional_arg_not_present(self):
-        obj = importutils.import_object_ns('tests.unit2',
-                                           'tests.unit.fake.FakeDriver')
+        obj = importutils.import_object_ns('tests2',
+                                           'tests.fake.FakeDriver')
         self.assertEqual(obj.__class__.__name__, 'FakeDriver')
 
     def test_import_object_ns_full_optional_arg_present(self):
-        obj = importutils.import_object_ns('tests.unit2',
-                                           'tests.unit.fake.FakeDriver',
+        obj = importutils.import_object_ns('tests2',
+                                           'tests.fake.FakeDriver',
                                            first_arg=False)
         self.assertEqual(obj.__class__.__name__, 'FakeDriver')
 
     def test_import_object_ns_full_required_arg_not_present(self):
         # arg 1 isn't optional here
         self.assertRaises(TypeError, importutils.import_object_ns,
-                          'tests.unit2', 'tests.unit.fake.FakeDriver2')
+                          'tests2', 'tests.fake.FakeDriver2')
 
     def test_import_object_ns_full_required_arg_present(self):
-        obj = importutils.import_object_ns('tests.unit2',
-                                           'tests.unit.fake.FakeDriver2',
+        obj = importutils.import_object_ns('tests2',
+                                           'tests.fake.FakeDriver2',
                                            first_arg=False)
         self.assertEqual(obj.__class__.__name__, 'FakeDriver2')
 

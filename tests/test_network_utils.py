@@ -18,7 +18,7 @@ import socket
 import mock
 from oslotest import base as test_base
 
-from openstack.common import network_utils
+from oslo.utils import network_utils
 
 
 class NetworkUtilsTest(test_base.BaseTestCase):
@@ -107,11 +107,24 @@ class NetworkUtilsTest(test_base.BaseTestCase):
         mock_sock = mock.Mock()
         network_utils.set_tcp_keepalive(mock_sock, True, 100, 10, 5)
         calls = [
-            mock.call.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, True),
-            mock.call.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 100),
-            mock.call.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 10),
-            mock.call.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 5)
+            mock.call.setsockopt(socket.SOL_SOCKET,
+                                 socket.SO_KEEPALIVE, True),
         ]
+        if hasattr(socket, 'TCP_KEEPIDLE'):
+            calls += [
+                mock.call.setsockopt(socket.IPPROTO_TCP,
+                                     socket.TCP_KEEPIDLE, 100)
+            ]
+        if hasattr(socket, 'TCP_KEEPINTVL'):
+            calls += [
+                mock.call.setsockopt(socket.IPPROTO_TCP,
+                                     socket.TCP_KEEPINTVL, 10),
+            ]
+        if hasattr(socket, 'TCP_KEEPCNT'):
+            calls += [
+                mock.call.setsockopt(socket.IPPROTO_TCP,
+                                     socket.TCP_KEEPCNT, 5)
+            ]
         mock_sock.assert_has_calls(calls)
 
         mock_sock.reset_mock()

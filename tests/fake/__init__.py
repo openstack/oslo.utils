@@ -1,4 +1,4 @@
-# Copyright 2012 Red Hat, Inc.
+# Copyright 2012 IBM Corp.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
@@ -12,4 +12,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-__import__('pkg_resources').declare_namespace(__name__)
+
+class FakeDriver():
+    def __init__(self, first_arg=True):
+        self.first_arg = first_arg
+
+
+class FakeDriver2():
+    def __init__(self, first_arg):
+        self.first_arg = first_arg
