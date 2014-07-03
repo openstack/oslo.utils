@@ -18,13 +18,13 @@ import socket
 import mock
 from oslotest import base as test_base
 
-from oslo.utils import network_utils
+from oslo.utils import netutils
 
 
 class NetworkUtilsTest(test_base.BaseTestCase):
 
     def test_no_host(self):
-        result = network_utils.urlsplit('http://')
+        result = netutils.urlsplit('http://')
         self.assertEqual('', result.netloc)
         self.assertEqual(None, result.port)
         self.assertEqual(None, result.hostname)
@@ -32,33 +32,33 @@ class NetworkUtilsTest(test_base.BaseTestCase):
 
     def test_parse_host_port(self):
         self.assertEqual(('server01', 80),
-                         network_utils.parse_host_port('server01:80'))
+                         netutils.parse_host_port('server01:80'))
         self.assertEqual(('server01', None),
-                         network_utils.parse_host_port('server01'))
+                         netutils.parse_host_port('server01'))
         self.assertEqual(('server01', 1234),
-                         network_utils.parse_host_port('server01',
+                         netutils.parse_host_port('server01',
                          default_port=1234))
         self.assertEqual(('::1', 80),
-                         network_utils.parse_host_port('[::1]:80'))
+                         netutils.parse_host_port('[::1]:80'))
         self.assertEqual(('::1', None),
-                         network_utils.parse_host_port('[::1]'))
+                         netutils.parse_host_port('[::1]'))
         self.assertEqual(('::1', 1234),
-                         network_utils.parse_host_port('[::1]',
+                         netutils.parse_host_port('[::1]',
                          default_port=1234))
         self.assertEqual(('2001:db8:85a3::8a2e:370:7334', 1234),
-                         network_utils.parse_host_port(
+                         netutils.parse_host_port(
                              '2001:db8:85a3::8a2e:370:7334',
                              default_port=1234))
 
     def test_urlsplit(self):
-        result = network_utils.urlsplit('rpc://myhost?someparam#somefragment')
+        result = netutils.urlsplit('rpc://myhost?someparam#somefragment')
         self.assertEqual(result.scheme, 'rpc')
         self.assertEqual(result.netloc, 'myhost')
         self.assertEqual(result.path, '')
         self.assertEqual(result.query, 'someparam')
         self.assertEqual(result.fragment, 'somefragment')
 
-        result = network_utils.urlsplit(
+        result = netutils.urlsplit(
             'rpc://myhost/mypath?someparam#somefragment',
             allow_fragments=False)
         self.assertEqual(result.scheme, 'rpc')
@@ -67,7 +67,7 @@ class NetworkUtilsTest(test_base.BaseTestCase):
         self.assertEqual(result.query, 'someparam#somefragment')
         self.assertEqual(result.fragment, '')
 
-        result = network_utils.urlsplit(
+        result = netutils.urlsplit(
             'rpc://user:pass@myhost/mypath?someparam#somefragment',
             allow_fragments=False)
         self.assertEqual(result.scheme, 'rpc')
@@ -78,7 +78,7 @@ class NetworkUtilsTest(test_base.BaseTestCase):
 
     def test_urlsplit_ipv6(self):
         ipv6_url = 'http://[::1]:443/v2.0/'
-        result = network_utils.urlsplit(ipv6_url)
+        result = netutils.urlsplit(ipv6_url)
         self.assertEqual(result.scheme, 'http')
         self.assertEqual(result.netloc, '[::1]:443')
         self.assertEqual(result.path, '/v2.0/')
@@ -86,7 +86,7 @@ class NetworkUtilsTest(test_base.BaseTestCase):
         self.assertEqual(result.port, 443)
 
         ipv6_url = 'http://user:pass@[::1]/v2.0/'
-        result = network_utils.urlsplit(ipv6_url)
+        result = netutils.urlsplit(ipv6_url)
         self.assertEqual(result.scheme, 'http')
         self.assertEqual(result.netloc, 'user:pass@[::1]')
         self.assertEqual(result.path, '/v2.0/')
@@ -94,7 +94,7 @@ class NetworkUtilsTest(test_base.BaseTestCase):
         self.assertEqual(result.port, None)
 
         ipv6_url = 'https://[2001:db8:85a3::8a2e:370:7334]:1234/v2.0/xy?ab#12'
-        result = network_utils.urlsplit(ipv6_url)
+        result = netutils.urlsplit(ipv6_url)
         self.assertEqual(result.scheme, 'https')
         self.assertEqual(result.netloc, '[2001:db8:85a3::8a2e:370:7334]:1234')
         self.assertEqual(result.path, '/v2.0/xy')
@@ -105,7 +105,7 @@ class NetworkUtilsTest(test_base.BaseTestCase):
 
     def test_set_tcp_keepalive(self):
         mock_sock = mock.Mock()
-        network_utils.set_tcp_keepalive(mock_sock, True, 100, 10, 5)
+        netutils.set_tcp_keepalive(mock_sock, True, 100, 10, 5)
         calls = [
             mock.call.setsockopt(socket.SOL_SOCKET,
                                  socket.SO_KEEPALIVE, True),
@@ -128,5 +128,5 @@ class NetworkUtilsTest(test_base.BaseTestCase):
         mock_sock.assert_has_calls(calls)
 
         mock_sock.reset_mock()
-        network_utils.set_tcp_keepalive(mock_sock, False)
+        netutils.set_tcp_keepalive(mock_sock, False)
         self.assertEqual(1, len(mock_sock.mock_calls))
