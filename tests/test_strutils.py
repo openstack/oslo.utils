@@ -143,48 +143,6 @@ class StrUtilsTest(test_base.BaseTestCase):
         self.assertEqual(1, strutils.int_from_bool_as_string(True))
         self.assertEqual(0, strutils.int_from_bool_as_string(False))
 
-    def test_safe_decode(self):
-        safe_decode = strutils.safe_decode
-        self.assertRaises(TypeError, safe_decode, True)
-        self.assertEqual(six.u('ni\xf1o'), safe_decode(six.b("ni\xc3\xb1o"),
-                         incoming="utf-8"))
-        if six.PY2:
-            # In Python 3, bytes.decode() doesn't support anymore
-            # bytes => bytes encodings like base64
-            self.assertEqual(six.u("test"), safe_decode("dGVzdA==",
-                             incoming='base64'))
-
-        self.assertEqual(six.u("strange"), safe_decode(six.b('\x80strange'),
-                         errors='ignore'))
-
-        self.assertEqual(six.u('\xc0'), safe_decode(six.b('\xc0'),
-                         incoming='iso-8859-1'))
-
-        # Forcing incoming to ascii so it falls back to utf-8
-        self.assertEqual(six.u('ni\xf1o'), safe_decode(six.b('ni\xc3\xb1o'),
-                         incoming='ascii'))
-
-        self.assertEqual(six.u('foo'), safe_decode(b'foo'))
-
-    def test_safe_encode(self):
-        safe_encode = strutils.safe_encode
-        self.assertRaises(TypeError, safe_encode, True)
-        self.assertEqual(six.b("ni\xc3\xb1o"), safe_encode(six.u('ni\xf1o'),
-                                                           encoding="utf-8"))
-        if six.PY2:
-            # In Python 3, str.encode() doesn't support anymore
-            # text => text encodings like base64
-            self.assertEqual(six.b("dGVzdA==\n"),
-                             safe_encode("test", encoding='base64'))
-        self.assertEqual(six.b('ni\xf1o'), safe_encode(six.b("ni\xc3\xb1o"),
-                                                       encoding="iso-8859-1",
-                                                       incoming="utf-8"))
-
-        # Forcing incoming to ascii so it falls back to utf-8
-        self.assertEqual(six.b('ni\xc3\xb1o'),
-                         safe_encode(six.b('ni\xc3\xb1o'), incoming='ascii'))
-        self.assertEqual(six.b('foo'), safe_encode(six.u('foo')))
-
     def test_slugify(self):
         to_slug = strutils.to_slug
         self.assertRaises(TypeError, to_slug, True)
