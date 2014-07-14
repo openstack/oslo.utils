@@ -22,8 +22,8 @@ from oslotest import base as test_base
 import six
 import testscenarios
 
-from oslo.utils.openstack.common import units
 from oslo.utils import strutils
+from oslo.utils import units
 
 load_tests = testscenarios.load_tests_apply_scenarios
 
