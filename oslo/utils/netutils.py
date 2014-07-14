@@ -17,12 +17,12 @@
 Network-related utilities and helper functions.
 """
 
+import logging
 import socket
 
 from six.moves.urllib import parse
 
 from oslo.utils.openstack.common.gettextutils import _LW
-from oslo.utils.openstack.common import log as logging
 
 LOG = logging.getLogger(__name__)
 
