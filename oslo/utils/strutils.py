@@ -24,7 +24,7 @@ import unicodedata
 import six
 
 from oslo.utils import encodeutils
-from oslo.utils.openstack.common.gettextutils import _
+from oslo.utils.i18n import _
 
 
 UNIT_PREFIX_EXPONENT = {

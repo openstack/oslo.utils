@@ -2,3 +2,4 @@ Babel>=0.9.6
 six>=1.6.0
 iso8601>=0.1.9
 oslo.config>=1.2.0
+oslo.i18n>=0.1.0

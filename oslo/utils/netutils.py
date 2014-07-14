@@ -22,7 +22,7 @@ import socket
 
 from six.moves.urllib import parse
 
-from oslo.utils.openstack.common.gettextutils import _LW
+from oslo.utils.i18n import _LW
 
 LOG = logging.getLogger(__name__)
 
