@@ -23,8 +23,8 @@ import unicodedata
 
 import six
 
+from oslo.utils._i18n import _
 from oslo.utils import encodeutils
-from oslo.utils.i18n import _
 
 
 UNIT_PREFIX_EXPONENT = {

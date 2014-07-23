@@ -24,7 +24,7 @@ import traceback
 
 import six
 
-from oslo.utils.i18n import _LE
+from oslo.utils._i18n import _LE
 
 
 class save_and_reraise_exception(object):
