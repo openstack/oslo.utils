@@ -95,7 +95,9 @@ class ModifiedSplitResult(parse.SplitResult):
 
 def urlsplit(url, scheme='', allow_fragments=True):
     """Parse a URL using urlparse.urlsplit(), splitting query and fragments.
-    This function papers over Python issue9374 when needed.
+    This function papers over Python issue9374_ when needed.
+
+    .. _issue9374: http://bugs.python.org/issue9374
 
     The parameters are the same as urlparse.urlsplit.
     """

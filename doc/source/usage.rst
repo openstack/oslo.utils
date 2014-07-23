@@ -1,7 +1,10 @@
-========
-Usage
-========
+=========
+ Usage
+=========
 
-To use oslo.utils in a project::
+To use oslo.utils in a project, import the individual module you
+need. For example::
 
-	import oslo.utils
+	from oslo.utils import strutils
+
+    slug = strutils.to_slug('input value')
