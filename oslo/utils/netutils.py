@@ -75,7 +75,7 @@ def parse_host_port(address, default_port=None):
     return (host, None if port is None else int(port))
 
 
-class ModifiedSplitResult(parse.SplitResult):
+class _ModifiedSplitResult(parse.SplitResult):
     """Split results class for urlsplit."""
 
     # NOTE(dims): The functions below are needed for Python 2.6.x.
@@ -107,8 +107,8 @@ def urlsplit(url, scheme='', allow_fragments=True):
         path, fragment = path.split('#', 1)
     if '?' in path:
         path, query = path.split('?', 1)
-    return ModifiedSplitResult(scheme, netloc,
-                               path, query, fragment)
+    return _ModifiedSplitResult(scheme, netloc,
+                                path, query, fragment)
 
 
 def set_tcp_keepalive(sock, tcp_keepalive=True,
