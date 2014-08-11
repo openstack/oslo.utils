@@ -17,18 +17,3 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 1.3\n"
 
-#: oslo/utils/strutils.py:92
-#, python-format
-msgid "Unrecognized value '%(val)s', acceptable values are: %(acceptable)s"
-msgstr ""
-
-#: oslo/utils/strutils.py:126
-#, python-format
-msgid "Invalid unit system: \"%s\""
-msgstr ""
-
-#: oslo/utils/strutils.py:135
-#, python-format
-msgid "Invalid string format: %s"
-msgstr ""
-

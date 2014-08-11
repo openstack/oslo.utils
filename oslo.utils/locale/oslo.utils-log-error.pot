@@ -17,18 +17,13 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 1.3\n"
 
-#: oslo/utils/strutils.py:92
+#: oslo/utils/excutils.py:76
 #, python-format
-msgid "Unrecognized value '%(val)s', acceptable values are: %(acceptable)s"
+msgid "Original exception being dropped: %s"
 msgstr ""
 
-#: oslo/utils/strutils.py:126
+#: oslo/utils/excutils.py:105
 #, python-format
-msgid "Invalid unit system: \"%s\""
-msgstr ""
-
-#: oslo/utils/strutils.py:135
-#, python-format
-msgid "Invalid string format: %s"
+msgid "Unexpected exception occurred %d time(s)... retrying."
 msgstr ""
 
