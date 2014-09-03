@@ -92,6 +92,37 @@ class _ModifiedSplitResult(parse.SplitResult):
         host, port = parse_host_port(netloc)
         return port
 
+    def params(self, collapse=True):
+        """Extracts the query parameters from the split urls components.
+
+        This method will provide back as a dictionary the query parameter
+        names and values that were provided in the url.
+
+        :param collapse: Boolean, turn on or off collapsing of query values
+        with the same name. Since a url can contain the same query parameter
+        name with different values it may or may not be useful for users to
+        care that this has happened. This parameter when True uses the
+        last value that was given for a given name, while if False it will
+        retain all values provided by associating the query parameter name with
+        a list of values instead of a single (non-list) value.
+        """
+        if self.query:
+            if collapse:
+                return dict(parse.parse_qsl(self.query))
+            else:
+                params = {}
+                for (key, value) in parse.parse_qsl(self.query):
+                    if key in params:
+                        if isinstance(params[key], list):
+                            params[key].append(value)
+                        else:
+                            params[key] = [params[key], value]
+                    else:
+                        params[key] = value
+                return params
+        else:
+            return {}
+
 
 def urlsplit(url, scheme='', allow_fragments=True):
     """Parse a URL using urlparse.urlsplit(), splitting query and fragments.
