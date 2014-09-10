@@ -11,6 +11,7 @@ Contents:
    usage
    api/index
    contributing
+   history
 
 Indices and tables
 ==================
