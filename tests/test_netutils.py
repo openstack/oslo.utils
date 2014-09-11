@@ -103,6 +103,25 @@ class NetworkUtilsTest(test_base.BaseTestCase):
         self.assertEqual(result.query, 'ab')
         self.assertEqual(result.fragment, '12')
 
+    def test_urlsplit_params(self):
+        test_url = "http://localhost/?a=b&c=d"
+        result = netutils.urlsplit(test_url)
+        self.assertEqual({'a': 'b', 'c': 'd'}, result.params())
+        self.assertEqual({'a': 'b', 'c': 'd'}, result.params(collapse=False))
+
+        test_url = "http://localhost/?a=b&a=c&a=d"
+        result = netutils.urlsplit(test_url)
+        self.assertEqual({'a': 'd'}, result.params())
+        self.assertEqual({'a': ['b', 'c', 'd']}, result.params(collapse=False))
+
+        test_url = "http://localhost"
+        result = netutils.urlsplit(test_url)
+        self.assertEqual({}, result.params())
+
+        test_url = "http://localhost?"
+        result = netutils.urlsplit(test_url)
+        self.assertEqual({}, result.params())
+
     def test_set_tcp_keepalive(self):
         mock_sock = mock.Mock()
         netutils.set_tcp_keepalive(mock_sock, True, 100, 10, 5)
