@@ -77,7 +77,12 @@ def parse_host_port(address, default_port=None):
 
 
 def is_valid_ipv4(address):
-    """Verify that address represents a valid IPv4 address."""
+    """Verify that address represents a valid IPv4 address.
+
+    :param address: Value to verify
+    :type address: string
+    :returns: bool
+    """
     try:
         return netaddr.valid_ipv4(address)
     except Exception:
@@ -85,7 +90,12 @@ def is_valid_ipv4(address):
 
 
 def is_valid_ipv6(address):
-    """Verify that address represents a valid IPv6 address."""
+    """Verify that address represents a valid IPv6 address.
+
+    :param address: Value to verify
+    :type address: string
+    :returns: bool
+    """
     try:
         return netaddr.valid_ipv6(address)
     except Exception:
@@ -93,7 +103,12 @@ def is_valid_ipv6(address):
 
 
 def is_valid_ip(address):
-    """Verify that address represents a valid IP address."""
+    """Verify that address represents a valid IP address.
+
+    :param address: Value to verify
+    :type address: string
+    :returns: bool
+    """
     return is_valid_ipv4(address) or is_valid_ipv6(address)
 
 
