@@ -21,8 +21,10 @@ import logging
 import socket
 
 import netaddr
+import netifaces
 from six.moves.urllib import parse
 
+from oslo.utils._i18n import _LI
 from oslo.utils._i18n import _LW
 
 LOG = logging.getLogger(__name__)
@@ -110,6 +112,37 @@ def is_valid_ip(address):
     :returns: bool
     """
     return is_valid_ipv4(address) or is_valid_ipv6(address)
+
+
+def get_my_ipv4():
+    """Returns the actual ipv4 of the local machine.
+
+    This code figures out what source address would be used if some traffic
+    were to be sent out to some well known address on the Internet. In this
+    case, IP from RFC5737 is used, but the specific address does not
+    matter much. No traffic is actually sent.
+    """
+    try:
+        csock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        csock.connect(('192.0.2.0', 80))
+        (addr, port) = csock.getsockname()
+        csock.close()
+        return addr
+    except socket.error:
+        return _get_my_ipv4_address()
+
+
+def _get_my_ipv4_address():
+    """Figure out the best ipv4
+    """
+    LOCALHOST = '127.0.0.1'
+    gtw = netifaces.gateways()
+    try:
+        interface = gtw['default'][netifaces.AF_INET][1]
+        return netifaces.ifaddresses(interface)[netifaces.AF_INET][0]['addr']
+    except Exception:
+        LOG.info(_LI("Couldn't get IPv4"))
+    return LOCALHOST
 
 
 class _ModifiedSplitResult(parse.SplitResult):
