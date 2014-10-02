@@ -245,3 +245,16 @@ def mask_password(message, secret="***"):
         message = re.sub(pattern, substitute, message)
 
     return message
+
+
+def is_int_like(val):
+    """Check if a value looks like an integer with base 10.
+
+    :param val: Value to verify
+    :type val: string
+    :returns: bool
+    """
+    try:
+        return six.text_type(int(val)) == six.text_type(val)
+    except (TypeError, ValueError):
+        return False

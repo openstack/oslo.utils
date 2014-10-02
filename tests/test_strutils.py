@@ -550,3 +550,29 @@ class MaskPasswordTestCase(test_base.BaseTestCase):
         payload = "test = cmd --password my\xe9\x80\x80pass"
         expected = ("test = cmd --password ***")
         self.assertEqual(expected, strutils.mask_password(payload))
+
+
+class IsIntLikeTestCase(test_base.BaseTestCase):
+    def test_is_int_like_true(self):
+        self.assertTrue(strutils.is_int_like(1))
+        self.assertTrue(strutils.is_int_like("1"))
+        self.assertTrue(strutils.is_int_like("514"))
+        self.assertTrue(strutils.is_int_like("0"))
+
+    def test_is_int_like_false(self):
+        self.assertFalse(strutils.is_int_like(1.1))
+        self.assertFalse(strutils.is_int_like("1.1"))
+        self.assertFalse(strutils.is_int_like("1.1.1"))
+        self.assertFalse(strutils.is_int_like(None))
+        self.assertFalse(strutils.is_int_like("0."))
+        self.assertFalse(strutils.is_int_like("aaaaaa"))
+        self.assertFalse(strutils.is_int_like("...."))
+        self.assertFalse(strutils.is_int_like("1g"))
+        self.assertFalse(
+            strutils.is_int_like("0cc3346e-9fef-4445-abe6-5d2b2690ec64"))
+        self.assertFalse(strutils.is_int_like("a1"))
+        # NOTE(viktors): 12e3 - is a float number
+        self.assertFalse(strutils.is_int_like("12e3"))
+        # NOTE(viktors): Check integer numbers with base not 10
+        self.assertFalse(strutils.is_int_like("0o51"))
+        self.assertFalse(strutils.is_int_like("0xDEADBEEF"))
