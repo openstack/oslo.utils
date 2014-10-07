@@ -15,6 +15,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import mock
 from oslotest import base as test_base
 import six
 
@@ -46,21 +47,59 @@ class EncodeUtilsTest(test_base.BaseTestCase):
 
         self.assertEqual(six.u('foo'), safe_decode(b'foo'))
 
-    def test_safe_encode(self):
-        safe_encode = encodeutils.safe_encode
-        self.assertRaises(TypeError, safe_encode, True)
-        self.assertEqual(six.b("ni\xc3\xb1o"), safe_encode(six.u('ni\xf1o'),
-                                                           encoding="utf-8"))
+    def test_safe_encode_none_instead_of_text(self):
+        self.assertRaises(TypeError, encodeutils.safe_encode, None)
+
+    def test_safe_encode_bool_instead_of_text(self):
+        self.assertRaises(TypeError, encodeutils.safe_encode, True)
+
+    def test_safe_encode_int_instead_of_text(self):
+        self.assertRaises(TypeError, encodeutils.safe_encode, 1)
+
+    def test_safe_encode_list_instead_of_text(self):
+        self.assertRaises(TypeError, encodeutils.safe_encode, [])
+
+    def test_safe_encode_dict_instead_of_text(self):
+        self.assertRaises(TypeError, encodeutils.safe_encode, {})
+
+    def test_safe_encode_tuple_instead_of_text(self):
+        self.assertRaises(TypeError, encodeutils.safe_encode, ('foo', 'bar', ))
+
+    def test_safe_encode_py2(self):
         if six.PY2:
             # In Python 3, str.encode() doesn't support anymore
             # text => text encodings like base64
-            self.assertEqual(six.b("dGVzdA==\n"),
-                             safe_encode("test", encoding='base64'))
-        self.assertEqual(six.b('ni\xf1o'), safe_encode(six.b("ni\xc3\xb1o"),
-                                                       encoding="iso-8859-1",
-                                                       incoming="utf-8"))
+            self.assertEqual(
+                six.b("dGVzdA==\n"),
+                encodeutils.safe_encode("test", encoding='base64'),
+            )
+        else:
+            self.skipTest("Requires py2.x")
 
+    def test_safe_encode_force_incoming_utf8_to_ascii(self):
         # Forcing incoming to ascii so it falls back to utf-8
-        self.assertEqual(six.b('ni\xc3\xb1o'),
-                         safe_encode(six.b('ni\xc3\xb1o'), incoming='ascii'))
-        self.assertEqual(six.b('foo'), safe_encode(six.u('foo')))
+        self.assertEqual(
+            six.b('ni\xc3\xb1o'),
+            encodeutils.safe_encode(six.b('ni\xc3\xb1o'), incoming='ascii'),
+        )
+
+    def test_safe_encode_same_encoding_different_cases(self):
+        with mock.patch.object(encodeutils, 'safe_decode', mock.Mock()):
+            utf8 = encodeutils.safe_encode(
+                six.u('foo\xf1bar'), encoding='utf-8')
+            self.assertEqual(
+                encodeutils.safe_encode(utf8, 'UTF-8', 'utf-8'),
+                encodeutils.safe_encode(utf8, 'utf-8', 'UTF-8'),
+            )
+            self.assertEqual(
+                encodeutils.safe_encode(utf8, 'UTF-8', 'utf-8'),
+                encodeutils.safe_encode(utf8, 'utf-8', 'utf-8'),
+            )
+            encodeutils.safe_decode.assert_has_calls([])
+
+    def test_safe_encode_different_encodings(self):
+        text = six.u('foo\xc3\xb1bar')
+        result = encodeutils.safe_encode(
+            text=text, incoming='utf-8', encoding='iso-8859-1')
+        self.assertNotEqual(text, result)
+        self.assertNotEqual(six.b("foo\xf1bar"), result)
