@@ -296,6 +296,14 @@ class MaskPasswordTestCase(test_base.BaseTestCase):
         payload = """{ 'password' : 'mypassword' }"""
         expected = """{ 'password' : '***' }"""
         self.assertEqual(expected, strutils.mask_password(payload))
+        # Test 'auth_password' w/o spaces
+        payload = """{'auth_password':'mypassword'}"""
+        expected = """{'auth_password':'***'}"""
+        self.assertEqual(expected, strutils.mask_password(payload))
+        # Test 'auth_password' with spaces
+        payload = """{ 'auth_password' : 'mypassword' }"""
+        expected = """{ 'auth_password' : '***' }"""
+        self.assertEqual(expected, strutils.mask_password(payload))
 
     def test_xml(self):
         # Test 'adminPass' w/o spaces
