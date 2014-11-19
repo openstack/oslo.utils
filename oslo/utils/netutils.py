@@ -139,9 +139,19 @@ def _get_my_ipv4_address():
     gtw = netifaces.gateways()
     try:
         interface = gtw['default'][netifaces.AF_INET][1]
+    except (KeyError, IndexError):
+        LOG.info(_LI('Could not determine default network interface, '
+                     'using 127.0.0.1 for IPv4 address'))
+    try:
         return netifaces.ifaddresses(interface)[netifaces.AF_INET][0]['addr']
-    except Exception:
-        LOG.info(_LI("Couldn't get IPv4"))
+    except (KeyError, IndexError):
+        LOG.info(_LI('Could not determine IPv4 address for interface %s, '
+                     'using 127.0.0.1'),
+                 interface)
+    except Exception as e:
+        LOG.info(_LI('Could not determine IPv4 address for '
+                     'interface %(interface)s: %(error)s'),
+                 {'interface': interface, 'error': e})
     return LOCALHOST
 
 
