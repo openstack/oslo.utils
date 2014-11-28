@@ -18,16 +18,19 @@ Network-related utilities and helper functions.
 """
 
 import logging
+import os
 import socket
 
 import netaddr
 import netifaces
 from six.moves.urllib import parse
 
+from oslo_utils._i18n import _
 from oslo_utils._i18n import _LI
 from oslo_utils._i18n import _LW
 
 LOG = logging.getLogger(__name__)
+_IS_IPV6_ENABLED = None
 
 
 def parse_host_port(address, default_port=None):
@@ -102,6 +105,57 @@ def is_valid_ipv6(address):
         return netaddr.valid_ipv6(address)
     except Exception:
         return False
+
+
+def get_ipv6_addr_by_EUI64(prefix, mac):
+    """Calculate IPv6 address using EUI-64 specification.
+
+    This method calculates the IPv6 address using the EUI-64
+    addressing scheme as explained in rfc2373.
+
+    :param prefix: IPv6 prefix.
+    :param mac: IEEE 802 48-bit MAC address.
+    :returns: IPv6 address on success.
+    :raises ValueError, TypeError: For any invalid input.
+    """
+    # Check if the prefix is an IPv4 address
+    if netaddr.valid_ipv4(prefix):
+        msg = _("Unable to generate IP address by EUI64 for IPv4 prefix")
+        raise ValueError(msg)
+    try:
+        eui64 = int(netaddr.EUI(mac).eui64())
+        prefix = netaddr.IPNetwork(prefix)
+        return netaddr.IPAddress(prefix.first + eui64 ^ (1 << 57))
+    except (ValueError, netaddr.AddrFormatError):
+        raise ValueError(_('Bad prefix or mac format for generating IPv6 '
+                           'address by EUI-64: %(prefix)s, %(mac)s:')
+                         % {'prefix': prefix, 'mac': mac})
+    except TypeError:
+        raise TypeError(_('Bad prefix type for generating IPv6 address by '
+                          'EUI-64: %s') % prefix)
+
+
+def is_ipv6_enabled():
+    """Check if IPv6 support is enabled on the platform.
+
+    This api will look into the proc entries of the platform to figure
+    out the status of IPv6 support on the platform.
+
+    :returns: True if the platform has IPv6 support, False otherwise.
+
+    """
+
+    global _IS_IPV6_ENABLED
+
+    if _IS_IPV6_ENABLED is None:
+        disabled_ipv6_path = "/proc/sys/net/ipv6/conf/default/disable_ipv6"
+        if os.path.exists(disabled_ipv6_path):
+            with open(disabled_ipv6_path, 'r') as f:
+                disabled = f.read().strip()
+            _IS_IPV6_ENABLED = disabled == "0"
+        else:
+            _IS_IPV6_ENABLED = False
+    return _IS_IPV6_ENABLED
 
 
 def is_valid_ip(address):

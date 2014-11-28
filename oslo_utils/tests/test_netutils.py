@@ -231,3 +231,74 @@ class NetworkUtilsTest(test_base.BaseTestCase):
         addr = netutils._get_my_ipv4_address()
         self.assertEqual('127.0.0.1', addr)
         self.assertFalse(ifaddr.called)
+
+
+class IPv6byEUI64TestCase(test_base.BaseTestCase):
+    """Unit tests to generate IPv6 by EUI-64 operations."""
+
+    def test_generate_IPv6_by_EUI64(self):
+        addr = netutils.get_ipv6_addr_by_EUI64('2001:db8::',
+                                               '00:16:3e:33:44:55')
+        self.assertEqual('2001:db8::216:3eff:fe33:4455', addr.format())
+
+    def test_generate_IPv6_with_IPv4_prefix(self):
+        ipv4_prefix = '10.0.8'
+        mac = '00:16:3e:33:44:55'
+        self.assertRaises(ValueError, lambda:
+                          netutils.get_ipv6_addr_by_EUI64(ipv4_prefix, mac))
+
+    def test_generate_IPv6_with_bad_mac(self):
+        bad_mac = '00:16:3e:33:44:5Z'
+        prefix = '2001:db8::'
+        self.assertRaises(ValueError, lambda:
+                          netutils.get_ipv6_addr_by_EUI64(prefix, bad_mac))
+
+    def test_generate_IPv6_with_bad_prefix(self):
+        mac = '00:16:3e:33:44:55'
+        bad_prefix = 'bb'
+        self.assertRaises(ValueError, lambda:
+                          netutils.get_ipv6_addr_by_EUI64(bad_prefix, mac))
+
+    def test_generate_IPv6_with_error_prefix_type(self):
+        mac = '00:16:3e:33:44:55'
+        prefix = 123
+        self.assertRaises(TypeError, lambda:
+                          netutils.get_ipv6_addr_by_EUI64(prefix, mac))
+
+
+class TestIsIPv6Enabled(test_base.BaseTestCase):
+
+    def setUp(self):
+        super(TestIsIPv6Enabled, self).setUp()
+
+        def reset_detection_flag():
+            netutils._IS_IPV6_ENABLED = None
+        reset_detection_flag()
+        self.addCleanup(reset_detection_flag)
+        self.mock_exists = mock.patch("os.path.exists",
+                                      return_value=True).start()
+        mock_open = mock.patch("six.moves.builtins.open").start()
+        self.mock_read = mock_open.return_value.__enter__.return_value.read
+
+    def test_enabled(self):
+        self.mock_read.return_value = "0"
+        enabled = netutils.is_ipv6_enabled()
+        self.assertTrue(enabled)
+
+    def test_disabled(self):
+        self.mock_read.return_value = "1"
+        enabled = netutils.is_ipv6_enabled()
+        self.assertFalse(enabled)
+
+    def test_disabled_non_exists(self):
+        self.mock_exists.return_value = False
+        enabled = netutils.is_ipv6_enabled()
+        self.assertFalse(enabled)
+        self.assertFalse(self.mock_read.called)
+
+    def test_memoize(self):
+        self.mock_read.return_value = "0"
+        netutils.is_ipv6_enabled()
+        enabled = netutils.is_ipv6_enabled()
+        self.assertTrue(enabled)
+        self.mock_read.assert_called_once_with()
