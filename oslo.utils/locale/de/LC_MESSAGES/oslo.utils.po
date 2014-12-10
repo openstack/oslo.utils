@@ -1,0 +1,37 @@
+# German translations for oslo.utils.
+# Copyright (C) 2014 ORGANIZATION
+# This file is distributed under the same license as the oslo.utils project.
+#
+# Translators:
+# Andreas Jaeger <jaegerandi@gmail.com>, 2014
+# Ettore Atalan <atalanttore@googlemail.com>, 2014
+msgid ""
+msgstr ""
+"Project-Id-Version:  oslo.utils\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2014-12-10 06:12+0000\n"
+"PO-Revision-Date: 2014-12-07 06:42+0000\n"
+"Last-Translator: Andreas Jaeger <jaegerandi@gmail.com>\n"
+"Language-Team: German "
+"(http://www.transifex.com/projects/p/osloutils/language/de/)\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 1.3\n"
+
+#: oslo/utils/strutils.py:126
+#, python-format
+msgid "Unrecognized value '%(val)s', acceptable values are: %(acceptable)s"
+msgstr "Nicht erkannter Wert '%(val)s', zulässige Werte are: %(acceptable)s"
+
+#: oslo/utils/strutils.py:160
+#, python-format
+msgid "Invalid unit system: \"%s\""
+msgstr "Ungültiges Einheitensystem: \"%s\""
+
+#: oslo/utils/strutils.py:169
+#, python-format
+msgid "Invalid string format: %s"
+msgstr "Ungültiges Stringformat: %s"
+
