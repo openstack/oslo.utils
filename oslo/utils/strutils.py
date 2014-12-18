@@ -52,7 +52,7 @@ SLUGIFY_HYPHENATE_RE = re.compile(r"[-\s]+")
 
 # NOTE(flaper87): The following globals are used by `mask_password`
 _SANITIZE_KEYS = ['adminPass', 'admin_pass', 'password', 'admin_password',
-                  'auth_token', 'new_pass', 'auth_password']
+                  'auth_token', 'new_pass', 'auth_password', 'secret_uuid']
 
 # NOTE(ldbragst): Let's build a list of regex objects using the list of
 # _SANITIZE_KEYS we already have. This way, we only have to add the new key
