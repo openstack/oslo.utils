@@ -114,6 +114,16 @@ def is_valid_ip(address):
     return is_valid_ipv4(address) or is_valid_ipv6(address)
 
 
+def is_valid_port(port):
+    """Verify that port represents a valid port number."""
+    try:
+        val = int(port)
+    except (ValueError, TypeError):
+        return False
+
+    return (val > 0 and val <= 65535)
+
+
 def get_my_ipv4():
     """Returns the actual ipv4 of the local machine.
 

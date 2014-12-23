@@ -178,6 +178,18 @@ class NetworkUtilsTest(test_base.BaseTestCase):
 
         self.assertFalse(netutils.is_valid_ip(''))
 
+    def test_valid_port(self):
+        valid_inputs = [1, '1', 2, '3', '5', 8, 13, 21,
+                        '80', '3246', '65535']
+        for input_str in valid_inputs:
+            self.assertTrue(netutils.is_valid_port(input_str))
+
+    def test_valid_port_fail(self):
+        invalid_inputs = ['-32768', '0', 0, '65536', 528491, '528491',
+                          '528.491', 'thirty-seven', None]
+        for input_str in invalid_inputs:
+            self.assertFalse(netutils.is_valid_port(input_str))
+
     def test_get_my_ip(self):
         sock_attrs = {
             'return_value.getsockname.return_value': ['1.2.3.4', '']}
