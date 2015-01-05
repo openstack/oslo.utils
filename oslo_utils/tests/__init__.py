@@ -11,18 +11,3 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
-
-"""
-test_utils
-----------------------------------
-
-Tests for `utils` module.
-"""
-
-from . import base
-
-
-class TestUtils(base.TestCase):
-
-    def test_something(self):
-        pass

@@ -2,5 +2,5 @@
  units
 =======
 
-.. automodule:: oslo.utils.units
+.. automodule:: oslo_utils.units
    :members:

@@ -18,7 +18,7 @@ import sys
 
 from oslotest import base as test_base
 
-from oslo.utils import importutils
+from oslo_utils import importutils
 
 
 class ImportUtilsTest(test_base.BaseTestCase):

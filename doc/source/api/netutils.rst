@@ -2,5 +2,5 @@
  netutils
 ==========
 
-.. automodule:: oslo.utils.netutils
+.. automodule:: oslo_utils.netutils
    :members:

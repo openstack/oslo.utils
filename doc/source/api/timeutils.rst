@@ -2,5 +2,5 @@
  timeutils
 ===========
 
-.. automodule:: oslo.utils.timeutils
+.. automodule:: oslo_utils.timeutils
    :members:

@@ -2,5 +2,5 @@
  importutils
 =============
 
-.. automodule:: oslo.utils.importutils
+.. automodule:: oslo_utils.importutils
    :members:

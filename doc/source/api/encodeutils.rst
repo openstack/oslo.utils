@@ -2,5 +2,5 @@
  encodeutils
 =============
 
-.. automodule:: oslo.utils.encodeutils
+.. automodule:: oslo_utils.encodeutils
    :members:

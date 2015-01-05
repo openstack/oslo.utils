@@ -2,5 +2,5 @@
  excutils
 ==========
 
-.. automodule:: oslo.utils.excutils
+.. automodule:: oslo_utils.excutils
    :members:

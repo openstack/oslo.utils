@@ -16,9 +16,11 @@
 import socket
 
 import mock
+from mock import patch
+import netifaces
 from oslotest import base as test_base
 
-from oslo.utils import netutils
+from oslo_utils import netutils
 
 
 class NetworkUtilsTest(test_base.BaseTestCase):
@@ -202,3 +204,21 @@ class NetworkUtilsTest(test_base.BaseTestCase):
         ip.return_value = '1.2.3.4'
         addr = netutils.get_my_ipv4()
         self.assertEqual(addr, '1.2.3.4')
+
+    @mock.patch('netifaces.gateways')
+    @mock.patch('netifaces.ifaddresses')
+    def test_get_my_ipv4_address_with_default_route(
+            self, ifaddr, gateways):
+        with patch.dict(netifaces.__dict__, {'AF_INET': '0'}):
+            ifaddr.return_value = {'0': [{'addr': '172.18.204.1'}]}
+            addr = netutils._get_my_ipv4_address()
+        self.assertEqual('172.18.204.1', addr)
+
+    @mock.patch('netifaces.gateways')
+    @mock.patch('netifaces.ifaddresses')
+    def test_get_my_ipv4_address_without_default_route(
+            self, ifaddr, gateways):
+        with patch.dict(netifaces.__dict__, {'AF_INET': '0'}):
+            ifaddr.return_value = {}
+            addr = netutils._get_my_ipv4_address()
+        self.assertEqual('127.0.0.1', addr)
