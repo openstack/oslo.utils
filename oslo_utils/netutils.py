@@ -152,6 +152,8 @@ def _get_my_ipv4_address():
     except (KeyError, IndexError):
         LOG.info(_LI('Could not determine default network interface, '
                      'using 127.0.0.1 for IPv4 address'))
+        return LOCALHOST
+
     try:
         return netifaces.ifaddresses(interface)[netifaces.AF_INET][0]['addr']
     except (KeyError, IndexError):

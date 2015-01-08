@@ -222,3 +222,12 @@ class NetworkUtilsTest(test_base.BaseTestCase):
             ifaddr.return_value = {}
             addr = netutils._get_my_ipv4_address()
         self.assertEqual('127.0.0.1', addr)
+
+    @mock.patch('netifaces.gateways')
+    @mock.patch('netifaces.ifaddresses')
+    def test_get_my_ipv4_address_without_default_interface(
+            self, ifaddr, gateways):
+        gateways.return_value = {}
+        addr = netutils._get_my_ipv4_address()
+        self.assertEqual('127.0.0.1', addr)
+        self.assertFalse(ifaddr.called)
