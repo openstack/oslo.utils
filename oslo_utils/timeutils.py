@@ -130,9 +130,9 @@ def utcnow():
     return datetime.datetime.utcnow()
 
 
-def iso8601_from_timestamp(timestamp):
+def iso8601_from_timestamp(timestamp, microsecond=False):
     """Returns an iso8601 formatted date from timestamp."""
-    return isotime(datetime.datetime.utcfromtimestamp(timestamp))
+    return isotime(datetime.datetime.utcfromtimestamp(timestamp), microsecond)
 
 
 utcnow.override_time = None

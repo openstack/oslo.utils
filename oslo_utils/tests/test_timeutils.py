@@ -203,6 +203,12 @@ class TimeUtilsTest(test_base.BaseTestCase):
         ts = calendar.timegm(utcnow.timetuple())
         self.assertEqual(iso, timeutils.iso8601_from_timestamp(ts))
 
+    def test_iso8601_from_timestamp_ms(self):
+        ts = timeutils.utcnow_ts(microsecond=True)
+        utcnow = datetime.datetime.utcfromtimestamp(ts)
+        iso = timeutils.isotime(utcnow, subsecond=True)
+        self.assertEqual(iso, timeutils.iso8601_from_timestamp(ts, True))
+
     def test_is_soon(self):
         expires = timeutils.utcnow() + datetime.timedelta(minutes=5)
         self.assertFalse(timeutils.is_soon(expires, 120))
