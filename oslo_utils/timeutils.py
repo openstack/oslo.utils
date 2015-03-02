@@ -31,6 +31,8 @@ _ISO8601_TIME_FORMAT_SUBSECOND = '%Y-%m-%dT%H:%M:%S.%f'
 _ISO8601_TIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
 PERFECT_TIME_FORMAT = _ISO8601_TIME_FORMAT_SUBSECOND
 
+_MAX_DATETIME_SEC = 59
+
 # Use monotonic time in stopwatches if we can get at it...
 #
 # PEP @ https://www.python.org/dev/peps/pep-0418/
@@ -211,12 +213,17 @@ def marshall_now(now=None):
 
 def unmarshall_time(tyme):
     """Unmarshall a datetime dict."""
+
+    # NOTE(ihrachys): datetime does not support leap seconds,
+    # so the best thing we can do for now is dropping them
+    # http://bugs.python.org/issue23574
+    second = min(tyme['second'], _MAX_DATETIME_SEC)
     return datetime.datetime(day=tyme['day'],
                              month=tyme['month'],
                              year=tyme['year'],
                              hour=tyme['hour'],
                              minute=tyme['minute'],
-                             second=tyme['second'],
+                             second=second,
                              microsecond=tyme['microsecond'])
 
 
