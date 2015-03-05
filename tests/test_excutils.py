@@ -41,21 +41,21 @@ class SaveAndReraiseTest(test_base.BaseTestCase):
 
         self.assertEqual(str(e), msg)
 
-    def test_save_and_reraise_exception_dropped(self):
+    @mock.patch('logging.getLogger')
+    def test_save_and_reraise_exception_dropped(self, get_logger_mock):
+        logger = get_logger_mock()
         e = None
         msg = 'second exception'
-        with mock.patch('logging.error') as log:
+        try:
             try:
-                try:
-                    raise Exception('dropped')
-                except Exception:
-                    with excutils.save_and_reraise_exception():
-                        raise Exception(msg)
-            except Exception as _e:
-                e = _e
-
-            self.assertEqual(str(e), msg)
-            self.assertTrue(log.called)
+                raise Exception('dropped')
+            except Exception:
+                with excutils.save_and_reraise_exception():
+                    raise Exception(msg)
+        except Exception as _e:
+            e = _e
+        self.assertEqual(str(e), msg)
+        self.assertTrue(logger.error.called)
 
     def test_save_and_reraise_exception_no_reraise(self):
         """Test that suppressing the reraise works."""
@@ -65,21 +65,22 @@ class SaveAndReraiseTest(test_base.BaseTestCase):
             with excutils.save_and_reraise_exception() as ctxt:
                 ctxt.reraise = False
 
-    def test_save_and_reraise_exception_dropped_no_reraise(self):
+    @mock.patch('logging.getLogger')
+    def test_save_and_reraise_exception_dropped_no_reraise(self,
+                                                           get_logger_mock):
+        logger = get_logger_mock()
         e = None
         msg = 'second exception'
-        with mock.patch('logging.error') as log:
+        try:
             try:
-                try:
-                    raise Exception('dropped')
-                except Exception:
-                    with excutils.save_and_reraise_exception(reraise=False):
-                        raise Exception(msg)
-            except Exception as _e:
-                e = _e
-
-            self.assertEqual(str(e), msg)
-            self.assertFalse(log.called)
+                raise Exception('dropped')
+            except Exception:
+                with excutils.save_and_reraise_exception(reraise=False):
+                    raise Exception(msg)
+        except Exception as _e:
+            e = _e
+        self.assertEqual(str(e), msg)
+        self.assertFalse(logger.error.called)
 
 
 class ForeverRetryUncaughtExceptionsTest(test_base.BaseTestCase):

@@ -63,8 +63,11 @@ class save_and_reraise_exception(object):
               # Not raising a new exception, so reraise
               ctxt.reraise = True
     """
-    def __init__(self, reraise=True):
+    def __init__(self, reraise=True, logger=None):
         self.reraise = reraise
+        if logger is None:
+            logger = logging.getLogger()
+        self.logger = logger
 
     def __enter__(self):
         self.type_, self.value, self.tb, = sys.exc_info()
@@ -73,10 +76,10 @@ class save_and_reraise_exception(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         if exc_type is not None:
             if self.reraise:
-                logging.error(_LE('Original exception being dropped: %s'),
-                              traceback.format_exception(self.type_,
-                                                         self.value,
-                                                         self.tb))
+                self.logger.error(_LE('Original exception being dropped: %s'),
+                                  traceback.format_exception(self.type_,
+                                                             self.value,
+                                                             self.tb))
             return False
         if self.reraise:
             six.reraise(self.type_, self.value, self.tb)
