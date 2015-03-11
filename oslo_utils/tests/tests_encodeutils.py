@@ -18,6 +18,7 @@
 import mock
 from oslotest import base as test_base
 import six
+import testtools
 
 from oslo_utils import encodeutils
 
@@ -103,3 +104,130 @@ class EncodeUtilsTest(test_base.BaseTestCase):
             text=text, incoming='utf-8', encoding='iso-8859-1')
         self.assertNotEqual(text, result)
         self.assertNotEqual(six.b("foo\xf1bar"), result)
+
+
+class ExceptionToUnicodeTest(test_base.BaseTestCase):
+
+    def test_str_exception(self):
+        # The regular Exception class cannot be used directly:
+        # Exception(u'\xe9').__str__() raises an UnicodeEncodeError
+        # on Python 2
+        class StrException(Exception):
+            def __init__(self, value):
+                Exception.__init__(self)
+                self.value = value
+
+            def __str__(self):
+                return self.value
+
+        # On Python 3, an exception which returns bytes with is __str__()
+        # method (like StrException(bytes)) is probably a bug, but it was not
+        # harder to support this silly case in exception_to_unicode().
+
+        # Decode from ASCII
+        exc = StrException(b'bytes ascii')
+        self.assertEqual(encodeutils.exception_to_unicode(exc),
+                         u'bytes ascii')
+
+        # Decode from UTF-8
+        exc = StrException(b'utf-8 \xc3\xa9\xe2\x82\xac')
+        self.assertEqual(encodeutils.exception_to_unicode(exc),
+                         u'utf-8 \xe9\u20ac')
+
+        # Force the locale encoding to ASCII to test the fallback
+        with mock.patch('sys.getfilesystemencoding', return_value='ascii'):
+            # Fallback: decode from ISO-8859-1
+            exc = StrException(b'rawbytes \x80\xff')
+            self.assertEqual(encodeutils.exception_to_unicode(exc),
+                             u'rawbytes \x80\xff')
+
+        # No conversion needed
+        exc = StrException(u'unicode ascii')
+        self.assertEqual(encodeutils.exception_to_unicode(exc),
+                         u'unicode ascii')
+
+        # No conversion needed
+        exc = StrException(u'unicode \xe9\u20ac')
+        self.assertEqual(encodeutils.exception_to_unicode(exc),
+                         u'unicode \xe9\u20ac')
+
+        # Test the locale encoding
+        with mock.patch('sys.getfilesystemencoding', return_value='koi8_r'):
+            exc = StrException(b'\xf2\xd5\xd3\xd3\xcb\xc9\xca')
+            # Decode from the locale encoding
+            # (the message cannot be decoded from ASCII nor UTF-8)
+            self.assertEqual(encodeutils.exception_to_unicode(exc),
+                             u'\u0420\u0443\u0441\u0441\u043a\u0438\u0439')
+
+    @testtools.skipIf(six.PY3, 'test specific to Python 2')
+    def test_unicode_exception(self):
+        # Exception with a __unicode__() method, but no __str__()
+        class UnicodeException(Exception):
+            def __init__(self, value):
+                Exception.__init__(self)
+                self.value = value
+
+            def __unicode__(self):
+                return self.value
+
+        # __unicode__() returns unicode
+        exc = UnicodeException(u'unicode \xe9\u20ac')
+        self.assertEqual(encodeutils.exception_to_unicode(exc),
+                         u'unicode \xe9\u20ac')
+
+        # __unicode__() returns bytes (does this case really happen in the
+        # wild?)
+        exc = UnicodeException(b'utf-8 \xc3\xa9\xe2\x82\xac')
+        self.assertEqual(encodeutils.exception_to_unicode(exc),
+                         u'utf-8 \xe9\u20ac')
+
+    @testtools.skipIf(six.PY3, 'test specific to Python 2')
+    def test_unicode_or_str_exception(self):
+        # Exception with __str__() and __unicode__() methods
+        class UnicodeOrStrException(Exception):
+            def __init__(self, unicode_value, str_value):
+                Exception.__init__(self)
+                self.unicode_value = unicode_value
+                self.str_value = str_value
+
+            def __unicode__(self):
+                return self.unicode_value
+
+            def __str__(self):
+                return self.str_value
+
+        # __unicode__() returns unicode
+        exc = UnicodeOrStrException(u'unicode \xe9\u20ac', b'str')
+        self.assertEqual(encodeutils.exception_to_unicode(exc),
+                         u'unicode \xe9\u20ac')
+
+        # __unicode__() returns bytes (does this case really happen in the
+        # wild?)
+        exc = UnicodeOrStrException(b'utf-8 \xc3\xa9\xe2\x82\xac', b'str')
+        self.assertEqual(encodeutils.exception_to_unicode(exc),
+                         u'utf-8 \xe9\u20ac')
+
+    @testtools.skipIf(six.PY3, 'test specific to Python 2')
+    def test_unicode_only_exception(self):
+        # Exception with a __unicode__() method and a __str__() which
+        # raises an exception (similar to the Message class of oslo_i18n)
+        class UnicodeOnlyException(Exception):
+            def __init__(self, value):
+                Exception.__init__(self)
+                self.value = value
+
+            def __unicode__(self):
+                return self.value
+
+            def __str__(self):
+                raise UnicodeError("use unicode()")
+
+        # __unicode__() returns unicode
+        exc = UnicodeOnlyException(u'unicode \xe9\u20ac')
+        self.assertEqual(encodeutils.exception_to_unicode(exc),
+                         u'unicode \xe9\u20ac')
+
+        # __unicode__() returns bytes
+        exc = UnicodeOnlyException(b'utf-8 \xc3\xa9\xe2\x82\xac')
+        self.assertEqual(encodeutils.exception_to_unicode(exc),
+                         u'utf-8 \xe9\u20ac')
