@@ -14,6 +14,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import threading
 import warnings
 
 from oslo_utils import importutils
@@ -31,6 +32,23 @@ EVENTLET_AVAILABLE = all((_eventlet, _patcher))
 # for some reason...)
 _ALL_PATCH = frozenset(['__builtin__', 'MySQLdb', 'os',
                         'psycopg', 'select', 'socket', 'thread', 'time'])
+
+
+def fetch_current_thread_functor():
+    # Until https://github.com/eventlet/eventlet/issues/172 is resolved
+    # or addressed we have to use complicated workaround to get a object
+    # that will not be recycled; the usage of threading.current_thread()
+    # doesn't appear to currently be monkey patched and therefore isn't
+    # reliable to use (and breaks badly when used as all threads share
+    # the same current_thread() object)...
+    if not EVENTLET_AVAILABLE:
+        return threading.current_thread
+    else:
+        green_threaded = _patcher.is_monkey_patched('thread')
+        if green_threaded:
+            return _eventlet.getcurrent
+        else:
+            return threading.current_thread
 
 
 def warn_eventlet_not_patched(expected_patched_modules=None,
