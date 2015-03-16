@@ -1,5 +1,5 @@
 # English (United Kingdom) translations for oslo.utils.
-# Copyright (C) 2014 ORGANIZATION
+# Copyright (C) 2015 ORGANIZATION
 # This file is distributed under the same license as the oslo.utils project.
 #
 # Translators:
@@ -8,9 +8,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  oslo.utils\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2014-09-07 06:11+0000\n"
-"PO-Revision-Date: 2014-09-02 09:08+0000\n"
-"Last-Translator: Andi Chandler <andi@gowling.com>\n"
+"POT-Creation-Date: 2015-03-16 06:11+0000\n"
+"PO-Revision-Date: 2015-03-02 07:27+0000\n"
+"Last-Translator: openstackjenkins <jenkins@openstack.org>\n"
 "Language-Team: English (United Kingdom) "
 "(http://www.transifex.com/projects/p/osloutils/language/en_GB/)\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
@@ -19,17 +19,33 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 1.3\n"
 
-#: oslo/utils/strutils.py:125
+#: oslo_utils/netutils.py:123
+msgid "Unable to generate IP address by EUI64 for IPv4 prefix"
+msgstr ""
+
+#: oslo_utils/netutils.py:130
+#, python-format
+msgid ""
+"Bad prefix or mac format for generating IPv6 address by EUI-64: "
+"%(prefix)s, %(mac)s:"
+msgstr ""
+
+#: oslo_utils/netutils.py:134
+#, python-format
+msgid "Bad prefix type for generating IPv6 address by EUI-64: %s"
+msgstr ""
+
+#: oslo_utils/strutils.py:133
 #, python-format
 msgid "Unrecognized value '%(val)s', acceptable values are: %(acceptable)s"
 msgstr "Unrecognised value '%(val)s', acceptable values are: %(acceptable)s"
 
-#: oslo/utils/strutils.py:159
+#: oslo_utils/strutils.py:167
 #, python-format
 msgid "Invalid unit system: \"%s\""
 msgstr "Invalid unit system: \"%s\""
 
-#: oslo/utils/strutils.py:168
+#: oslo_utils/strutils.py:176
 #, python-format
 msgid "Invalid string format: %s"
 msgstr "Invalid string format: %s"
