@@ -275,9 +275,14 @@ class TestIsIPv6Enabled(test_base.BaseTestCase):
             netutils._IS_IPV6_ENABLED = None
         reset_detection_flag()
         self.addCleanup(reset_detection_flag)
-        self.mock_exists = mock.patch("os.path.exists",
-                                      return_value=True).start()
-        mock_open = mock.patch("six.moves.builtins.open").start()
+
+        patch_exists = mock.patch("os.path.exists", return_value=True)
+        self.addCleanup(patch_exists.stop)
+        self.mock_exists = patch_exists.start()
+
+        patch_open = mock.patch("six.moves.builtins.open")
+        self.addCleanup(patch_open.stop)
+        mock_open = patch_open.start()
         self.mock_read = mock_open.return_value.__enter__.return_value.read
 
     def test_enabled(self):
