@@ -13,12 +13,14 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import contextlib
 import socket
 
 import mock
 from mock import patch
 import netifaces
 from oslotest import base as test_base
+import six
 
 from oslo_utils import netutils
 
@@ -266,6 +268,12 @@ class IPv6byEUI64TestCase(test_base.BaseTestCase):
                           netutils.get_ipv6_addr_by_EUI64(prefix, mac))
 
 
+@contextlib.contextmanager
+def mock_file_content(content):
+    # Allows StringIO to act like a context manager-enabled file.
+    yield six.StringIO(content)
+
+
 class TestIsIPv6Enabled(test_base.BaseTestCase):
 
     def setUp(self):
@@ -276,34 +284,62 @@ class TestIsIPv6Enabled(test_base.BaseTestCase):
         reset_detection_flag()
         self.addCleanup(reset_detection_flag)
 
-        patch_exists = mock.patch("os.path.exists", return_value=True)
-        self.addCleanup(patch_exists.stop)
-        self.mock_exists = patch_exists.start()
-
-        patch_open = mock.patch("six.moves.builtins.open")
-        self.addCleanup(patch_open.stop)
-        mock_open = patch_open.start()
-        self.mock_read = mock_open.return_value.__enter__.return_value.read
-
-    def test_enabled(self):
-        self.mock_read.return_value = "0"
+    @mock.patch('os.path.exists', return_value=True)
+    @mock.patch('six.moves.builtins.open', return_value=mock_file_content('0'))
+    def test_enabled(self, mock_open, exists):
         enabled = netutils.is_ipv6_enabled()
         self.assertTrue(enabled)
 
-    def test_disabled(self):
-        self.mock_read.return_value = "1"
+    @mock.patch('os.path.exists', return_value=True)
+    @mock.patch('six.moves.builtins.open', return_value=mock_file_content('1'))
+    def test_disabled(self, mock_open, exists):
         enabled = netutils.is_ipv6_enabled()
         self.assertFalse(enabled)
 
-    def test_disabled_non_exists(self):
-        self.mock_exists.return_value = False
+    @mock.patch('os.path.exists', return_value=False)
+    @mock.patch('six.moves.builtins.open',
+                side_effect=AssertionError('should not read'))
+    def test_disabled_non_exists(self, mock_open, exists):
         enabled = netutils.is_ipv6_enabled()
         self.assertFalse(enabled)
-        self.assertFalse(self.mock_read.called)
 
-    def test_memoize(self):
-        self.mock_read.return_value = "0"
-        netutils.is_ipv6_enabled()
+    @mock.patch('os.path.exists', return_value=True)
+    def test_memoize_enabled(self, exists):
+        # Reset the flag to appear that we haven't looked for it yet.
+        netutils._IS_IPV6_ENABLED = None
+        with mock.patch('six.moves.builtins.open',
+                        return_value=mock_file_content('0')) as mock_open:
+            enabled = netutils.is_ipv6_enabled()
+            self.assertTrue(mock_open.called)
+            self.assertTrue(netutils._IS_IPV6_ENABLED)
+            self.assertTrue(enabled)
+        # The second call should not use open again
+        with mock.patch('six.moves.builtins.open',
+                        side_effect=AssertionError('should not be called')):
+            enabled = netutils.is_ipv6_enabled()
+            self.assertTrue(enabled)
+
+    @mock.patch('os.path.exists', return_value=True)
+    def test_memoize_disabled(self, exists):
+        # Reset the flag to appear that we haven't looked for it yet.
+        netutils._IS_IPV6_ENABLED = None
+        with mock.patch('six.moves.builtins.open',
+                        return_value=mock_file_content('1')):
+            enabled = netutils.is_ipv6_enabled()
+            self.assertFalse(enabled)
+        # The second call should not use open again
+        with mock.patch('six.moves.builtins.open',
+                        side_effect=AssertionError('should not be called')):
+            enabled = netutils.is_ipv6_enabled()
+            self.assertFalse(enabled)
+
+    @mock.patch('os.path.exists', return_value=False)
+    @mock.patch('six.moves.builtins.open',
+                side_effect=AssertionError('should not read'))
+    def test_memoize_not_exists(self, mock_open, exists):
+        # Reset the flag to appear that we haven't looked for it yet.
+        netutils._IS_IPV6_ENABLED = None
         enabled = netutils.is_ipv6_enabled()
-        self.assertTrue(enabled)
-        self.mock_read.assert_called_once_with()
+        self.assertFalse(enabled)
+        enabled = netutils.is_ipv6_enabled()
+        self.assertFalse(enabled)
