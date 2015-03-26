@@ -1,17 +1,17 @@
 # Translations template for oslo.utils.
-# Copyright (C) 2014 ORGANIZATION
+# Copyright (C) 2015 ORGANIZATION
 # This file is distributed under the same license as the oslo.utils project.
 #
 # Translators:
-# Corina Roe, 2014
+# Corina Roe <croe@redhat.com>, 2014
 # Jonathan Dupart <jonathan+transifex@dupart.org>, 2014
 msgid ""
 msgstr ""
 "Project-Id-Version: oslo.utils\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2014-10-08 06:11+0000\n"
+"POT-Creation-Date: 2015-03-26 06:12+0000\n"
 "PO-Revision-Date: 2014-10-08 05:32+0000\n"
-"Last-Translator: Corina Roe\n"
+"Last-Translator: Corina Roe <croe@redhat.com>\n"
 "Language-Team: French (http://www.transifex.com/projects/p/osloutils/"
 "language/fr/)\n"
 "Language: fr\n"
@@ -21,12 +21,12 @@ msgstr ""
 "Generated-By: Babel 1.3\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: oslo/utils/excutils.py:76
+#: oslo_utils/excutils.py:79
 #, python-format
 msgid "Original exception being dropped: %s"
 msgstr "Exception d'origine abandonnée : %s"
 
-#: oslo/utils/excutils.py:105
+#: oslo_utils/excutils.py:108
 #, python-format
 msgid "Unexpected exception occurred %d time(s)... retrying."
 msgstr "Une exception inattendue s'est produite %d foi(s) ... nouvel essai."
