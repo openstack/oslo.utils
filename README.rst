@@ -1,8 +1,9 @@
-===================================
+==========
 oslo.utils
-===================================
+==========
 
-oslo.utils library
+The Oslo Utils library provides support for common utility type functions,
+such as encoding, exception handling, string manipulation, and time handling.
 
 * Free software: Apache license
 * Documentation: http://docs.openstack.org/developer/oslo.utils
