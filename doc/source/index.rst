@@ -1,17 +1,33 @@
+======================================
 Welcome to oslo.utils's documentation!
 ======================================
 
-Contents:
+The `oslo`_ utils library provides support for common utility type functions,
+such as encoding, exception handling, string manipulation, and time handling.
+
+.. toctree::
+   :maxdepth: 1
+
+   installation
+   usage
+   contributing
+   history
+
+API Documentation
+=================
 
 .. toctree::
    :maxdepth: 2
 
-   readme
-   installation
-   usage
-   api/index
-   contributing
-   history
+   api/encodeutils
+   api/eventletutils
+   api/excutils
+   api/fixture
+   api/importutils
+   api/netutils
+   api/strutils
+   api/timeutils
+   api/units
 
 Indices and tables
 ==================
@@ -19,3 +35,5 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+.. _oslo: https://wiki.openstack.org/wiki/Oslo
