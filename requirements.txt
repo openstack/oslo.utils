@@ -2,6 +2,11 @@
 # of appearance. Changing the order has an impact on the overall integration
 # process, which may cause wedges in the gate later.
 
+# NOTE(dhellmann): Because oslo.utils is used by the client libraries,
+# we do not want to add a lot of dependencies to it. If you find that
+# adding a new feature to oslo.utils means adding a new dependency,
+# that is a likely indicator that the feature belongs somewhere else.
+
 pbr>=0.6,!=0.7,<1.0
 Babel>=1.3
 six>=1.9.0
