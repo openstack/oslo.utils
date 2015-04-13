@@ -21,6 +21,10 @@ import uuid
 
 
 def generate_uuid():
+    """Creates a random uuid string.
+
+    :returns: string
+    """
     return str(uuid.uuid4())
 
 

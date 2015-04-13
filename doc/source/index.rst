@@ -25,9 +25,11 @@ API Documentation
    api/fixture
    api/importutils
    api/netutils
+   api/reflection
    api/strutils
    api/timeutils
    api/units
+   api/uuidutils
 
 Indices and tables
 ==================
