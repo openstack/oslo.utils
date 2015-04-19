@@ -299,6 +299,12 @@ class StopWatch(object):
     the same time). Thread-safe when used by a single thread (not shared) or
     when operations are performed in a thread-safe manner on these objects by
     wrapping those operations with locks.
+
+    It will try to use ``time.monotonic`` and then attempt to use the
+    `monotonic`_ pypi library and then fallback to using the non-monotonic
+    ``time.time``.
+
+    .. _monotonic: https://pypi.python.org/pypi/monotonic/
     """
     _STARTED = 'STARTED'
     _STOPPED = 'STOPPED'
