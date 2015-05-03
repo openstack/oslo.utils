@@ -20,14 +20,11 @@ msgstr ""
 "Generated-By: Babel 1.3\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: oslo/utils/netutils.py:204
 msgid "tcp_keepidle not available on your system"
 msgstr "tcp_keepidle non disponible sur votre système"
 
-#: oslo/utils/netutils.py:211
 msgid "tcp_keepintvl not available on your system"
 msgstr "tcp_keepintv non disponible sur votre système"
 
-#: oslo/utils/netutils.py:218
 msgid "tcp_keepcnt not available on your system"
 msgstr "tcp_keepcnt non disponible sur votre système"

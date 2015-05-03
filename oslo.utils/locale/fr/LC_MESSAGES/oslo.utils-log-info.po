@@ -20,7 +20,6 @@ msgstr ""
 "Generated-By: Babel 1.3\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: oslo_utils/netutils.py:207
 msgid ""
 "Could not determine default network interface, using 127.0.0.1 for IPv4 "
 "address"
@@ -28,14 +27,12 @@ msgstr ""
 "Impossible de déterminer l'interface de réseau par défaut, utilisé pour "
 "l'adresse IPv4 127.0.0.1"
 
-#: oslo_utils/netutils.py:214
 #, python-format
 msgid "Could not determine IPv4 address for interface %s, using 127.0.0.1"
 msgstr ""
 "Impossible de déterminer l'adresse IPv4 utilisé par l'interface %s pour "
 "l'adresse 127.0.0.1"
 
-#: oslo_utils/netutils.py:218
 #, python-format
 msgid "Could not determine IPv4 address for interface %(interface)s: %(error)s"
 msgstr ""

@@ -20,12 +20,10 @@ msgstr ""
 "Generated-By: Babel 1.3\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: oslo/utils/excutils.py:76
 #, python-format
 msgid "Original exception being dropped: %s"
 msgstr "Original exception being dropped: %s"
 
-#: oslo/utils/excutils.py:105
 #, python-format
 msgid "Unexpected exception occurred %d time(s)... retrying."
 msgstr "Unexpected exception occurred %d time(s)... retrying."
