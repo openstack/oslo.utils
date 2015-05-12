@@ -191,6 +191,16 @@ class TimeUtilsTest(test_base.BaseTestCase):
         backagain = timeutils.unmarshall_time(binary)
         self.assertEqual(now, backagain)
 
+    def test_marshall_time_with_tz(self):
+        now = timeutils.utcnow()
+        now = now.replace(tzinfo=iso8601.iso8601.UTC)
+        binary = timeutils.marshall_now(now)
+        self.assertEqual("UTC", binary['tzname'])
+        backagain = timeutils.unmarshall_time(binary)
+        self.assertEqual(now, backagain)
+        self.assertIsNotNone(backagain.tzinfo)
+        self.assertEqual(now.utcoffset(), backagain.utcoffset())
+
     def test_unmarshall_time_leap_second(self):
         leap_dict = dict(day=30, month=6, year=2015,
                          hour=23, minute=59,
