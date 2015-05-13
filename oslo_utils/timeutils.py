@@ -143,8 +143,8 @@ def utcnow_ts(microsecond=False):
     return timestamp
 
 
-def utcnow():
-    """Overridable version of utils.utcnow.
+def utcnow(with_timezone=False):
+    """Overridable version of utils.utcnow that can return a TZ-aware datetime.
 
     See :py:class:`oslo_utils.fixture.TimeFixture`.
 
@@ -154,6 +154,8 @@ def utcnow():
             return utcnow.override_time.pop(0)
         except AttributeError:
             return utcnow.override_time
+    if with_timezone:
+        return datetime.datetime.now(tz=iso8601.iso8601.UTC)
     return datetime.datetime.utcnow()
 
 

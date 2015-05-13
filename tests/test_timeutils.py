@@ -185,6 +185,9 @@ class TimeUtilsTest(test_base.BaseTestCase):
 
         self.assertTrue(timeutils.utcnow())
 
+        self.assertEqual(timeutils.utcnow(True).tzinfo,
+                         iso8601.iso8601.UTC)
+
     def test_advance_time_delta(self):
         timeutils.set_time_override(self.one_minute_before)
         timeutils.advance_time_delta(datetime.timedelta(seconds=60))
