@@ -21,6 +21,7 @@ import calendar
 import datetime
 import time
 
+from debtcollector import removals
 import iso8601
 import six
 
@@ -47,8 +48,17 @@ except AttributeError:
         now = time.time
 
 
+@removals.remove(
+    message="use datetime.datetime.isoformat()",
+    version="1.6",
+    removal_version="?",
+    )
 def isotime(at=None, subsecond=False):
-    """Stringify time in ISO 8601 format."""
+    """Stringify time in ISO 8601 format.
+
+    .. deprecated:: > 1.5.0
+       Use :func:`utcnow` and :func:`datetime.datetime.isoformat` instead.
+    """
     if not at:
         at = utcnow()
     st = at.strftime(_ISO8601_TIME_FORMAT
@@ -146,8 +156,18 @@ def utcnow():
     return datetime.datetime.utcnow()
 
 
+@removals.remove(
+    message="use datetime.datetime.utcfromtimestamp().isoformat()",
+    version="1.6",
+    removal_version="?",
+    )
 def iso8601_from_timestamp(timestamp, microsecond=False):
-    """Returns an iso8601 formatted date from timestamp."""
+    """Returns an iso8601 formatted date from timestamp.
+
+    .. deprecated:: > 1.5.0
+       Use :func:`datetime.datetime.utcfromtimestamp` and
+       :func:`datetime.datetime.isoformat` instead.
+    """
     return isotime(datetime.datetime.utcfromtimestamp(timestamp), microsecond)
 
 
