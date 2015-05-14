@@ -22,6 +22,7 @@ import datetime
 import time
 
 import iso8601
+from pytz import timezone
 import six
 
 from oslo_utils import reflection
@@ -200,15 +201,15 @@ def clear_time_override():
 
 
 def marshall_now(now=None):
-    """Make an rpc-safe datetime with microseconds.
-
-    Note: tzinfo is stripped, but not required for relative times.
-    """
+    """Make an rpc-safe datetime with microseconds."""
     if not now:
         now = utcnow()
-    return dict(day=now.day, month=now.month, year=now.year, hour=now.hour,
-                minute=now.minute, second=now.second,
-                microsecond=now.microsecond)
+    d = dict(day=now.day, month=now.month, year=now.year, hour=now.hour,
+             minute=now.minute, second=now.second,
+             microsecond=now.microsecond)
+    if now.tzinfo:
+        d['tzname'] = now.tzinfo.tzname(None)
+    return d
 
 
 def unmarshall_time(tyme):
@@ -218,13 +219,18 @@ def unmarshall_time(tyme):
     # so the best thing we can do for now is dropping them
     # http://bugs.python.org/issue23574
     second = min(tyme['second'], _MAX_DATETIME_SEC)
-    return datetime.datetime(day=tyme['day'],
-                             month=tyme['month'],
-                             year=tyme['year'],
-                             hour=tyme['hour'],
-                             minute=tyme['minute'],
-                             second=second,
-                             microsecond=tyme['microsecond'])
+    dt = datetime.datetime(day=tyme['day'],
+                           month=tyme['month'],
+                           year=tyme['year'],
+                           hour=tyme['hour'],
+                           minute=tyme['minute'],
+                           second=second,
+                           microsecond=tyme['microsecond'])
+    tzname = tyme.get('tzname')
+    if tzname:
+        tzinfo = timezone(tzname)
+        dt = tzinfo.localize(dt)
+    return dt
 
 
 def delta_seconds(before, after):
