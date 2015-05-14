@@ -27,6 +27,40 @@ import six
 from oslo_utils._i18n import _LE
 
 
+def raise_with_cause(exc_cls, message, *args, **kwargs):
+    """Helper to raise + chain exceptions (when able) and associate a *cause*.
+
+    NOTE(harlowja): Since in py3.x exceptions can be chained (due to
+    :pep:`3134`) we should try to raise the desired exception with the given
+    *cause* (or extract a *cause* from the current stack if able) so that the
+    exception formats nicely in old and new versions of python. Since py2.x
+    does **not** support exception chaining (or formatting) the exception
+    class provided should take a ``cause`` keyword argument (which it may
+    discard if it wants) to its constructor which can then be
+    inspected/retained on py2.x to get *similar* information as would be
+    automatically included/obtainable in py3.x.
+
+    :param exc_cls: the exception class to raise.
+    :param message: the text/str message that will be passed to
+                    the exceptions constructor as its first positional
+                    argument.
+    :param args: any additional positional arguments to pass to the
+                 exceptions constructor.
+    :param kwargs: any additional keyword arguments to pass to the
+                   exceptions constructor.
+    """
+    if 'cause' not in kwargs:
+        exc_type, exc, exc_tb = sys.exc_info()
+        try:
+            if exc is not None:
+                kwargs['cause'] = exc
+        finally:
+            # Leave no references around (especially with regards to
+            # tracebacks and any variables that it retains internally).
+            del(exc_type, exc, exc_tb)
+    six.raise_from(exc_cls(message, *args, **kwargs), kwargs.get('cause'))
+
+
 class save_and_reraise_exception(object):
     """Save current exception, run some code and then re-raise.
 
