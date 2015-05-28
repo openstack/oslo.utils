@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  oslo.utils\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2015-05-03 06:12+0000\n"
+"POT-Creation-Date: 2015-05-28 06:15+0000\n"
 "PO-Revision-Date: 2015-04-22 17:28+0000\n"
 "Last-Translator: Andi Chandler <andi@gowling.com>\n"
 "Language-Team: English (United Kingdom) (http://www.transifex.com/projects/p/"
@@ -18,9 +18,6 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 1.3\n"
-
-msgid "Unable to generate IP address by EUI64 for IPv4 prefix"
-msgstr "Unable to generate IP address by EUI64 for IPv4 prefix"
 
 #, python-format
 msgid ""
@@ -35,13 +32,16 @@ msgid "Bad prefix type for generating IPv6 address by EUI-64: %s"
 msgstr "Bad prefix type for generating IPv6 address by EUI-64: %s"
 
 #, python-format
-msgid "Unrecognized value '%(val)s', acceptable values are: %(acceptable)s"
-msgstr "Unrecognised value '%(val)s', acceptable values are: %(acceptable)s"
+msgid "Invalid string format: %s"
+msgstr "Invalid string format: %s"
 
 #, python-format
 msgid "Invalid unit system: \"%s\""
 msgstr "Invalid unit system: \"%s\""
 
+msgid "Unable to generate IP address by EUI64 for IPv4 prefix"
+msgstr "Unable to generate IP address by EUI64 for IPv4 prefix"
+
 #, python-format
-msgid "Invalid string format: %s"
-msgstr "Invalid string format: %s"
+msgid "Unrecognized value '%(val)s', acceptable values are: %(acceptable)s"
+msgstr "Unrecognised value '%(val)s', acceptable values are: %(acceptable)s"

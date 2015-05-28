@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  oslo.utils\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2015-03-16 06:11+0000\n"
+"POT-Creation-Date: 2015-05-28 06:15+0000\n"
 "PO-Revision-Date: 2015-03-02 07:27+0000\n"
 "Last-Translator: openstackjenkins <jenkins@openstack.org>\n"
 "Language-Team: German (http://www.transifex.com/projects/p/osloutils/"
@@ -21,13 +21,13 @@ msgstr ""
 "Generated-By: Babel 1.3\n"
 
 #, python-format
-msgid "Unrecognized value '%(val)s', acceptable values are: %(acceptable)s"
-msgstr "Nicht erkannter Wert '%(val)s', zulässige Werte are: %(acceptable)s"
+msgid "Invalid string format: %s"
+msgstr "Ungültiges Stringformat: %s"
 
 #, python-format
 msgid "Invalid unit system: \"%s\""
 msgstr "Ungültiges Einheitensystem: \"%s\""
 
 #, python-format
-msgid "Invalid string format: %s"
-msgstr "Ungültiges Stringformat: %s"
+msgid "Unrecognized value '%(val)s', acceptable values are: %(acceptable)s"
+msgstr "Nicht erkannter Wert '%(val)s', zulässige Werte are: %(acceptable)s"
