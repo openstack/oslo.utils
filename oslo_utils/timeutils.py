@@ -80,8 +80,24 @@ def parse_isotime(timestr):
         raise ValueError(six.text_type(e))
 
 
+@removals.remove(
+    message="use either datetime.datetime.isoformat() "
+    "or datetime.datetime.strftime() instead",
+    version="1.6",
+    removal_version="?",
+    )
 def strtime(at=None, fmt=PERFECT_TIME_FORMAT):
-    """Returns formatted utcnow."""
+    """Returns formatted utcnow.
+
+    .. deprecated:: > 1.5.0
+       Use :func:`utcnow()`, :func:`datetime.datetime.isoformat`
+       or :func:`datetime.strftime` instead.
+
+       strtime() => utcnow().isoformat()
+       strtime(fmt=...) => utcnow().strftime(fmt)
+       strtime(at) => at.isoformat()
+       strtime(at, fmt) => at.strftime(fmt)
+    """
     if not at:
         at = utcnow()
     return at.strftime(fmt)
