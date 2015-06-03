@@ -112,6 +112,11 @@ class TimeUtilsTest(test_base.BaseTestCase):
         self._test_is_older_than(lambda x: x.replace(
             tzinfo=iso8601.iso8601.UTC))
 
+    def test_is_older_than_aware_no_utc(self):
+        self._test_is_older_than(lambda x: x.replace(
+            tzinfo=iso8601.iso8601.FixedOffset(1, 0, 'foo')).replace(
+                hour=7))
+
     def _test_is_newer_than(self, fn):
         strptime = datetime.datetime.strptime
         with mock.patch('datetime.datetime') as datetime_mock:
@@ -137,6 +142,11 @@ class TimeUtilsTest(test_base.BaseTestCase):
         """Tests sending is_newer_than an 'aware' datetime."""
         self._test_is_newer_than(lambda x: x.replace(
             tzinfo=iso8601.iso8601.UTC))
+
+    def test_is_newer_than_aware_no_utc(self):
+        self._test_is_newer_than(lambda x: x.replace(
+            tzinfo=iso8601.iso8601.FixedOffset(1, 0, 'foo')).replace(
+                hour=7))
 
     def test_set_time_override_using_default(self):
         now = timeutils.utcnow_ts()

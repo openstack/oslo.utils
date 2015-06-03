@@ -119,9 +119,9 @@ def normalize_time(timestamp):
 def is_older_than(before, seconds):
     """Return True if before is older than seconds."""
     if isinstance(before, six.string_types):
-        before = parse_isotime(before).replace(tzinfo=None)
-    else:
-        before = before.replace(tzinfo=None)
+        before = parse_isotime(before)
+
+    before = normalize_time(before)
 
     return utcnow() - before > datetime.timedelta(seconds=seconds)
 
@@ -129,9 +129,9 @@ def is_older_than(before, seconds):
 def is_newer_than(after, seconds):
     """Return True if after is newer than seconds."""
     if isinstance(after, six.string_types):
-        after = parse_isotime(after).replace(tzinfo=None)
-    else:
-        after = after.replace(tzinfo=None)
+        after = parse_isotime(after)
+
+    after = normalize_time(after)
 
     return after - utcnow() > datetime.timedelta(seconds=seconds)
 
