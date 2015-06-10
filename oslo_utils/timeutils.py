@@ -23,6 +23,7 @@ import time
 
 from debtcollector import removals
 import iso8601
+from monotonic import monotonic as now  # noqa
 from pytz import timezone
 import six
 
@@ -34,19 +35,6 @@ _ISO8601_TIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
 PERFECT_TIME_FORMAT = _ISO8601_TIME_FORMAT_SUBSECOND
 
 _MAX_DATETIME_SEC = 59
-
-# Use monotonic time in stopwatches if we can get at it...
-#
-# PEP @ https://www.python.org/dev/peps/pep-0418/
-try:
-    now = time.monotonic
-except AttributeError:
-    try:
-        # Try to use the pypi module if it's available (optionally...)
-        from monotonic import monotonic as now
-    except (AttributeError, ImportError):
-        # Ok fallback to the non-monotonic one...
-        now = time.time
 
 
 @removals.remove(
