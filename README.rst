@@ -2,11 +2,11 @@
 oslo.utils
 ==========
 
-.. image:: https://pypip.in/version/oslo.utils/badge.svg
+.. image:: https://img.shields.io/pypi/v/oslo.utils.svg
     :target: https://pypi.python.org/pypi/oslo.utils/
     :alt: Latest Version
 
-.. image:: https://pypip.in/download/oslo.utils/badge.svg?period=month
+.. image:: https://img.shields.io/pypi/dm/oslo.utils.svg
     :target: https://pypi.python.org/pypi/oslo.utils/
     :alt: Downloads
 
