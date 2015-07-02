@@ -107,13 +107,23 @@ def exception_to_unicode(exc):
     """
     msg = None
     if six.PY2:
-        # Don't call directly unicode(exc), because it fails with
-        # UnicodeDecodeError on Python 2 if exc.__unicode__() returns a bytes
-        # string not decodable from the default encoding (ASCII)
+        # First try by calling the unicode type constructor. We should try
+        # unicode() before exc.__unicode__() because subclasses of unicode can
+        # be easily casted to unicode, whereas they have no __unicode__()
+        # method.
         try:
-            msg = exc.__unicode__()
+            msg = unicode(exc)
         except UnicodeError:
-            pass
+            # unicode(exc) fail with UnicodeDecodeError on Python 2 if
+            # exc.__unicode__() or exc.__str__() returns a bytes string not
+            # decodable from the default encoding (ASCII)
+            if hasattr(exc, '__unicode__'):
+                # Call directly the __unicode__() method to avoid
+                # the implicit decoding from the default encoding
+                try:
+                    msg = exc.__unicode__()
+                except UnicodeError:
+                    pass
 
     if msg is None:
         # Don't call directly str(exc), because it fails with

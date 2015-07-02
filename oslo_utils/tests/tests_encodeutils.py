@@ -20,6 +20,7 @@ from oslotest import base as test_base
 import six
 import testtools
 
+import oslo_i18n.fixture
 from oslo_utils import encodeutils
 
 
@@ -231,3 +232,9 @@ class ExceptionToUnicodeTest(test_base.BaseTestCase):
         exc = UnicodeOnlyException(b'utf-8 \xc3\xa9\xe2\x82\xac')
         self.assertEqual(encodeutils.exception_to_unicode(exc),
                          u'utf-8 \xe9\u20ac')
+
+    def test_oslo_i18n_message(self):
+        # use the lazy translation to get a Message instance of oslo_i18n
+        exc = oslo_i18n.fixture.Translation().lazy("test")
+        self.assertEqual(encodeutils.exception_to_unicode(exc),
+                         u"test")
