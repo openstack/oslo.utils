@@ -30,6 +30,7 @@ API Documentation
    api/timeutils
    api/units
    api/uuidutils
+   api/versionutils
 
 Indices and tables
 ==================
