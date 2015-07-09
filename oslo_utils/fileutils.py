@@ -18,6 +18,7 @@ import errno
 import logging
 import os
 import stat
+import tempfile
 
 from oslo_utils import excutils
 
@@ -69,3 +70,30 @@ def remove_path_on_error(path, remove=delete_if_exists):
     except Exception:
         with excutils.save_and_reraise_exception():
             remove(path)
+
+
+def write_to_tempfile(content, path=None, suffix='', prefix='tmp'):
+    """Create temporary file or use existing file.
+
+    This util is needed for creating temporary file with
+    specified content, suffix and prefix. If path is not None,
+    it will be used for writing content. If the path doesn't
+    exist it'll be created.
+
+    :param content: content for temporary file.
+    :param path: same as parameter 'dir' for mkstemp
+    :param suffix: same as parameter 'suffix' for mkstemp
+    :param prefix: same as parameter 'prefix' for mkstemp
+
+    For example: it can be used in database tests for creating
+    configuration files.
+    """
+    if path:
+        ensure_tree(path)
+
+    (fd, path) = tempfile.mkstemp(suffix=suffix, dir=path, prefix=prefix)
+    try:
+        os.write(fd, content)
+    finally:
+        os.close(fd)
+    return path
