@@ -67,3 +67,19 @@ class IsCompatibleTestCase(test_base.BaseTestCase):
                                                    same_major=False))
         self.assertTrue(versionutils.is_compatible('1.0', '2.0',
                                                    same_major=False))
+
+    def test_convert_version_to_int(self):
+        self.assertEqual(6002000, versionutils.convert_version_to_int('6.2.0'))
+        self.assertEqual(6004003,
+                         versionutils.convert_version_to_int((6, 4, 3)))
+        self.assertEqual(5, versionutils.convert_version_to_int((5, )))
+        self.assertRaises(ValueError,
+                          versionutils.convert_version_to_int, '5a.6b')
+
+    def test_convert_version_to_string(self):
+        self.assertEqual('6.7.0', versionutils.convert_version_to_str(6007000))
+        self.assertEqual('4', versionutils.convert_version_to_str(4))
+
+    def test_convert_version_to_tuple(self):
+        self.assertEqual((6, 7, 0),
+                         versionutils.convert_version_to_tuple('6.7.0'))

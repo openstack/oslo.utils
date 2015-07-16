@@ -19,7 +19,9 @@ Helpers for comparing version strings.
 
 import logging
 
+from oslo_utils._i18n import _
 import pkg_resources
+import six
 
 
 LOG = logging.getLogger(__name__)
@@ -46,3 +48,29 @@ def is_compatible(requested_version, current_version, same_major=True):
         return False
 
     return current_parts >= requested_parts
+
+
+def convert_version_to_int(version):
+    try:
+        if isinstance(version, six.string_types):
+            version = convert_version_to_tuple(version)
+        if isinstance(version, tuple):
+            return six.moves.reduce(lambda x, y: (x * 1000) + y, version)
+    except Exception as ex:
+        msg = _("Version %s is invalid.") % version
+        six.raise_from(ValueError(msg), ex)
+
+
+def convert_version_to_str(version_int):
+    version_numbers = []
+    factor = 1000
+    while version_int != 0:
+        version_number = version_int - (version_int // factor * factor)
+        version_numbers.insert(0, six.text_type(version_number))
+        version_int = version_int // factor
+
+    return '.'.join(map(str, version_numbers))
+
+
+def convert_version_to_tuple(version_str):
+    return tuple(int(part) for part in version_str.split('.'))
