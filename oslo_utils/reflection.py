@@ -30,7 +30,7 @@ except AttributeError:
 _BUILTIN_MODULES = ('builtins', '__builtin__', '__builtins__', 'exceptions')
 
 
-def _get_members(obj, exclude_hidden):
+def get_members(obj, exclude_hidden=True):
     """Yields the members of an object, filtering by hidden/not hidden."""
     for (name, value) in inspect.getmembers(obj):
         if name.startswith("_") and exclude_hidden:
@@ -40,7 +40,8 @@ def _get_members(obj, exclude_hidden):
 
 def get_member_names(obj, exclude_hidden=True):
     """Get all the member names for a object."""
-    return [name for (name, _obj) in _get_members(obj, exclude_hidden)]
+    return [name for (name, _obj) in
+            get_members(obj, exclude_hidden=exclude_hidden)]
 
 
 def get_class_name(obj, fully_qualified=True):
