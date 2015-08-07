@@ -23,13 +23,7 @@ import time
 
 from debtcollector import removals
 import iso8601
-try:
-    from monotonic import monotonic as now  # noqa
-except RuntimeError:
-    try:
-        now = time.monotonic
-    except AttributeError:
-        now = time.time
+from monotonic import monotonic as now  # noqa
 from pytz import timezone
 import six
 
