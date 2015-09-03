@@ -103,6 +103,10 @@ class ImportUtilsTest(test_base.BaseTestCase):
                                            first_arg=False)
         self.assertEqual(obj.__class__.__name__, 'FakeDriver2')
 
+    def test_import_object_ns_raise_import_error_in_init(self):
+        self.assertRaises(ImportError, importutils.import_object_ns,
+                          'tests2', 'oslo_utils.tests.fake.FakeDriver3')
+
     def test_import_object(self):
         dt = importutils.import_object('datetime.time')
         self.assertTrue(isinstance(dt, sys.modules['datetime'].time))

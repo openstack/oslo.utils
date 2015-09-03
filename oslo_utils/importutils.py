@@ -47,9 +47,10 @@ def import_object_ns(name_space, import_str, *args, **kwargs):
     """
     import_value = "%s.%s" % (name_space, import_str)
     try:
-        return import_class(import_value)(*args, **kwargs)
+        cls = import_class(import_value)
     except ImportError:
-        return import_class(import_str)(*args, **kwargs)
+        cls = import_class(import_str)
+    return cls(*args, **kwargs)
 
 
 def import_module(import_str):
