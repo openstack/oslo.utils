@@ -312,6 +312,14 @@ class MaskPasswordTestCase(test_base.BaseTestCase):
         payload = """{ 'secret_uuid' : 'myuuid' }"""
         expected = """{ 'secret_uuid' : '***' }"""
         self.assertEqual(expected, strutils.mask_password(payload))
+        # Test 'token' w/o spaces
+        payload = """{'token':'token'}"""
+        expected = """{'token':'***'}"""
+        self.assertEqual(expected, strutils.mask_password(payload))
+        # Test 'token' with spaces
+        payload = """{ 'token' : 'token' }"""
+        expected = """{ 'token' : '***' }"""
+        self.assertEqual(expected, strutils.mask_password(payload))
 
     def test_xml(self):
         # Test 'adminPass' w/o spaces
@@ -529,6 +537,11 @@ class MaskPasswordTestCase(test_base.BaseTestCase):
         payload = """{'adminPass':'mypassword'}"""
         payload = six.text_type(payload)
         expected = """{'adminPass':'***'}"""
+        self.assertEqual(expected, strutils.mask_password(payload))
+
+        payload = """{'token':'mytoken'}"""
+        payload = six.text_type(payload)
+        expected = """{'token':'***'}"""
         self.assertEqual(expected, strutils.mask_password(payload))
 
         payload = ("test = 'node.session.auth.password','-v','mypassword',"
