@@ -119,6 +119,8 @@ def bool_from_string(subject, strict=False, default=False):
     ValueError which is useful when parsing values passed in from an API call.
     Strings yielding False are 'f', 'false', 'off', 'n', 'no', or '0'.
     """
+    if isinstance(subject, bool):
+        return subject
     if not isinstance(subject, six.string_types):
         subject = six.text_type(subject)
 
