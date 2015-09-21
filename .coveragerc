@@ -4,4 +4,4 @@ source = utils
 omit = utils/tests/*,utils/openstack/*
 
 [report]
-ignore-errors = True
+ignore_errors = True
