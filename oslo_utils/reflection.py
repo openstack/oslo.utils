@@ -165,7 +165,7 @@ def is_same_callback(callback1, callback2, strict=True):
 
 def is_bound_method(method):
     """Returns if the given method is bound to an object."""
-    return bool(get_method_self(method))
+    return get_method_self(method) is not None
 
 
 def is_subclass(obj, cls):

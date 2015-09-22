@@ -72,6 +72,14 @@ class Class(object):
         pass
 
 
+class BadClass(object):
+    def do_something(self):
+        pass
+
+    def __nonzero__(self):
+        return False
+
+
 class CallableClass(object):
     def __call__(self, i, j):
         pass
@@ -143,6 +151,15 @@ class CallbackEqualityTest(test_base.BaseTestCase):
 
         self.assertFalse(reflection.is_same_callback(b.b, c.b))
         self.assertTrue(reflection.is_same_callback(b.b, c.b, strict=False))
+
+
+class BoundMethodTest(test_base.BaseTestCase):
+    def test_baddy(self):
+        b = BadClass()
+        self.assertTrue(reflection.is_bound_method(b.do_something))
+
+    def test_static_method(self):
+        self.assertFalse(reflection.is_bound_method(Class.static_method))
 
 
 class GetCallableNameTest(test_base.BaseTestCase):
