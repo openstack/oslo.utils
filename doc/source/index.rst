@@ -11,7 +11,6 @@ such as encoding, exception handling, string manipulation, and time handling.
    installation
    usage
    contributing
-   history
 
 API Documentation
 =================
@@ -31,6 +30,14 @@ API Documentation
    api/units
    api/uuidutils
    api/versionutils
+
+Release Notes
+=============
+
+.. toctree::
+   :maxdepth: 1
+
+   history
 
 Indices and tables
 ==================
