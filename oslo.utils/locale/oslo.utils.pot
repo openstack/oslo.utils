@@ -6,16 +6,16 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: oslo.utils 2.1.1.dev1\n"
+"Project-Id-Version: oslo.utils 2.5.1.dev11\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2015-07-29 06:41+0000\n"
+"POT-Creation-Date: 2015-09-26 06:21+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.0\n"
+"Generated-By: Babel 2.1.1\n"
 
 #: oslo_utils/netutils.py:123
 msgid "Unable to generate IP address by EUI64 for IPv4 prefix"
@@ -33,17 +33,17 @@ msgstr ""
 msgid "Bad prefix type for generating IPv6 address by EUI-64: %s"
 msgstr ""
 
-#: oslo_utils/strutils.py:134
+#: oslo_utils/strutils.py:136
 #, python-format
 msgid "Unrecognized value '%(val)s', acceptable values are: %(acceptable)s"
 msgstr ""
 
-#: oslo_utils/strutils.py:168
+#: oslo_utils/strutils.py:170
 #, python-format
 msgid "Invalid unit system: \"%s\""
 msgstr ""
 
-#: oslo_utils/strutils.py:177
+#: oslo_utils/strutils.py:179
 #, python-format
 msgid "Invalid string format: %s"
 msgstr ""
