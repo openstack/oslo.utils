@@ -31,6 +31,14 @@ API Documentation
    api/uuidutils
    api/versionutils
 
+Examples
+========
+
+.. toctree::
+   :maxdepth: 2
+
+   examples/timeutils
+
 Release Notes
 =============
 
