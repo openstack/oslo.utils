@@ -20,6 +20,7 @@ from oslotest import base as test_base
 from oslotest import moxstubout
 
 from oslo_utils import excutils
+from oslo_utils import timeutils
 
 
 mox = moxstubout.mox
@@ -154,18 +155,24 @@ class ForeverRetryUncaughtExceptionsTest(test_base.BaseTestCase):
     def exc_retrier_common_start(self):
         self.stubs.Set(time, 'sleep', self.my_time_sleep)
         self.mox.StubOutWithMock(logging, 'exception')
-        self.mox.StubOutWithMock(time, 'time',
+        self.mox.StubOutWithMock(timeutils, 'now',
                                  use_mock_anything=True)
         self.mox.StubOutWithMock(self, 'exception_to_raise')
 
-    def exc_retrier_sequence(self, exc_id=None, timestamp=None,
-                             exc_count=None):
+    def exc_retrier_sequence(self, exc_id=None,
+                             exc_count=None, before_timestamp_calls=(),
+                             after_timestamp_calls=()):
         self.exception_to_raise().AndReturn(
             Exception('unexpected %d' % exc_id))
-        time.time().AndReturn(timestamp)
+        # Timestamp calls that happen before the logging is possibly triggered.
+        for timestamp in before_timestamp_calls:
+            timeutils.now().AndReturn(timestamp)
         if exc_count != 0:
             logging.exception(mox.In(
                 'Unexpected exception occurred %d time(s)' % exc_count))
+        # Timestamp calls that happen after the logging is possibly triggered.
+        for timestamp in after_timestamp_calls:
+            timeutils.now().AndReturn(timestamp)
 
     def exc_retrier_common_end(self):
         self.exception_to_raise().AndReturn(None)
@@ -175,70 +182,108 @@ class ForeverRetryUncaughtExceptionsTest(test_base.BaseTestCase):
 
     def test_exc_retrier_1exc_gives_1log(self):
         self.exc_retrier_common_start()
-        self.exc_retrier_sequence(exc_id=1, timestamp=1, exc_count=1)
+        self.exc_retrier_sequence(exc_id=1, exc_count=1,
+                                  after_timestamp_calls=[0])
         self.exc_retrier_common_end()
 
     def test_exc_retrier_same_10exc_1min_gives_1log(self):
         self.exc_retrier_common_start()
-        self.exc_retrier_sequence(exc_id=1, timestamp=1, exc_count=1)
+        self.exc_retrier_sequence(exc_id=1,
+                                  after_timestamp_calls=[0], exc_count=1)
         # By design, the following exception don't get logged because they
         # are within the same minute.
         for i in range(2, 11):
-            self.exc_retrier_sequence(exc_id=1, timestamp=i, exc_count=0)
+            self.exc_retrier_sequence(exc_id=1,
+                                      before_timestamp_calls=[i],
+                                      exc_count=0)
         self.exc_retrier_common_end()
 
     def test_exc_retrier_same_2exc_2min_gives_2logs(self):
         self.exc_retrier_common_start()
-        self.exc_retrier_sequence(exc_id=1, timestamp=1, exc_count=1)
-        self.exc_retrier_sequence(exc_id=1, timestamp=65, exc_count=1)
+        self.exc_retrier_sequence(exc_id=1,
+                                  after_timestamp_calls=[0], exc_count=1)
+        self.exc_retrier_sequence(exc_id=1,
+                                  before_timestamp_calls=[65], exc_count=1,
+                                  after_timestamp_calls=[65, 66])
         self.exc_retrier_common_end()
 
     def test_exc_retrier_same_10exc_2min_gives_2logs(self):
         self.exc_retrier_common_start()
-        self.exc_retrier_sequence(exc_id=1, timestamp=1, exc_count=1)
-        self.exc_retrier_sequence(exc_id=1, timestamp=12, exc_count=0)
-        self.exc_retrier_sequence(exc_id=1, timestamp=23, exc_count=0)
-        self.exc_retrier_sequence(exc_id=1, timestamp=34, exc_count=0)
-        self.exc_retrier_sequence(exc_id=1, timestamp=45, exc_count=0)
+        self.exc_retrier_sequence(exc_id=1,
+                                  after_timestamp_calls=[0], exc_count=1)
+        for ts in [12, 23, 34, 45]:
+            self.exc_retrier_sequence(exc_id=1,
+                                      before_timestamp_calls=[ts],
+                                      exc_count=0)
         # The previous 4 exceptions are counted here
-        self.exc_retrier_sequence(exc_id=1, timestamp=106, exc_count=5)
+        self.exc_retrier_sequence(exc_id=1,
+                                  before_timestamp_calls=[106],
+                                  exc_count=5,
+                                  after_timestamp_calls=[106, 107])
         # Again, the following are not logged due to being within
         # the same minute
-        self.exc_retrier_sequence(exc_id=1, timestamp=117, exc_count=0)
-        self.exc_retrier_sequence(exc_id=1, timestamp=128, exc_count=0)
-        self.exc_retrier_sequence(exc_id=1, timestamp=139, exc_count=0)
-        self.exc_retrier_sequence(exc_id=1, timestamp=150, exc_count=0)
+        for ts in [117, 128, 139, 150]:
+            self.exc_retrier_sequence(exc_id=1,
+                                      before_timestamp_calls=[ts],
+                                      exc_count=0)
         self.exc_retrier_common_end()
 
     def test_exc_retrier_mixed_4exc_1min_gives_2logs(self):
         self.exc_retrier_common_start()
-        self.exc_retrier_sequence(exc_id=1, timestamp=1, exc_count=1)
+        self.exc_retrier_sequence(exc_id=1,
+                                  # The stop watch will be started,
+                                  # which will consume one timestamp call.
+                                  after_timestamp_calls=[0], exc_count=1)
         # By design, this second 'unexpected 1' exception is not counted.  This
         # is likely a rare thing and is a sacrifice for code simplicity.
-        self.exc_retrier_sequence(exc_id=1, timestamp=10, exc_count=0)
-        self.exc_retrier_sequence(exc_id=2, timestamp=20, exc_count=1)
+        self.exc_retrier_sequence(exc_id=1, exc_count=0,
+                                  # Since the exception will be the same
+                                  # the expiry method will be called, which
+                                  # uses up a timestamp call.
+                                  before_timestamp_calls=[5])
+        self.exc_retrier_sequence(exc_id=2, exc_count=1,
+                                  # The watch should get reset, which uses
+                                  # up two timestamp calls.
+                                  after_timestamp_calls=[10, 20])
         # Again, trailing exceptions within a minute are not counted.
-        self.exc_retrier_sequence(exc_id=2, timestamp=30, exc_count=0)
+        self.exc_retrier_sequence(exc_id=2, exc_count=0,
+                                  # Since the exception will be the same
+                                  # the expiry method will be called, which
+                                  # uses up a timestamp call.
+                                  before_timestamp_calls=[25])
         self.exc_retrier_common_end()
 
     def test_exc_retrier_mixed_4exc_2min_gives_2logs(self):
         self.exc_retrier_common_start()
-        self.exc_retrier_sequence(exc_id=1, timestamp=1, exc_count=1)
+        self.exc_retrier_sequence(exc_id=1,
+                                  # The stop watch will now be started.
+                                  after_timestamp_calls=[0], exc_count=1)
         # Again, this second exception of the same type is not counted
         # for the sake of code simplicity.
-        self.exc_retrier_sequence(exc_id=1, timestamp=10, exc_count=0)
+        self.exc_retrier_sequence(exc_id=1,
+                                  before_timestamp_calls=[10], exc_count=0)
         # The difference between this and the previous case is the log
         # is also triggered by more than a minute expiring.
-        self.exc_retrier_sequence(exc_id=2, timestamp=100, exc_count=1)
-        self.exc_retrier_sequence(exc_id=2, timestamp=110, exc_count=0)
+        self.exc_retrier_sequence(exc_id=2, exc_count=1,
+                                  # The stop watch will now be restarted.
+                                  after_timestamp_calls=[100, 105])
+        self.exc_retrier_sequence(exc_id=2,
+                                  before_timestamp_calls=[110], exc_count=0)
         self.exc_retrier_common_end()
 
     def test_exc_retrier_mixed_4exc_2min_gives_3logs(self):
         self.exc_retrier_common_start()
-        self.exc_retrier_sequence(exc_id=1, timestamp=1, exc_count=1)
+        self.exc_retrier_sequence(exc_id=1,
+                                  # The stop watch will now be started.
+                                  after_timestamp_calls=[0], exc_count=1)
         # This time the second 'unexpected 1' exception is counted due
         # to the same exception occurring same when the minute expires.
-        self.exc_retrier_sequence(exc_id=1, timestamp=10, exc_count=0)
-        self.exc_retrier_sequence(exc_id=1, timestamp=100, exc_count=2)
-        self.exc_retrier_sequence(exc_id=2, timestamp=110, exc_count=1)
+        self.exc_retrier_sequence(exc_id=1,
+                                  before_timestamp_calls=[10], exc_count=0)
+        self.exc_retrier_sequence(exc_id=1,
+                                  before_timestamp_calls=[100],
+                                  after_timestamp_calls=[100, 105],
+                                  exc_count=2)
+        self.exc_retrier_sequence(exc_id=2, exc_count=1,
+                                  after_timestamp_calls=[110, 111])
         self.exc_retrier_common_end()
