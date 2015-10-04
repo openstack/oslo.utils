@@ -204,23 +204,34 @@ def forever_retry_uncaught_exceptions(infunc):
             try:
                 return infunc(*args, **kwargs)
             except Exception as exc:
-                this_exc_message = six.u(str(exc))
-                if this_exc_message == last_exc_message:
-                    exc_count += 1
-                else:
-                    exc_count = 1
-                # Do not log any more frequently than once a minute unless
-                # the exception message changes
-                cur_time = int(time.time())
-                if (cur_time - last_log_time > 60 or
-                        this_exc_message != last_exc_message):
-                    logging.exception(
-                        _LE('Unexpected exception occurred %d time(s)... '
-                            'retrying.') % exc_count)
-                    last_log_time = cur_time
-                    last_exc_message = this_exc_message
-                    exc_count = 0
-                # This should be a very rare event. In case it isn't, do
-                # a sleep.
-                time.sleep(1)
+                try:
+                    this_exc_message = six.u(str(exc))
+                    if this_exc_message == last_exc_message:
+                        exc_count += 1
+                    else:
+                        exc_count = 1
+                    # Do not log any more frequently than once a minute unless
+                    # the exception message changes
+                    cur_time = int(time.time())
+                    if (cur_time - last_log_time > 60 or
+                            this_exc_message != last_exc_message):
+                        logging.exception(
+                            _LE('Unexpected exception occurred %d time(s)... '
+                                'retrying.') % exc_count)
+                        last_log_time = cur_time
+                        last_exc_message = this_exc_message
+                        exc_count = 0
+                    # This should be a very rare event. In case it isn't, do
+                    # a sleep.
+                    time.sleep(1)
+                except Exception:
+                    try:
+                        logging.exception(
+                            _LE('Unexpected error occurred while '
+                                'processing Exception'))
+                    except Exception:
+                        # In case either serialization of the last exception
+                        # or logging failed, ignore the error
+                        pass
+
     return inner_func
