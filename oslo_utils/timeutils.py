@@ -19,6 +19,7 @@ Time related utilities and helper functions.
 
 import calendar
 import datetime
+import logging
 import time
 
 from debtcollector import removals
@@ -320,6 +321,53 @@ class Split(object):
         r = reflection.get_class_name(self, fully_qualified=False)
         r += "(elapsed=%s, length=%s)" % (self._elapsed, self._length)
         return r
+
+
+def time_it(logger, log_level=logging.DEBUG,
+            message="It took %(seconds).02f seconds to"
+                    " run function '%(func_name)s'",
+            enabled=True, min_duration=0.01):
+    """Decorator that will log how long its decorated function takes to run.
+
+    This does **not** output a log if the decorated function fails
+    with an exception.
+
+    :param logger: logger instance to use when logging elapsed time
+    :param log_level: logger logging level to use when logging elapsed time
+    :param message: customized message to use when logging elapsed time,
+                    the message may use automatically provide values
+                    ``%(seconds)`` and ``%(func_name)`` if it finds those
+                    values useful to record
+    :param enabled: whether to enable or disable this decorator (useful to
+                    decorate a function with this decorator, and then easily
+                    be able to switch that decoration off by some config or
+                    other value)
+    :param min_duration: argument that determines if logging is triggered
+                         or not, it is by default set to 0.01 seconds to avoid
+                         logging when durations and/or elapsed function call
+                         times are less than 0.01 seconds, to disable
+                         any ``min_duration`` checks this value should be set
+                         to less than or equal to zero or set to none
+    """
+
+    def decorator(func):
+        if not enabled:
+            return func
+
+        @six.wraps(func)
+        def wrapper(*args, **kwargs):
+            with StopWatch() as w:
+                result = func(*args, **kwargs)
+            time_taken = w.elapsed()
+            if min_duration is None or time_taken >= min_duration:
+                logger.log(log_level, message,
+                           {'seconds': time_taken,
+                            'func_name': reflection.get_callable_name(func)})
+            return result
+
+        return wrapper
+
+    return decorator
 
 
 class StopWatch(object):
