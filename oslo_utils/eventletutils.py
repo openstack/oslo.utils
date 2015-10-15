@@ -14,6 +14,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+"""
+Eventlet utils helper module.
+
+.. versionadded:: 1.3
+"""
+
 import threading
 import warnings
 
@@ -35,6 +41,13 @@ _ALL_PATCH = frozenset(['__builtin__', 'MySQLdb', 'os',
 
 
 def fetch_current_thread_functor():
+    """Get the current thread.
+
+    If eventlet is used to monkey-patch the threading module, return the
+    current eventlet greenthread. Otherwise, return the current Python thread.
+
+    .. versionadded:: 1.5
+    """
     # Until https://github.com/eventlet/eventlet/issues/172 is resolved
     # or addressed we have to use complicated workaround to get a object
     # that will not be recycled; the usage of threading.current_thread()

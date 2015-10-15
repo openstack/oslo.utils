@@ -45,6 +45,8 @@ class CausedByException(Exception):
                   should itself be an exception instance, this is useful for
                   creating a chain of exceptions for versions of python where
                   this is not yet implemented/supported natively.
+
+    .. versionadded:: 2.4
     """
     def __init__(self, message, cause=None):
         super(CausedByException, self).__init__(message)
@@ -126,6 +128,8 @@ def raise_with_cause(exc_cls, message, *args, **kwargs):
                  exceptions constructor.
     :param kwargs: any additional keyword arguments to pass to the
                    exceptions constructor.
+
+    .. versionadded:: 1.6
     """
     if 'cause' not in kwargs:
         exc_type, exc, exc_tb = sys.exc_info()
@@ -174,6 +178,9 @@ class save_and_reraise_exception(object):
               [if statements to determine whether to raise a new exception]
               # Not raising a new exception, so reraise
               ctxt.reraise = True
+
+    .. versionchanged:: 1.4
+       Added *logger* optional parameter.
     """
     def __init__(self, reraise=True, logger=None):
         self.reraise = reraise

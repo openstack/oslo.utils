@@ -14,6 +14,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+"""
+Reflection module.
+
+.. versionadded:: 1.1
+"""
+
 import inspect
 import types
 
@@ -31,7 +37,10 @@ _BUILTIN_MODULES = ('builtins', '__builtin__', '__builtins__', 'exceptions')
 
 
 def get_members(obj, exclude_hidden=True):
-    """Yields the members of an object, filtering by hidden/not hidden."""
+    """Yields the members of an object, filtering by hidden/not hidden.
+
+    .. versionadded:: 2.3
+    """
     for (name, value) in inspect.getmembers(obj):
         if name.startswith("_") and exclude_hidden:
             continue

@@ -21,6 +21,7 @@ API Documentation
    api/encodeutils
    api/eventletutils
    api/excutils
+   api/fileutils
    api/fixture
    api/importutils
    api/netutils

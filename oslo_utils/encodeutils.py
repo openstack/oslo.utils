@@ -104,6 +104,8 @@ def exception_to_unicode(exc):
     If the exception message is a bytes strings, try to decode it from UTF-8
     (superset of ASCII), from the locale encoding, or fallback to decoding it
     from ISO-8859-1 (which never fails).
+
+    .. versionadded:: 1.6
     """
     msg = None
     if six.PY2:
