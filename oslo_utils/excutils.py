@@ -27,6 +27,7 @@ import six
 
 from oslo_utils._i18n import _LE
 from oslo_utils import reflection
+from oslo_utils import timeutils
 
 
 class CausedByException(Exception):
@@ -196,42 +197,55 @@ class save_and_reraise_exception(object):
 
 
 def forever_retry_uncaught_exceptions(infunc):
+    """Decorates provided function with infinite retry behavior.
+
+    If the original function fails it may trigger a logging output to
+    be written. The function retry delay is **always** one second.
+    """
     def inner_func(*args, **kwargs):
-        last_log_time = 0
         last_exc_message = None
-        exc_count = 0
+        same_failure_count = 0
+        unknown_failure_count = 0
+        watch = timeutils.StopWatch(duration=60)
         while True:
             try:
                 return infunc(*args, **kwargs)
             except Exception as exc:
                 try:
                     this_exc_message = six.u(str(exc))
-                    if this_exc_message == last_exc_message:
-                        exc_count += 1
-                    else:
-                        exc_count = 1
-                    # Do not log any more frequently than once a minute unless
-                    # the exception message changes
-                    cur_time = int(time.time())
-                    if (cur_time - last_log_time > 60 or
-                            this_exc_message != last_exc_message):
-                        logging.exception(
-                            _LE('Unexpected exception occurred %d time(s)... '
-                                'retrying.') % exc_count)
-                        last_log_time = cur_time
-                        last_exc_message = this_exc_message
-                        exc_count = 0
-                    # This should be a very rare event. In case it isn't, do
-                    # a sleep.
-                    time.sleep(1)
                 except Exception:
+                    unknown_failure_count += 1
                     try:
                         logging.exception(
-                            _LE('Unexpected error occurred while '
-                                'processing Exception'))
+                            _LE('Unexpected exception occurred %d'
+                                ' time(s)... ') % unknown_failure_count)
                     except Exception:
                         # In case either serialization of the last exception
                         # or logging failed, ignore the error
                         pass
-
+                else:
+                    unknown_failure_count = 0
+                    if this_exc_message == last_exc_message:
+                        same_failure_count += 1
+                    else:
+                        same_failure_count = 1
+                    if this_exc_message != last_exc_message or watch.expired():
+                        # The watch has expired or the exception message
+                        # changed, so time to log it again...
+                        logging.exception(
+                            _LE('Unexpected exception occurred %d time(s)... '
+                                'retrying.') % same_failure_count)
+                        if not watch.has_started():
+                            watch.start()
+                        else:
+                            watch.restart()
+                        same_failure_count = 0
+                        last_exc_message = this_exc_message
+                    # This should be a very rare event. In case it isn't, do
+                    # a sleep.
+                    #
+                    # TODO(harlowja): why this is hard coded as one second
+                    # really should be fixed (since I'm not really sure why
+                    # one over some other value was chosen).
+                    time.sleep(1)
     return inner_func
