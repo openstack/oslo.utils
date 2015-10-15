@@ -45,7 +45,7 @@ _MAX_DATETIME_SEC = 59
 def isotime(at=None, subsecond=False):
     """Stringify time in ISO 8601 format.
 
-    .. deprecated:: > 1.5.0
+    .. deprecated:: 1.5.0
        Use :func:`utcnow` and :func:`datetime.datetime.isoformat` instead.
     """
     if not at:
@@ -77,14 +77,14 @@ def parse_isotime(timestr):
 def strtime(at=None, fmt=PERFECT_TIME_FORMAT):
     """Returns formatted utcnow.
 
-    .. deprecated:: > 1.5.0
+    .. deprecated:: 1.5.0
        Use :func:`utcnow()`, :func:`datetime.datetime.isoformat`
-       or :func:`datetime.strftime` instead.
+       or :func:`datetime.strftime` instead:
 
-       strtime() => utcnow().isoformat()
-       strtime(fmt=...) => utcnow().strftime(fmt)
-       strtime(at) => at.isoformat()
-       strtime(at, fmt) => at.strftime(fmt)
+       * ``strtime()`` => ``utcnow().isoformat()``
+       * ``strtime(fmt=...)`` => ``utcnow().strftime(fmt)``
+       * ``strtime(at)`` => ``at.isoformat()``
+       * ``strtime(at, fmt)`` => ``at.strftime(fmt)``
     """
     if not at:
         at = utcnow()
@@ -171,7 +171,7 @@ def utcnow(with_timezone=False):
 def iso8601_from_timestamp(timestamp, microsecond=False):
     """Returns an iso8601 formatted date from timestamp.
 
-    .. deprecated:: > 1.5.0
+    .. deprecated:: 1.5.0
        Use :func:`datetime.datetime.utcfromtimestamp` and
        :func:`datetime.datetime.isoformat` instead.
     """
