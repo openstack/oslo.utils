@@ -26,6 +26,7 @@ import traceback
 import six
 
 from oslo_utils._i18n import _LE
+from oslo_utils import encodeutils
 from oslo_utils import reflection
 from oslo_utils import timeutils
 
@@ -205,47 +206,33 @@ def forever_retry_uncaught_exceptions(infunc):
     def inner_func(*args, **kwargs):
         last_exc_message = None
         same_failure_count = 0
-        unknown_failure_count = 0
         watch = timeutils.StopWatch(duration=60)
         while True:
             try:
                 return infunc(*args, **kwargs)
             except Exception as exc:
-                try:
-                    this_exc_message = six.u(str(exc))
-                except Exception:
-                    unknown_failure_count += 1
-                    try:
-                        logging.exception(
-                            _LE('Unexpected exception occurred %d'
-                                ' time(s)... ') % unknown_failure_count)
-                    except Exception:
-                        # In case either serialization of the last exception
-                        # or logging failed, ignore the error
-                        pass
+                this_exc_message = encodeutils.exception_to_unicode(exc)
+                if this_exc_message == last_exc_message:
+                    same_failure_count += 1
                 else:
-                    unknown_failure_count = 0
-                    if this_exc_message == last_exc_message:
-                        same_failure_count += 1
+                    same_failure_count = 1
+                if this_exc_message != last_exc_message or watch.expired():
+                    # The watch has expired or the exception message
+                    # changed, so time to log it again...
+                    logging.exception(
+                        _LE('Unexpected exception occurred %d time(s)... '
+                            'retrying.') % same_failure_count)
+                    if not watch.has_started():
+                        watch.start()
                     else:
-                        same_failure_count = 1
-                    if this_exc_message != last_exc_message or watch.expired():
-                        # The watch has expired or the exception message
-                        # changed, so time to log it again...
-                        logging.exception(
-                            _LE('Unexpected exception occurred %d time(s)... '
-                                'retrying.') % same_failure_count)
-                        if not watch.has_started():
-                            watch.start()
-                        else:
-                            watch.restart()
-                        same_failure_count = 0
-                        last_exc_message = this_exc_message
-                    # This should be a very rare event. In case it isn't, do
-                    # a sleep.
-                    #
-                    # TODO(harlowja): why this is hard coded as one second
-                    # really should be fixed (since I'm not really sure why
-                    # one over some other value was chosen).
-                    time.sleep(1)
+                        watch.restart()
+                    same_failure_count = 0
+                    last_exc_message = this_exc_message
+                # This should be a very rare event. In case it isn't, do
+                # a sleep.
+                #
+                # TODO(harlowja): why this is hard coded as one second
+                # really should be fixed (since I'm not really sure why
+                # one over some other value was chosen).
+                time.sleep(1)
     return inner_func
