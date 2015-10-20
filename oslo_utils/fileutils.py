@@ -73,14 +73,14 @@ def remove_path_on_error(path, remove=delete_if_exists):
 
 
 def write_to_tempfile(content, path=None, suffix='', prefix='tmp'):
-    """Create temporary file or use existing file.
+    """Create a temporary file containing data.
 
-    This util is needed for creating temporary file with
-    specified content, suffix and prefix. If path is not None,
-    it will be used for writing content. If the path doesn't
-    exist it'll be created.
+    Create a temporary file containing specified content, with a specified
+    filename suffix and prefix. The tempfile will be created in a default
+    location, or in the directory `path`, if it is not None. `path` and its
+    parent directories will be created if they don't exist.
 
-    :param content: content for temporary file.
+    :param content: bytestring to write to the file
     :param path: same as parameter 'dir' for mkstemp
     :param suffix: same as parameter 'suffix' for mkstemp
     :param prefix: same as parameter 'prefix' for mkstemp
