@@ -178,6 +178,48 @@ def is_valid_port(port):
     return (val > 0 and val <= 65535)
 
 
+def _is_int_in_range(value, start, end):
+    """Try to convert value to int and check if it lies within
+    range 'start' to 'end'.
+
+    :param value: value to verify
+    :param start: start number of range
+    :param end: end number of range
+    :returns: bool
+    """
+    try:
+        val = int(value)
+    except (ValueError, TypeError):
+        return False
+    return (start <= val <= end)
+
+
+def is_valid_icmp_type(type):
+    """Verify if ICMP type is valid.
+
+    :param type: ICMP *type* field can only be a valid integer
+    :returns: bool
+
+    ICMP *type* field can be valid integer having a value of 0
+    up to and including 255.
+    """
+    return _is_int_in_range(type, 0, 255)
+
+
+def is_valid_icmp_code(code):
+    """Verify if ICMP code is valid.
+
+    :param code: ICMP *code* field can be valid integer or None
+    :returns: bool
+
+    ICMP *code* field can be either None or valid integer having
+    a value of 0 up to and including 255.
+    """
+    if code is None:
+        return True
+    return _is_int_in_range(code, 0, 255)
+
+
 def get_my_ipv4():
     """Returns the actual ipv4 of the local machine.
 
