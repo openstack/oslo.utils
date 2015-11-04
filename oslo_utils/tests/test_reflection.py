@@ -321,6 +321,30 @@ class GetClassNameTest(test_base.BaseTestCase):
         name = reflection.get_class_name(42)
         self.assertEqual('int', name)
 
+    def test_class_method(self):
+        name = reflection.get_class_name(Class.class_method)
+        self.assertEqual('%s.Class' % __name__, name)
+        # test with fully_qualified=False
+        name = reflection.get_class_name(Class.class_method,
+                                         fully_qualified=False)
+        self.assertEqual('Class', name)
+
+    def test_static_method(self):
+        self.assertRaises(TypeError, reflection.get_class_name,
+                          Class.static_method)
+
+    def test_unbound_method(self):
+        self.assertRaises(TypeError, reflection.get_class_name,
+                          mere_function)
+
+    def test_bound_method(self):
+        c = Class()
+        name = reflection.get_class_name(c.method)
+        self.assertEqual('%s.Class' % __name__, name)
+        # test with fully_qualified=False
+        name = reflection.get_class_name(c.method, fully_qualified=False)
+        self.assertEqual('Class', name)
+
 
 class GetAllClassNamesTest(test_base.BaseTestCase):
 

@@ -56,10 +56,19 @@ def get_member_names(obj, exclude_hidden=True):
 def get_class_name(obj, fully_qualified=True):
     """Get class name for object.
 
-    If object is a type, fully qualified name of the type is returned.
-    Else, fully qualified name of the type of the object is returned.
-    For builtin types, just name is returned.
+    If object is a type, returns name of the type. If object is a bound
+    method or a class method, returns its ``self`` object's class name.
+    If object is an instance of class, returns instance's class name.
+    Else, name of the type of the object is returned. If fully_qualified
+    is True, returns fully qualified name of the type. For builtin types,
+    just name is returned. TypeError is raised if can't get class name from
+    object.
     """
+    if inspect.isfunction(obj):
+        raise TypeError("Can't get class name.")
+
+    if inspect.ismethod(obj):
+        obj = get_method_self(obj)
     if not isinstance(obj, six.class_types):
         obj = type(obj)
     try:
