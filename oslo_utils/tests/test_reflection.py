@@ -306,6 +306,13 @@ class GetClassNameTest(test_base.BaseTestCase):
         name = reflection.get_class_name(Class)
         self.assertEqual('.'.join((__name__, 'Class')), name)
 
+    def test_qualified_class(self):
+        class QualifiedClass(object):
+            pass
+
+        name = reflection.get_class_name(QualifiedClass)
+        self.assertEqual('.'.join((__name__, 'QualifiedClass')), name)
+
     def test_instance(self):
         name = reflection.get_class_name(Class())
         self.assertEqual('.'.join((__name__, 'Class')), name)

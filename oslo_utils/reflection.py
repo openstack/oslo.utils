@@ -59,21 +59,12 @@ def get_class_name(obj, fully_qualified=True):
         pass
     else:
         if built_in:
-            try:
-                return obj.__qualname__
-            except AttributeError:
-                return obj.__name__
-    pieces = []
-    try:
-        pieces.append(obj.__qualname__)
-    except AttributeError:
-        pieces.append(obj.__name__)
-    if fully_qualified:
-        try:
-            pieces.insert(0, obj.__module__)
-        except AttributeError:
-            pass
-    return '.'.join(pieces)
+            return obj.__name__
+
+    if fully_qualified and hasattr(obj, '__module__'):
+        return '%s.%s' % (obj.__module__, obj.__name__)
+    else:
+        return obj.__name__
 
 
 def get_all_class_names(obj, up_to=object):
