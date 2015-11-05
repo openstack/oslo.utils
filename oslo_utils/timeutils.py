@@ -105,7 +105,12 @@ def normalize_time(timestamp):
 
 
 def is_older_than(before, seconds):
-    """Return True if before is older than seconds."""
+    """Return True if before is older than seconds.
+
+    .. versionchanged:: 1.7
+       Accept datetime string with timezone information.
+       Fix comparison with timezone aware datetime.
+    """
     if isinstance(before, six.string_types):
         before = parse_isotime(before)
 
@@ -115,7 +120,12 @@ def is_older_than(before, seconds):
 
 
 def is_newer_than(after, seconds):
-    """Return True if after is newer than seconds."""
+    """Return True if after is newer than seconds.
+
+    .. versionchanged:: 1.7
+       Accept datetime string with timezone information.
+       Fix comparison with timezone aware datetime.
+    """
     if isinstance(after, six.string_types):
         after = parse_isotime(after)
 
@@ -129,6 +139,8 @@ def utcnow_ts(microsecond=False):
 
     See :py:class:`oslo_utils.fixture.TimeFixture`.
 
+    .. versionchanged:: 1.3
+       Added optional *microsecond* parameter.
     """
     if utcnow.override_time is None:
         # NOTE(kgriffs): This is several times faster
@@ -152,6 +164,8 @@ def utcnow(with_timezone=False):
 
     See :py:class:`oslo_utils.fixture.TimeFixture`.
 
+    .. versionchanged:: 1.6
+       Added *with_timezone* parameter.
     """
     if utcnow.override_time:
         try:
@@ -170,6 +184,9 @@ def utcnow(with_timezone=False):
     )
 def iso8601_from_timestamp(timestamp, microsecond=False):
     """Returns an iso8601 formatted date from timestamp.
+
+    .. versionchanged:: 1.3
+       Added optional *microsecond* parameter.
 
     .. deprecated:: 1.5.0
        Use :func:`datetime.datetime.utcfromtimestamp` and
@@ -227,7 +244,11 @@ def clear_time_override():
 
 
 def marshall_now(now=None):
-    """Make an rpc-safe datetime with microseconds."""
+    """Make an rpc-safe datetime with microseconds.
+
+    .. versionchanged:: 1.6
+       Timezone information is now serialized instead of being stripped.
+    """
     if not now:
         now = utcnow()
     d = dict(day=now.day, month=now.month, year=now.year, hour=now.hour,
@@ -239,7 +260,14 @@ def marshall_now(now=None):
 
 
 def unmarshall_time(tyme):
-    """Unmarshall a datetime dict."""
+    """Unmarshall a datetime dict.
+
+    .. versionchanged:: 1.5
+       Drop leap second.
+
+    .. versionchanged:: 1.6
+       Added support for timezone information.
+    """
 
     # NOTE(ihrachys): datetime does not support leap seconds,
     # so the best thing we can do for now is dropping them
@@ -298,6 +326,8 @@ class Split(object):
     """A *immutable* stopwatch split.
 
     See: http://en.wikipedia.org/wiki/Stopwatch for what this is/represents.
+
+    .. versionadded:: 1.4
     """
 
     __slots__ = ['_elapsed', '_length']
@@ -337,6 +367,8 @@ class StopWatch(object):
     depending on operating system and python version).
 
     .. _monotonic: https://pypi.python.org/pypi/monotonic/
+
+    .. versionadded:: 1.4
     """
     _STARTED = 'STARTED'
     _STOPPED = 'STOPPED'

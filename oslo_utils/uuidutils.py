@@ -15,6 +15,8 @@
 
 """
 UUID related utilities and helper functions.
+
+.. versionadded:: 1.1
 """
 
 import uuid
@@ -42,6 +44,9 @@ def is_uuid_like(val):
     :param val: Value to verify
     :type val: string
     :returns: bool
+
+    .. versionchanged:: 1.1.1
+       Support non-lowercase UUIDs.
     """
     try:
         return str(uuid.UUID(val)).replace('-', '') == _format_uuid_string(val)

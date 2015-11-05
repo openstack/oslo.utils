@@ -14,6 +14,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+"""
+Test fixtures.
+
+.. versionadded:: 1.3
+"""
+
 import fixtures
 
 from oslo_utils import timeutils

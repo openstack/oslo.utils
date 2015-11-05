@@ -87,6 +87,8 @@ def is_valid_ipv4(address):
     :param address: Value to verify
     :type address: string
     :returns: bool
+
+    .. versionadded:: 1.1
     """
     try:
         return netaddr.valid_ipv4(address)
@@ -100,6 +102,8 @@ def is_valid_ipv6(address):
     :param address: Value to verify
     :type address: string
     :returns: bool
+
+    .. versionadded:: 1.1
     """
     try:
         return netaddr.valid_ipv6(address)
@@ -117,6 +121,8 @@ def get_ipv6_addr_by_EUI64(prefix, mac):
     :param mac: IEEE 802 48-bit MAC address.
     :returns: IPv6 address on success.
     :raises ValueError, TypeError: For any invalid input.
+
+    .. versionadded:: 1.4
     """
     # Check if the prefix is an IPv4 address
     if netaddr.valid_ipv4(prefix):
@@ -143,6 +149,7 @@ def is_ipv6_enabled():
 
     :returns: True if the platform has IPv6 support, False otherwise.
 
+    .. versionadded:: 1.4
     """
 
     global _IS_IPV6_ENABLED
@@ -164,12 +171,17 @@ def is_valid_ip(address):
     :param address: Value to verify
     :type address: string
     :returns: bool
+
+    .. versionadded:: 1.1
     """
     return is_valid_ipv4(address) or is_valid_ipv6(address)
 
 
 def is_valid_port(port):
-    """Verify that port represents a valid port number."""
+    """Verify that port represents a valid port number.
+
+    .. versionadded:: 1.1.1
+    """
     try:
         val = int(port)
     except (ValueError, TypeError):
@@ -185,6 +197,11 @@ def get_my_ipv4():
     were to be sent out to some well known address on the Internet. In this
     case, IP from RFC5737 is used, but the specific address does not
     matter much. No traffic is actually sent.
+
+    .. versionadded:: 1.1
+
+    .. versionchanged:: 1.2.1
+       Return ``'127.0.0.1'`` if there is no default interface.
     """
     try:
         csock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

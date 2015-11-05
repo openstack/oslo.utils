@@ -213,7 +213,7 @@ def to_slug(value, incoming=None, errors="strict"):
 
 
 def mask_password(message, secret="***"):
-    """Replace password with 'secret' in message.
+    """Replace password with *secret* in message.
 
     :param message: The string which includes security information.
     :param secret: value with which to replace passwords.
@@ -231,6 +231,24 @@ def mask_password(message, secret="***"):
     "'original_password' : '***'"
     >>> mask_password("u'original_password' :   u'aaaaa'")
     "u'original_password' :   u'***'"
+
+    .. versionadded:: 0.2
+
+    .. versionchanged:: 1.1
+       Replace also ``'auth_token'``, ``'new_pass'`` and ``'auth_password'``
+       keys.
+
+    .. versionchanged:: 1.1.1
+       Replace also ``'secret_uuid'`` key.
+
+    .. versionchanged:: 1.5
+       Replace also ``'sys_pswd'`` key.
+
+    .. versionchanged:: 2.6
+       Replace also ``'token'`` key.
+
+    .. versionchanged:: 2.7
+       Replace also ``'secret'`` key.
     """
 
     try:
@@ -262,6 +280,8 @@ def is_int_like(val):
     :param val: Value to verify
     :type val: string
     :returns: bool
+
+    .. versionadded:: 1.1
     """
     try:
         return six.text_type(int(val)) == six.text_type(val)

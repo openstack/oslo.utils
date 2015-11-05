@@ -13,6 +13,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+"""
+File utilities.
+
+.. versionadded:: 1.8
+"""
+
 import contextlib
 import errno
 import logging
@@ -87,6 +93,8 @@ def write_to_tempfile(content, path=None, suffix='', prefix='tmp'):
 
     For example: it can be used in database tests for creating
     configuration files.
+
+    .. versionadded:: 1.9
     """
     if path:
         ensure_tree(path)
