@@ -199,6 +199,44 @@ class NetworkUtilsTest(test_base.BaseTestCase):
             addr = netutils.get_my_ipv4()
         self.assertEqual(addr, '1.2.3.4')
 
+    def test_is_int_in_range(self):
+        valid_inputs = [(1, -100, 100),
+                        ('1', -100, 100),
+                        (100, -100, 100),
+                        ('100', -100, 100),
+                        (-100, -100, 100),
+                        ('-100', -100, 100)]
+        for input_value in valid_inputs:
+            self.assertTrue(netutils._is_int_in_range(*input_value))
+
+    def test_is_int_not_in_range(self):
+        invalid_inputs = [(None, 1, 100),
+                          ('ten', 1, 100),
+                          (-1, 0, 255),
+                          ('None', 1, 100)]
+        for input_value in invalid_inputs:
+            self.assertFalse(netutils._is_int_in_range(*input_value))
+
+    def test_valid_icmp_type(self):
+        valid_inputs = [1, '1', 0, '0', 255, '255']
+        for input_value in valid_inputs:
+            self.assertTrue(netutils.is_valid_icmp_type(input_value))
+
+    def test_invalid_icmp_type(self):
+        invalid_inputs = [-1, '-1', 256, '256', None, 'None', 'five']
+        for input_value in invalid_inputs:
+            self.assertFalse(netutils.is_valid_icmp_type(input_value))
+
+    def test_valid_icmp_code(self):
+        valid_inputs = [1, '1', 0, '0', 255, '255', None]
+        for input_value in valid_inputs:
+            self.assertTrue(netutils.is_valid_icmp_code(input_value))
+
+    def test_invalid_icmp_code(self):
+        invalid_inputs = [-1, '-1', 256, '256', 'None', 'zero']
+        for input_value in invalid_inputs:
+            self.assertFalse(netutils.is_valid_icmp_code(input_value))
+
     @mock.patch('socket.socket')
     @mock.patch('oslo_utils.netutils._get_my_ipv4_address')
     def test_get_my_ip_socket_error(self, ip, mock_socket):
