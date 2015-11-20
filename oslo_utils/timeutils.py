@@ -217,7 +217,7 @@ def advance_time_delta(timedelta):
     See :py:class:`oslo_utils.fixture.TimeFixture`.
 
     """
-    assert utcnow.override_time is not None
+    assert utcnow.override_time is not None  # nosec
     try:
         for dt in utcnow.override_time:
             dt += timedelta
@@ -450,7 +450,7 @@ class StopWatch(object):
         """Stops the watch (ignoring errors if stop fails)."""
         try:
             self.stop()
-        except RuntimeError:
+        except RuntimeError:  # nosec: errors are meant to be ignored
             pass
 
     def leftover(self, return_none=False):
