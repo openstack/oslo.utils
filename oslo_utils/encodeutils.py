@@ -124,7 +124,7 @@ def exception_to_unicode(exc):
                 # the implicit decoding from the default encoding
                 try:
                     msg = exc.__unicode__()
-                except UnicodeError:
+                except UnicodeError:  # nosec
                     pass
 
     if msg is None:
@@ -145,7 +145,7 @@ def exception_to_unicode(exc):
         # if the string is not a valid UTF-8 string: the UTF-8 codec includes
         # a validation algorithm to ensure the consistency of the codec.
         return msg.decode('utf-8')
-    except UnicodeDecodeError:
+    except UnicodeDecodeError:  # nosec
         pass
 
     # Try the locale encoding, most error messages are encoded to this encoding
@@ -153,7 +153,7 @@ def exception_to_unicode(exc):
     encoding = sys.getfilesystemencoding()
     try:
         return msg.decode(encoding)
-    except UnicodeDecodeError:
+    except UnicodeDecodeError:  # nosec
         pass
 
     # The encoding is not ASCII, not UTF-8, nor the locale encoding. Fallback

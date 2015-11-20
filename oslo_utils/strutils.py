@@ -212,7 +212,7 @@ def to_slug(value, incoming=None, errors="strict"):
     return SLUGIFY_HYPHENATE_RE.sub("-", value)
 
 
-def mask_password(message, secret="***"):
+def mask_password(message, secret="***"):  # nosec
     """Replace password with *secret* in message.
 
     :param message: The string which includes security information.
@@ -253,7 +253,7 @@ def mask_password(message, secret="***"):
 
     try:
         message = six.text_type(message)
-    except UnicodeDecodeError:
+    except UnicodeDecodeError:  # nosec
         # NOTE(jecarey): Temporary fix to handle cases where message is a
         # byte string. A better solution will be provided in Kilo.
         pass

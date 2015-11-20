@@ -64,7 +64,7 @@ def get_class_name(obj, fully_qualified=True):
         obj = type(obj)
     try:
         built_in = obj.__module__ in _BUILTIN_MODULES
-    except AttributeError:
+    except AttributeError:  # nosec
         pass
     else:
         if built_in:
@@ -158,7 +158,7 @@ def is_same_callback(callback1, callback2, strict=True):
             self1 = six.get_method_self(callback1)
             self2 = six.get_method_self(callback2)
             return self1 is self2
-        except AttributeError:
+        except AttributeError:  # nosec
             pass
     return False
 
