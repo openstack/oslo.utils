@@ -204,42 +204,61 @@ class save_and_reraise_exception(object):
             six.reraise(self.type_, self.value, self.tb)
 
 
-def forever_retry_uncaught_exceptions(infunc):
+def forever_retry_uncaught_exceptions(*args, **kwargs):
     """Decorates provided function with infinite retry behavior.
 
-    If the original function fails it may trigger a logging output to
-    be written. The function retry delay is **always** one second.
+    The function retry delay is **always** one second unless
+    keyword argument ``retry_delay`` is passed that defines a value different
+    than 1.0 (less than zero values are automatically changed to be 0.0).
+
+    If repeated exceptions with the same message occur, logging will only
+    output/get triggered for those equivalent messages every 60.0
+    seconds, this can be altered by keyword argument ``same_log_delay`` to
+    be a value different than 60.0 seconds (exceptions that change the
+    message are always logged no matter what this delay is set to). As in
+    the ``retry_delay`` case if this is less than zero, it will be
+    automatically changed to be 0.0.
     """
-    def inner_func(*args, **kwargs):
-        last_exc_message = None
-        same_failure_count = 0
-        watch = timeutils.StopWatch(duration=60)
-        while True:
-            try:
-                return infunc(*args, **kwargs)
-            except Exception as exc:
-                this_exc_message = encodeutils.exception_to_unicode(exc)
-                if this_exc_message == last_exc_message:
-                    same_failure_count += 1
-                else:
-                    same_failure_count = 1
-                if this_exc_message != last_exc_message or watch.expired():
-                    # The watch has expired or the exception message
-                    # changed, so time to log it again...
-                    logging.exception(
-                        _LE('Unexpected exception occurred %d time(s)... '
-                            'retrying.') % same_failure_count)
-                    if not watch.has_started():
-                        watch.start()
+
+    def decorator(infunc):
+        retry_delay = max(0.0, float(kwargs.get('retry_delay', 1.0)))
+        same_log_delay = max(0.0, float(kwargs.get('same_log_delay', 60.0)))
+
+        @six.wraps(infunc)
+        def wrapper(*args, **kwargs):
+            last_exc_message = None
+            same_failure_count = 0
+            watch = timeutils.StopWatch(duration=same_log_delay)
+            while True:
+                try:
+                    return infunc(*args, **kwargs)
+                except Exception as exc:
+                    this_exc_message = encodeutils.exception_to_unicode(exc)
+                    if this_exc_message == last_exc_message:
+                        same_failure_count += 1
                     else:
-                        watch.restart()
-                    same_failure_count = 0
-                    last_exc_message = this_exc_message
-                # This should be a very rare event. In case it isn't, do
-                # a sleep.
-                #
-                # TODO(harlowja): why this is hard coded as one second
-                # really should be fixed (since I'm not really sure why
-                # one over some other value was chosen).
-                time.sleep(1)
-    return inner_func
+                        same_failure_count = 1
+                    if this_exc_message != last_exc_message or watch.expired():
+                        # The watch has expired or the exception message
+                        # changed, so time to log it again...
+                        logging.exception(
+                            _LE('Unexpected exception occurred %d time(s)... '
+                                'retrying.') % same_failure_count)
+                        if not watch.has_started():
+                            watch.start()
+                        else:
+                            watch.restart()
+                        same_failure_count = 0
+                        last_exc_message = this_exc_message
+                    time.sleep(retry_delay)
+        return wrapper
+
+    # This is needed to handle when the decorator has args or the decorator
+    # doesn't have args, python is rather weird here...
+    if kwargs or not args:
+        return decorator
+    else:
+        if len(args) == 1:
+            return decorator(args[0])
+        else:
+            return decorator
