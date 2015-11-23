@@ -281,20 +281,6 @@ def _get_my_ipv4_address():
 class _ModifiedSplitResult(parse.SplitResult):
     """Split results class for urlsplit."""
 
-    # NOTE(dims): The functions below are needed for Python 2.6.x.
-    # We can remove these when we drop support for 2.6.x.
-    @property
-    def hostname(self):
-        netloc = self.netloc.split('@', 1)[-1]
-        host, port = parse_host_port(netloc)
-        return host
-
-    @property
-    def port(self):
-        netloc = self.netloc.split('@', 1)[-1]
-        host, port = parse_host_port(netloc)
-        return port
-
     def params(self, collapse=True):
         """Extracts the query parameters from the split urls components.
 
