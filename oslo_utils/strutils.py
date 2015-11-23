@@ -212,6 +212,19 @@ def to_slug(value, incoming=None, errors="strict"):
     return SLUGIFY_HYPHENATE_RE.sub("-", value)
 
 
+# NOTE(dhellmann): Before submitting a patch to add a new argument to
+# this function to allow the caller to pass in "extra" or "additional"
+# or "replacement" patterns to be masked out, please note that we have
+# discussed that feature many times and always rejected it based on
+# the desire to have Oslo functions behave consistently across all
+# projects and *especially* to have security features work the same
+# way no matter where they are used. If every project adopted its own
+# set patterns for secret values, it would be very difficult to audit
+# the logging to ensure that everything is properly masked. So, please
+# either add your pattern to the module-level variables at the top of
+# this file or, even better, pick an existing pattern or key to use in
+# your application to ensure that the value is masked by this
+# function.
 def mask_password(message, secret="***"):  # nosec
     """Replace password with *secret* in message.
 
