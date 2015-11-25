@@ -297,6 +297,11 @@ def delta_seconds(before, after):
     return total_seconds(delta)
 
 
+@removals.remove(
+    message="use datetime.timedelta.total_seconds()",
+    version="3.1",
+    removal_version="?",
+    )
 def total_seconds(delta):
     """Return the total seconds of datetime.timedelta object.
 
