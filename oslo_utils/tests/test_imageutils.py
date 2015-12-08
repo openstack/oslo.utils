@@ -51,10 +51,12 @@ class ImageUtilsRawTestCase(test_base.BaseTestCase):
     _disk_size = [
         ('96K', dict(disk_size='96K',
                      exp_disk_size=98304)),
-        ('96K_byte', dict(disk_size='963434',
-                          exp_disk_size=963434)),
-        ('3.1M', dict(disk_size='3.1G',
+        ('96K_byte', dict(disk_size='98304',
+                          exp_disk_size=98304)),
+        ('3.1G', dict(disk_size='3.1G',
                       exp_disk_size=3328599655)),
+        ('unavailable', dict(disk_size='unavailable',
+                             exp_disk_size=0)),
     ]
 
     _garbage_before_snapshot = [
