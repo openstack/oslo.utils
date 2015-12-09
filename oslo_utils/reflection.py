@@ -35,6 +35,17 @@ except AttributeError:
 # others)...
 _BUILTIN_MODULES = ('builtins', '__builtin__', '__builtins__', 'exceptions')
 
+if six.PY3:
+    Parameter = inspect.Parameter
+    Signature = inspect.Signature
+    get_signature = inspect.signature
+else:
+    # Provide an equivalent but use funcsigs instead...
+    import funcsigs
+    Parameter = funcsigs.Parameter
+    Signature = funcsigs.Signature
+    get_signature = funcsigs.signature
+
 
 def get_members(obj, exclude_hidden=True):
     """Yields the members of an object, filtering by hidden/not hidden.
@@ -182,19 +193,6 @@ def is_subclass(obj, cls):
     return inspect.isclass(obj) and issubclass(obj, cls)
 
 
-def _get_arg_spec(function):
-    if isinstance(function, _TYPE_TYPE):
-        bound = True
-        function = function.__init__
-    elif isinstance(function, (types.FunctionType, types.MethodType)):
-        bound = is_bound_method(function)
-        function = getattr(function, '__wrapped__', function)
-    else:
-        function = function.__call__
-        bound = is_bound_method(function)
-    return inspect.getargspec(function), bound
-
-
 def get_callable_args(function, required_only=False):
     """Get names of callable arguments.
 
@@ -204,16 +202,17 @@ def get_callable_args(function, required_only=False):
     If required_only is True, optional arguments (with default values)
     are not included into output.
     """
-    argspec, bound = _get_arg_spec(function)
-    f_args = argspec.args
-    if required_only and argspec.defaults:
-        f_args = f_args[:-len(argspec.defaults)]
-    if bound:
-        f_args = f_args[1:]
-    return f_args
+    sig = get_signature(function)
+    function_args = list(six.iterkeys(sig.parameters))
+    for param_name, p in six.iteritems(sig.parameters):
+        if (p.kind in (Parameter.VAR_POSITIONAL, Parameter.VAR_KEYWORD)
+                or (required_only and p.default is not Parameter.empty)):
+            function_args.remove(param_name)
+    return function_args
 
 
 def accepts_kwargs(function):
-    """Returns True if function accepts kwargs."""
-    argspec, _bound = _get_arg_spec(function)
-    return bool(argspec.keywords)
+    """Returns ``True`` if function accepts kwargs otherwise ``False``."""
+    sig = get_signature(function)
+    return any(p.kind == Parameter.VAR_KEYWORD
+               for p in six.itervalues(sig.parameters))
