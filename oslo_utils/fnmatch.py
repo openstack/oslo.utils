@@ -15,6 +15,8 @@
 Standard library fnmatch in Python versions <= 2.7.9 has thread safe
 issue, this module is created for such case. see:
 https://bugs.python.org/issue23191
+
+.. versionadded:: 3.3
 """
 
 from __future__ import absolute_import
