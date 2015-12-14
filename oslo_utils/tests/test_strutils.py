@@ -587,6 +587,55 @@ class MaskPasswordTestCase(test_base.BaseTestCase):
         self.assertEqual(expected, strutils.mask_password(payload))
 
 
+class MaskDictionaryPasswordTestCase(test_base.BaseTestCase):
+
+    def test_dictionary(self):
+        payload = {'password': 'mypassword'}
+        expected = {'password': '***'}
+        self.assertEqual(expected,
+                         strutils.mask_dict_password(payload))
+
+        payload = {'user': 'admin', 'password': 'mypassword'}
+        expected = {'user': 'admin', 'password': '***'}
+        self.assertEqual(expected,
+                         strutils.mask_dict_password(payload))
+
+        payload = {'strval': 'somestring',
+                   'dictval': {'user': 'admin', 'password': 'mypassword'}}
+        expected = {'strval': 'somestring',
+                    'dictval': {'user': 'admin', 'password': '***'}}
+        self.assertEqual(expected,
+                         strutils.mask_dict_password(payload))
+
+        payload = {'strval': '--password abc',
+                   'dont_change': 'this is fine',
+                   'dictval': {'user': 'admin', 'password': b'mypassword'}}
+        expected = {'strval': '--password ***',
+                    'dont_change': 'this is fine',
+                    'dictval': {'user': 'admin', 'password': '***'}}
+        self.assertEqual(expected,
+                         strutils.mask_dict_password(payload))
+
+    def test_do_no_harm(self):
+        payload = {}
+        expected = {}
+        self.assertEqual(expected,
+                         strutils.mask_dict_password(payload))
+
+        payload = {'somekey': 'somevalue',
+                   'anotherkey': 'anothervalue'}
+        expected = {'somekey': 'somevalue',
+                    'anotherkey': 'anothervalue'}
+        self.assertEqual(expected,
+                         strutils.mask_dict_password(payload))
+
+    def test_mask_values(self):
+        payload = {'somekey': 'test = cmd --password my\xe9\x80\x80pass'}
+        expected = {'somekey': 'test = cmd --password ***'}
+        self.assertEqual(expected,
+                         strutils.mask_dict_password(payload))
+
+
 class IsIntLikeTestCase(test_base.BaseTestCase):
     def test_is_int_like_true(self):
         self.assertTrue(strutils.is_int_like(1))
