@@ -18,6 +18,7 @@ import os
 import shutil
 import stat
 import tempfile
+import uuid
 
 from oslotest import base as test_base
 import six
@@ -139,7 +140,8 @@ class WriteToTempfileTestCase(test_base.BaseTestCase):
         self.check_file_content(res)
 
     def test_file_with_not_existing_path(self):
-        path = '/tmp/testing/test1'
+        random_dir = uuid.uuid4().hex
+        path = '/tmp/%s/test1' % random_dir
         res = fileutils.write_to_tempfile(self.content, path=path)
         self.assertTrue(os.path.exists(res))
         (basepath, tmpfile) = os.path.split(res)
@@ -147,7 +149,7 @@ class WriteToTempfileTestCase(test_base.BaseTestCase):
         self.assertTrue(tmpfile.startswith('tmp'))
 
         self.check_file_content(res)
-        shutil.rmtree('/tmp/testing')
+        shutil.rmtree('/tmp/' + random_dir)
 
     def test_file_with_not_default_suffix(self):
         suffix = '.conf'
@@ -163,7 +165,8 @@ class WriteToTempfileTestCase(test_base.BaseTestCase):
 
     def test_file_with_not_existing_path_and_not_default_suffix(self):
         suffix = '.txt'
-        path = '/tmp/testing/test2'
+        random_dir = uuid.uuid4().hex
+        path = '/tmp/%s/test2' % random_dir
         res = fileutils.write_to_tempfile(self.content,
                                           path=path,
                                           suffix=suffix)
@@ -174,7 +177,7 @@ class WriteToTempfileTestCase(test_base.BaseTestCase):
         self.assertTrue(tmpfile.endswith(suffix))
 
         self.check_file_content(res)
-        shutil.rmtree('/tmp/testing')
+        shutil.rmtree('/tmp/' + random_dir)
 
     def test_file_with_not_default_prefix(self):
         prefix = 'test'
