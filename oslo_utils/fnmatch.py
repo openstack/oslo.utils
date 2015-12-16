@@ -69,8 +69,8 @@ else:
                     filtered_filenames.append(filename)
         else:
             for filename in filenames:
-                filename = os.path.normcase(filename)
-                if cached_pattern.match(filename):
+                norm_name = os.path.normcase(filename)
+                if cached_pattern.match(norm_name):
                     filtered_filenames.append(filename)
 
         return filtered_filenames

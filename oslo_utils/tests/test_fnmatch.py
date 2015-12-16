@@ -10,21 +10,52 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from __future__ import absolute_import
+
+import fnmatch as standard_fnmatch
+import ntpath
+import posixpath
 import sys
 
 import mock
 from oslotest import base
+from six.moves import reload_module
 
-from oslo_utils import fnmatch
+
+fnmatch = None
 
 
 class TestFnmatch(base.BaseTestCase):
 
-    @mock.patch.object(sys, 'version_info', new=(2, 7, 0))
-    def test_fnmatch(self):
+    def _test_fnmatch(self):
         self.assertFalse(fnmatch.fnmatch("tesX", "Test"))
         self.assertTrue(fnmatch.fnmatch("test", "test"))
         self.assertFalse(fnmatch.fnmatchcase("test", "Test"))
         self.assertTrue(fnmatch.fnmatchcase("test", "test"))
         self.assertTrue(fnmatch.fnmatch("testX", "test*"))
-        self.assertEqual(["test"], fnmatch.filter(["test", "testX"], "test"))
+        self.assertEqual(["Test"], fnmatch.filter(["Test", "TestX"], "Test"))
+
+    def _test_fnmatch_posix_nt(self):
+        with mock.patch("os.path", new=posixpath):
+            self.assertFalse(fnmatch.fnmatch("test", "Test"))
+            self._test_fnmatch()
+        with mock.patch("os.path", new=ntpath):
+            self._test_fnmatch()
+            self.assertTrue(fnmatch.fnmatch("test", "Test"))
+            self.assertEqual(["Test"],
+                             fnmatch.filter(["Test", "TestX"], "test"))
+
+    def test_fnmatch(self):
+        global fnmatch
+
+        fnmatch = standard_fnmatch
+        self._test_fnmatch_posix_nt()
+
+        with mock.patch.object(sys, 'version_info', new=(2, 7, 11)):
+            from oslo_utils import fnmatch as oslo_fnmatch
+            fnmatch = oslo_fnmatch
+            self._test_fnmatch_posix_nt()
+
+        with mock.patch.object(sys, 'version_info', new=(2, 7, 0)):
+            reload_module(oslo_fnmatch)
+            self._test_fnmatch_posix_nt()
