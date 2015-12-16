@@ -295,7 +295,7 @@ def delta_seconds(before, after):
     datetime objects (as a float, to microsecond resolution).
     """
     delta = after - before
-    return total_seconds(delta)
+    return delta.total_seconds()
 
 
 @removals.remove(
