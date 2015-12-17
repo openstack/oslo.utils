@@ -17,6 +17,8 @@
 
 """
 Helper methods to deal with images.
+
+.. versionadded:: 3.1
 """
 
 import re
@@ -26,6 +28,12 @@ from oslo_utils import strutils
 
 
 class QemuImgInfo(object):
+    """Parse Qemu image information from command `qemu-img info`'s output.
+
+    The instance of :class:`QemuImgInfo` has properties: `image`,
+    `backing_file`, `file_format`, `virtual_size`, `cluster_size`,
+    `disk_size`, `snapshots` and `encrypted`.
+    """
     BACKING_FILE_RE = re.compile((r"^(.*?)\s*\(actual\s+path\s*:"
                                   r"\s+(.*?)\)\s*$"), re.I)
     TOP_LEVEL_RE = re.compile(r"^([\w\d\s\_\-]+):(.*)$")
