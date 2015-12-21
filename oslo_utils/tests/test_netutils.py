@@ -30,8 +30,8 @@ class NetworkUtilsTest(test_base.BaseTestCase):
     def test_no_host(self):
         result = netutils.urlsplit('http://')
         self.assertEqual('', result.netloc)
-        self.assertEqual(None, result.port)
-        self.assertEqual(None, result.hostname)
+        self.assertIsNone(result.port)
+        self.assertIsNone(result.hostname)
         self.assertEqual('http', result.scheme)
 
     def test_parse_host_port(self):
