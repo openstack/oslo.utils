@@ -15,6 +15,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import sys
+
 import mock
 from oslotest import base as test_base
 import six
@@ -121,6 +123,18 @@ class ExceptionToUnicodeTest(test_base.BaseTestCase):
             def __str__(self):
                 return self.value
 
+        def mock_getfilesystemencoding(test_value):
+            # NOTE(blk-u): sys.getfilesystemencoding is called by coverage
+            # while processing the functions/files called by the test so
+            # mocking getfilesystemencoding was causing the coverage job to
+            # fail since it doesn't know about koi8_r encoding, and the
+            # encoding might be incorrect when set in other cases. The
+            # workaround is to return the test value when it's called by
+            # oslo.utils and the original value when called later by coverage.
+            return mock.patch.object(
+                sys, 'getfilesystemencoding',
+                side_effect=[test_value, sys.getfilesystemencoding()])
+
         # On Python 3, an exception which returns bytes with is __str__()
         # method (like StrException(bytes)) is probably a bug, but it was not
         # harder to support this silly case in exception_to_unicode().
@@ -136,7 +150,7 @@ class ExceptionToUnicodeTest(test_base.BaseTestCase):
                          u'utf-8 \xe9\u20ac')
 
         # Force the locale encoding to ASCII to test the fallback
-        with mock.patch('sys.getfilesystemencoding', return_value='ascii'):
+        with mock_getfilesystemencoding('ascii'):
             # Fallback: decode from ISO-8859-1
             exc = StrException(b'rawbytes \x80\xff')
             self.assertEqual(encodeutils.exception_to_unicode(exc),
@@ -153,7 +167,7 @@ class ExceptionToUnicodeTest(test_base.BaseTestCase):
                          u'unicode \xe9\u20ac')
 
         # Test the locale encoding
-        with mock.patch('sys.getfilesystemencoding', return_value='koi8_r'):
+        with mock_getfilesystemencoding('koi8_r'):
             exc = StrException(b'\xf2\xd5\xd3\xd3\xcb\xc9\xca')
             # Decode from the locale encoding
             # (the message cannot be decoded from ASCII nor UTF-8)
