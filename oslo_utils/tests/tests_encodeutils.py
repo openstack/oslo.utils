@@ -108,6 +108,20 @@ class EncodeUtilsTest(test_base.BaseTestCase):
         self.assertNotEqual(text, result)
         self.assertNotEqual(six.b("foo\xf1bar"), result)
 
+    def test_to_utf8(self):
+        self.assertEqual(encodeutils.to_utf8(b'a\xe9\xff'),        # bytes
+                         b'a\xe9\xff')
+        self.assertEqual(encodeutils.to_utf8(u'a\xe9\xff\u20ac'),  # Unicode
+                         b'a\xc3\xa9\xc3\xbf\xe2\x82\xac')
+        self.assertRaises(TypeError, encodeutils.to_utf8, 123)     # invalid
+
+        # oslo.i18n Message objects should also be accepted for convenience.
+        # It works because Message is a subclass of six.text_type. Use the
+        # lazy translation to get a Message instance of oslo_i18n.
+        msg = oslo_i18n.fixture.Translation().lazy("test")
+        self.assertEqual(encodeutils.to_utf8(msg),
+                         b'test')
+
 
 class ExceptionToUnicodeTest(test_base.BaseTestCase):
 
