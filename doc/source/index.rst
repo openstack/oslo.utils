@@ -28,6 +28,7 @@ API Documentation
    api/importutils
    api/netutils
    api/reflection
+   api/secretutils
    api/strutils
    api/timeutils
    api/units
