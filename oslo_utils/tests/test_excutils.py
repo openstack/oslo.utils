@@ -62,6 +62,39 @@ class CausedByTest(test_base.BaseTestCase):
 
 class SaveAndReraiseTest(test_base.BaseTestCase):
 
+    def test_save_and_reraise_exception_forced(self):
+
+        def _force_reraise():
+            try:
+                raise IOError("I broke")
+            except Exception:
+                with excutils.save_and_reraise_exception() as e:
+                    e.reraise = False
+                e.force_reraise()
+
+        self.assertRaises(IOError, _force_reraise)
+
+    def test_save_and_reraise_exception_capture_reraise(self):
+
+        def _force_reraise():
+            try:
+                raise IOError("I broke")
+            except Exception:
+                excutils.save_and_reraise_exception().capture().force_reraise()
+
+        self.assertRaises(IOError, _force_reraise)
+
+    def test_save_and_reraise_exception_capture_not_active(self):
+        e = excutils.save_and_reraise_exception()
+        self.assertRaises(RuntimeError, e.capture, check=True)
+
+    def test_save_and_reraise_exception_forced_not_active(self):
+        e = excutils.save_and_reraise_exception()
+        self.assertRaises(RuntimeError, e.force_reraise)
+        e = excutils.save_and_reraise_exception()
+        e.capture(check=False)
+        self.assertRaises(RuntimeError, e.force_reraise)
+
     def test_save_and_reraise_exception(self):
         e = None
         msg = 'foo'
