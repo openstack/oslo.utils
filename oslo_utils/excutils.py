@@ -187,10 +187,26 @@ class save_and_reraise_exception(object):
         if logger is None:
             logger = logging.getLogger()
         self.logger = logger
+        self.type_, self.value, self.tb = (None, None, None)
+
+    def force_reraise(self):
+        if self.type_ is None and self.value is None:
+            raise RuntimeError("There is no (currently) captured exception"
+                               " to force the reraising of")
+        six.reraise(self.type_, self.value, self.tb)
+
+    def capture(self, check=True):
+        (type_, value, tb) = sys.exc_info()
+        if check and type_ is None and value is None:
+            raise RuntimeError("There is no active exception to capture")
+        self.type_, self.value, self.tb = (type_, value, tb)
+        return self
 
     def __enter__(self):
-        self.type_, self.value, self.tb, = sys.exc_info()
-        return self
+        # TODO(harlowja): perhaps someday in the future turn check here
+        # to true, because that is likely the desired intention, and doing
+        # so ensures that people are actually using this correctly.
+        return self.capture(check=False)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if exc_type is not None:
@@ -201,7 +217,7 @@ class save_and_reraise_exception(object):
                                                              self.tb))
             return False
         if self.reraise:
-            six.reraise(self.type_, self.value, self.tb)
+            self.force_reraise()
 
 
 def forever_retry_uncaught_exceptions(*args, **kwargs):
