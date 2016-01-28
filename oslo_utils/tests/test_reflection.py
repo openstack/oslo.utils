@@ -290,10 +290,10 @@ class GetCallableArgsTest(test_base.BaseTestCase):
 class AcceptsKwargsTest(test_base.BaseTestCase):
 
     def test_no_kwargs(self):
-        self.assertFalse(reflection.accepts_kwargs(mere_function))
+        self.assertEqual(False, reflection.accepts_kwargs(mere_function))
 
     def test_with_kwargs(self):
-        self.assertTrue(reflection.accepts_kwargs(function_with_kwargs))
+        self.assertEqual(True, reflection.accepts_kwargs(function_with_kwargs))
 
 
 class GetClassNameTest(test_base.BaseTestCase):
