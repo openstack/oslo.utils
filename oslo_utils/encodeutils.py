@@ -18,6 +18,12 @@ import sys
 import six
 
 
+# NOTE(blk-u): This provides a symbol that can be overridden just for this
+# module during testing. sys.getfilesystemencoding() is called by coverage so
+# mocking it globally caused the coverage job to fail.
+_getfilesystemencoding = sys.getfilesystemencoding
+
+
 def safe_decode(text, incoming=None, errors='strict'):
     """Decodes incoming text/bytes string using `incoming` if they're not
        already unicode.
@@ -169,7 +175,7 @@ def exception_to_unicode(exc):
 
     # Try the locale encoding, most error messages are encoded to this encoding
     # (ex: os.strerror(errno))
-    encoding = sys.getfilesystemencoding()
+    encoding = _getfilesystemencoding()
     try:
         return msg.decode(encoding)
     except UnicodeDecodeError:  # nosec
