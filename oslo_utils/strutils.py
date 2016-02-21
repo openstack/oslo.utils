@@ -262,6 +262,9 @@ def mask_password(message, secret="***"):  # nosec
 
     .. versionchanged:: 2.7
        Replace also ``'secret'`` key.
+
+    .. versionchanged:: 3.4
+       Replace also ``'configdrive'`` key.
     """
 
     try:
