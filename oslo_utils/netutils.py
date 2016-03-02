@@ -111,6 +111,32 @@ def is_valid_ipv6(address):
         return False
 
 
+def is_valid_cidr(address):
+    """Verify that address represents a valid CIDR address.
+
+    :param address: Value to verify
+    :type address: string
+    :returns: bool
+
+    .. versionadded:: 3.8
+    """
+    try:
+        # Validate the correct CIDR Address
+        netaddr.IPNetwork(address)
+    except netaddr.AddrFormatError:
+        return False
+
+    # Prior validation partially verify /xx part
+    # Verify it here
+    ip_segment = address.split('/')
+
+    if (len(ip_segment) <= 1 or
+            ip_segment[1] == ''):
+        return False
+
+    return True
+
+
 def get_ipv6_addr_by_EUI64(prefix, mac):
     """Calculate IPv6 address using EUI-64 specification.
 

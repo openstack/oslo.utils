@@ -180,6 +180,17 @@ class NetworkUtilsTest(test_base.BaseTestCase):
 
         self.assertFalse(netutils.is_valid_ip(''))
 
+    def test_is_valid_cidr(self):
+        self.assertTrue(netutils.is_valid_cidr('10.0.0.0/24'))
+        self.assertTrue(netutils.is_valid_cidr('10.0.0.1/32'))
+        self.assertTrue(netutils.is_valid_cidr('0.0.0.0/0'))
+        self.assertTrue(netutils.is_valid_cidr('2600::/64'))
+        self.assertTrue(netutils.is_valid_cidr(
+                        '0000:0000:0000:0000:0000:0000:0000:0001/32'))
+
+        self.assertFalse(netutils.is_valid_cidr('10.0.0.1'))
+        self.assertFalse(netutils.is_valid_cidr('10.0.0.1/33'))
+
     def test_valid_port(self):
         valid_inputs = [1, '1', 2, '3', '5', 8, 13, 21,
                         '80', '3246', '65535']
