@@ -123,3 +123,11 @@ class ImportUtilsTest(test_base.BaseTestCase):
     def test_try_import_returns_default(self):
         foo = importutils.try_import('foo.bar')
         self.assertIsNone(foo)
+
+    def test_import_any_none_found(self):
+        self.assertRaises(ImportError, importutils.import_any,
+                          'foo.bar', 'foo.foo.bar')
+
+    def test_import_any_found(self):
+        dt = importutils.import_any('foo.bar', 'datetime')
+        self.assertEqual(sys.modules['datetime'], dt)
