@@ -79,6 +79,17 @@ class EventletUtilsTest(test_base.BaseTestCase):
         self.assertEqual(0, len(capture))
 
     @mock.patch("oslo_utils.eventletutils._patcher")
+    def test_eventlet_is_patched(self, mock_patcher):
+        mock_patcher.is_monkey_patched.return_value = True
+        self.assertTrue(eventletutils.is_monkey_patched('os'))
+        mock_patcher.is_monkey_patched.return_value = False
+        self.assertFalse(eventletutils.is_monkey_patched('os'))
+
+    @mock.patch("oslo_utils.eventletutils._patcher", None)
+    def test_eventlet_no_patcher(self):
+        self.assertFalse(eventletutils.is_monkey_patched('os'))
+
+    @mock.patch("oslo_utils.eventletutils._patcher")
     def test_partially_patched_warning(self, mock_patcher):
         is_patched = set()
         mock_patcher.already_patched = True
