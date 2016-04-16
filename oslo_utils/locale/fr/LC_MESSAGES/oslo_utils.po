@@ -5,11 +5,13 @@
 # Translators:
 # Maxime COQUEREL <max.coquerel@gmail.com>, 2014-2015
 # OpenStack Infra <zanata@openstack.org>, 2015. #zanata
+# Tom Cocozzello <tjcocozz@us.ibm.com>, 2015. #zanata
+# Andreas Jaeger <jaegerandi@gmail.com>, 2016. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: oslo.utils 3.4.1.dev1\n"
+"Project-Id-Version: oslo.utils 3.7.1.dev10\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2016-01-16 07:58+0000\n"
+"POT-Creation-Date: 2016-04-12 20:23+0200\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -20,6 +22,10 @@ msgstr ""
 "Generated-By: Babel 2.0\n"
 "X-Generator: Zanata 3.7.3\n"
 "Language-Team: French\n"
+
+#, python-format
+msgid "%s is not a string or unicode"
+msgstr "%s n'est pas une chaîne ou unicode"
 
 #, python-format
 msgid ""
@@ -34,12 +40,19 @@ msgid "Bad prefix type for generating IPv6 address by EUI-64: %s"
 msgstr "Mauvais type de préfixe pour générer adresse IPv6 par EUI-64: %s"
 
 #, python-format
+msgid "Invalid input value \"%s\"."
+msgstr "Valeur en entrée \"%s\" non valide."
+
+#, python-format
 msgid "Invalid string format: %s"
 msgstr "Format de chaine de caractère non valide: %s"
 
 #, python-format
 msgid "Invalid unit system: \"%s\""
 msgstr "Unit système non valide: \"%s\""
+
+msgid "Snapshot list encountered but no header found!"
+msgstr "Liste d'instantanés trouvée mais aucun en-tête trouvé !"
 
 msgid "Unable to generate IP address by EUI64 for IPv4 prefix"
 msgstr "Impossible de générer l'adresse IP par EUI64 pour le préfixe IPv4"
