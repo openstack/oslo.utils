@@ -15,55 +15,72 @@
 
 import operator
 
-# 1. The following operations are supported:
-#   =, s==, s!=, s>=, s>, s<=, s<, <in>, <all-in>, <or>, ==, !=, >=, <=
-# 2. Note that <or> is handled in a different way below.
-# 3. If the first word in the extra_specs is not one of the operators,
-#   it is ignored.
+import pyparsing
+from pyparsing import Literal
+from pyparsing import OneOrMore
+from pyparsing import Regex
+
 op_methods = {
+    # This one is special/odd,
+    # TODO(harlowja): fix it so that it's not greater than or
+    # equal, see here for the original @ https://review.openstack.org/#/c/8089/
     '=': lambda x, y: float(x) >= float(y),
-    '<in>': lambda x, y: y in x,
-    '<all-in>': lambda x, y: all(val in x for val in y),
-    '==': lambda x, y: float(x) == float(y),
+    # More sane ops/methods
     '!=': lambda x, y: float(x) != float(y),
-    '>=': lambda x, y: float(x) >= float(y),
     '<=': lambda x, y: float(x) <= float(y),
-    's==': operator.eq,
+    '==': lambda x, y: float(x) == float(y),
+    '>=': lambda x, y: float(x) >= float(y),
     's!=': operator.ne,
     's<': operator.lt,
     's<=': operator.le,
+    's==': operator.eq,
     's>': operator.gt,
-    's>=': operator.ge
+    's>=': operator.ge,
+    '<in>': lambda x, y: y in x,
+    '<or>': lambda x, *y: any(x == a for a in y),
 }
 
 
-def match(value, req):
-    words = req.split()
+def make_grammar():
+    """Creates the grammar to be used by a spec matcher."""
+    # This is apparently how pyparsing recommends to be used,
+    # as http://pyparsing.wikispaces.com/share/view/644825 states that
+    # it is not thread-safe to use a parser across threads.
 
-    op = method = None
-    if words:
-        op = words.pop(0)
-        method = op_methods.get(op)
+    unary_ops = (
+        # Order matters here (so that '=' doesn't match before '==')
+        Literal("==") | Literal("=") |
+        Literal("!=") | Literal("<in>") |
+        Literal(">=") | Literal("<=") |
+        Literal("s==") | Literal("s!=") |
+        # Order matters here (so that '<' doesn't match before '<=')
+        Literal("s<=") | Literal("s<") |
+        # Order matters here (so that '>' doesn't match before '>=')
+        Literal("s>=") | Literal("s>"))
 
-    if op != '<or>' and not method:
-        return value == req
+    or_ = Literal("<or>")
 
-    if value is None:
-        return False
+    # An atom is anything not an keyword followed by anything but whitespace
+    atom = ~(unary_ops | or_) + Regex(r"\S+")
 
-    if op == '<or>':  # Ex: <or> v1 <or> v2 <or> v3
-        while True:
-            if words.pop(0) == value:
-                return True
-            if not words:
-                break
-            words.pop(0)  # remove a keyword <or>
-            if not words:
-                break
-        return False
+    unary = unary_ops + atom
+    disjunction = OneOrMore(or_ + atom)
 
-    if words:
-        if op == '<all-in>':  # requires a list not a string
-            return method(value, words)
-        return method(value, words[0])
-    return False
+    # Even-numbered tokens will be '<or>', so we drop them
+    disjunction.setParseAction(lambda _s, _l, t: ["<or>"] + t[1::2])
+
+    expr = disjunction | unary | atom
+    return expr
+
+
+def match(cmp_value, spec):
+    """Match a given value to a given spec DSL."""
+    expr = make_grammar()
+    try:
+        ast = expr.parseString(spec)
+    except pyparsing.ParseException:
+        ast = [spec]
+    if len(ast) == 1:
+        return ast[0] == cmp_value
+    op = op_methods[ast[0]]
+    return op(cmp_value, *ast[1:])
