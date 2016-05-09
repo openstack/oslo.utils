@@ -22,6 +22,7 @@ import re
 import unicodedata
 
 import six
+from six.moves import urllib
 
 from oslo_utils._i18n import _
 from oslo_utils import encodeutils
@@ -412,3 +413,52 @@ def check_string_length(value, name=None, min_length=0, max_length=None):
                 "%(max_length)s.") % {'name': name, 'length': length,
                                       'max_length': max_length}
         raise ValueError(msg)
+
+
+def split_path(path, minsegs=1, maxsegs=None, rest_with_last=False):
+    """Validate and split the given HTTP request path.
+
+    **Examples**::
+
+        ['a'] = _split_path('/a')
+        ['a', None] = _split_path('/a', 1, 2)
+        ['a', 'c'] = _split_path('/a/c', 1, 2)
+        ['a', 'c', 'o/r'] = _split_path('/a/c/o/r', 1, 3, True)
+
+    :param path: HTTP Request path to be split
+    :param minsegs: Minimum number of segments to be extracted
+    :param maxsegs: Maximum number of segments to be extracted
+    :param rest_with_last: If True, trailing data will be returned as part
+                           of last segment.  If False, and there is
+                           trailing data, raises ValueError.
+    :returns: list of segments with a length of maxsegs (non-existent
+              segments will return as None)
+    :raises: ValueError if given an invalid path
+
+    .. versionadded:: 3.9
+    """
+    if not maxsegs:
+        maxsegs = minsegs
+    if minsegs > maxsegs:
+        raise ValueError(_('minsegs > maxsegs: %(min)d > %(max)d)') %
+                         {'min': minsegs, 'max': maxsegs})
+    if rest_with_last:
+        segs = path.split('/', maxsegs)
+        minsegs += 1
+        maxsegs += 1
+        count = len(segs)
+        if (segs[0] or count < minsegs or count > maxsegs or
+                '' in segs[1:minsegs]):
+            raise ValueError(_('Invalid path: %s') % urllib.parse.quote(path))
+    else:
+        minsegs += 1
+        maxsegs += 1
+        segs = path.split('/', maxsegs)
+        count = len(segs)
+        if (segs[0] or count < minsegs or count > maxsegs + 1 or
+                '' in segs[1:minsegs] or
+                (count == maxsegs + 1 and segs[maxsegs])):
+            raise ValueError(_('Invalid path: %s') % urllib.parse.quote(path))
+    segs = segs[1:maxsegs]
+    segs.extend([None] * (maxsegs - 1 - len(segs)))
+    return segs
