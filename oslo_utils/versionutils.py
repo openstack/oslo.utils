@@ -46,7 +46,7 @@ def is_compatible(requested_version, current_version, same_major=True):
     requested_parts = pkg_resources.parse_version(requested_version)
     current_parts = pkg_resources.parse_version(current_version)
 
-    if same_major and (requested_parts[0] != current_parts[0]):
+    if same_major and (requested_parts.base_version[0] != current_parts.base_version[0]):
         return False
 
     return current_parts >= requested_parts
