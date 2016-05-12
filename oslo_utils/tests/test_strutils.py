@@ -694,3 +694,42 @@ class StringLengthTestCase(test_base.BaseTestCase):
         self.assertRaises(TypeError,
                           strutils.check_string_length,
                           dict(), max_length=255)
+
+
+class SplitPathTestCase(test_base.BaseTestCase):
+    def test_split_path_failed(self):
+        self.assertRaises(ValueError, strutils.split_path, '')
+        self.assertRaises(ValueError, strutils.split_path, '/')
+        self.assertRaises(ValueError, strutils.split_path, '//')
+        self.assertRaises(ValueError, strutils.split_path, '//a')
+        self.assertRaises(ValueError, strutils.split_path, '/a/c')
+        self.assertRaises(ValueError, strutils.split_path, '//c')
+        self.assertRaises(ValueError, strutils.split_path, '/a/c/')
+        self.assertRaises(ValueError, strutils.split_path, '/a//')
+        self.assertRaises(ValueError, strutils.split_path, '/a', 2)
+        self.assertRaises(ValueError, strutils.split_path, '/a', 2, 3)
+        self.assertRaises(ValueError, strutils.split_path, '/a', 2, 3, True)
+        self.assertRaises(ValueError, strutils.split_path, '/a/c/o/r', 3, 3)
+        self.assertRaises(ValueError, strutils.split_path, '/a', 5, 4)
+
+    def test_split_path_success(self):
+        self.assertEqual(strutils.split_path('/a'), ['a'])
+        self.assertEqual(strutils.split_path('/a/'), ['a'])
+        self.assertEqual(strutils.split_path('/a/c', 2), ['a', 'c'])
+        self.assertEqual(strutils.split_path('/a/c/o', 3), ['a', 'c', 'o'])
+        self.assertEqual(strutils.split_path('/a/c/o/r', 3, 3, True),
+                         ['a', 'c', 'o/r'])
+        self.assertEqual(strutils.split_path('/a/c', 2, 3, True),
+                         ['a', 'c', None])
+        self.assertEqual(strutils.split_path('/a/c/', 2), ['a', 'c'])
+        self.assertEqual(strutils.split_path('/a/c/', 2, 3), ['a', 'c', ''])
+
+    def test_split_path_invalid_path(self):
+        try:
+            strutils.split_path('o\nn e', 2)
+        except ValueError as err:
+            self.assertEqual(str(err), 'Invalid path: o%0An%20e')
+        try:
+            strutils.split_path('o\nn e', 2, 3, True)
+        except ValueError as err:
+            self.assertEqual(str(err), 'Invalid path: o%0An%20e')
