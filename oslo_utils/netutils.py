@@ -123,7 +123,7 @@ def is_valid_cidr(address):
     try:
         # Validate the correct CIDR Address
         netaddr.IPNetwork(address)
-    except netaddr.AddrFormatError:
+    except (TypeError, netaddr.AddrFormatError):
         return False
 
     # Prior validation partially verify /xx part
