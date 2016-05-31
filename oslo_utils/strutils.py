@@ -435,7 +435,7 @@ def split_path(path, minsegs=1, maxsegs=None, rest_with_last=False):
               segments will return as None)
     :raises: ValueError if given an invalid path
 
-    .. versionadded:: 3.9
+    .. versionadded:: 3.11
     """
     if not maxsegs:
         maxsegs = minsegs
