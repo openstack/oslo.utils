@@ -193,13 +193,13 @@ class NetworkUtilsTest(test_base.BaseTestCase):
         self.assertFalse(netutils.is_valid_cidr(10))
 
     def test_valid_port(self):
-        valid_inputs = [1, '1', 2, '3', '5', 8, 13, 21,
+        valid_inputs = [0, '0', 1, '1', 2, '3', '5', 8, 13, 21,
                         '80', '3246', '65535']
         for input_str in valid_inputs:
             self.assertTrue(netutils.is_valid_port(input_str))
 
     def test_valid_port_fail(self):
-        invalid_inputs = ['-32768', '0', 0, '65536', 528491, '528491',
+        invalid_inputs = ['-32768', '65536', 528491, '528491',
                           '528.491', 'thirty-seven', None]
         for input_str in invalid_inputs:
             self.assertFalse(netutils.is_valid_port(input_str))

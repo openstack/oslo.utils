@@ -222,12 +222,12 @@ def _is_int_in_range(value, start, end):
 def is_valid_port(port):
     """Verify that port represents a valid port number.
 
-    Port can be valid integer having a value of 1 up to and
+    Port can be valid integer having a value of 0 up to and
     including 65535.
 
     .. versionadded:: 1.1.1
     """
-    return _is_int_in_range(port, 1, 65535)
+    return _is_int_in_range(port, 0, 65535)
 
 
 def is_valid_icmp_type(type):
