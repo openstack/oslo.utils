@@ -199,3 +199,29 @@ class ImageUtilsBlankTestCase(test_base.BaseTestCase):
         image_info = imageutils.QemuImgInfo()
         self.assertEqual(str(image_info), example_output)
         self.assertEqual(len(image_info.snapshots), 0)
+
+
+class ImageUtilsJSONTestCase(test_base.BaseTestCase):
+    def test_qemu_img_info_json_format(self):
+        img_output = '''{
+                       "virtual-size": 41126400,
+                       "filename": "fake_img",
+                       "cluster-size": 65536,
+                       "format": "qcow2",
+                       "actual-size": 13168640
+                      }'''
+        image_info = imageutils.QemuImgInfo(img_output, format='json')
+        self.assertEqual(41126400, image_info.virtual_size)
+        self.assertEqual('fake_img', image_info.image)
+        self.assertEqual(65536, image_info.cluster_size)
+        self.assertEqual('qcow2', image_info.file_format)
+        self.assertEqual(13168640, image_info.disk_size)
+
+    def test_qemu_img_info_json_format_blank(self):
+        img_output = '{}'
+        image_info = imageutils.QemuImgInfo(img_output, format='json')
+        self.assertIsNone(image_info.virtual_size)
+        self.assertIsNone(image_info.image)
+        self.assertIsNone(image_info.cluster_size)
+        self.assertIsNone(image_info.file_format)
+        self.assertIsNone(image_info.disk_size)
