@@ -92,7 +92,7 @@ def is_valid_ipv4(address):
     """
     try:
         return netaddr.valid_ipv4(address)
-    except Exception:
+    except netaddr.AddrFormatError:
         return False
 
 
@@ -107,7 +107,7 @@ def is_valid_ipv6(address):
     """
     try:
         return netaddr.valid_ipv6(address)
-    except Exception:
+    except netaddr.AddrFormatError:
         return False
 
 
