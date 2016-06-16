@@ -317,6 +317,12 @@ class IPv6byEUI64TestCase(test_base.BaseTestCase):
         self.assertRaises(TypeError, lambda:
                           netutils.get_ipv6_addr_by_EUI64(prefix, mac))
 
+    def test_generate_IPv6_with_empty_prefix(self):
+        mac = '00:16:3e:33:44:55'
+        prefix = ''
+        self.assertRaises(ValueError, lambda:
+                          netutils.get_ipv6_addr_by_EUI64(prefix, mac))
+
 
 @contextlib.contextmanager
 def mock_file_content(content):

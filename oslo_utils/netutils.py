@@ -151,7 +151,7 @@ def get_ipv6_addr_by_EUI64(prefix, mac):
     .. versionadded:: 1.4
     """
     # Check if the prefix is an IPv4 address
-    if netaddr.valid_ipv4(prefix):
+    if is_valid_ipv4(prefix):
         msg = _("Unable to generate IP address by EUI64 for IPv4 prefix")
         raise ValueError(msg)
     try:
