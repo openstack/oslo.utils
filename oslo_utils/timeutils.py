@@ -25,7 +25,7 @@ import time
 from debtcollector import removals
 import iso8601
 from monotonic import monotonic as now  # noqa
-from pytz import timezone
+import pytz
 import six
 
 from oslo_utils import reflection
@@ -283,7 +283,7 @@ def unmarshall_time(tyme):
                            microsecond=tyme['microsecond'])
     tzname = tyme.get('tzname')
     if tzname:
-        tzinfo = timezone(tzname)
+        tzinfo = pytz.timezone(tzname)
         dt = tzinfo.localize(dt)
     return dt
 

@@ -19,7 +19,7 @@ import sys
 
 import mock
 from oslotest import base
-from six.moves import reload_module
+import six
 
 
 fnmatch = None
@@ -57,5 +57,5 @@ class TestFnmatch(base.BaseTestCase):
             self._test_fnmatch_posix_nt()
 
         with mock.patch.object(sys, 'version_info', new=(2, 7, 0)):
-            reload_module(oslo_fnmatch)
+            six.moves.reload_module(oslo_fnmatch)
             self._test_fnmatch_posix_nt()

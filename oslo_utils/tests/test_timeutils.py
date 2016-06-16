@@ -39,8 +39,8 @@ class TimeUtilsTest(test_base.BaseTestCase):
         self.skynet_self_aware_time_str = '1997-08-29T06:14:00Z'
         self.skynet_self_aware_time_ms_str = '1997-08-29T06:14:00.000123Z'
         self.skynet_self_aware_time = datetime.datetime(1997, 8, 29, 6, 14, 0)
-        self.skynet_self_aware_ms_time = datetime.datetime(
-            1997, 8, 29, 6, 14, 0, 123)
+        self.skynet_self_aware_ms_time = datetime.datetime(1997, 8, 29, 6, 14,
+                                                           0, 123)
         self.one_minute_before = datetime.datetime(1997, 8, 29, 6, 13, 0)
         self.one_minute_after = datetime.datetime(1997, 8, 29, 6, 15, 0)
         self.skynet_self_aware_time_perfect_str = '1997-08-29T06:14:00.000000'

@@ -327,7 +327,7 @@ class ExceptionFilterTest(test_base.BaseTestCase):
     def _make_filter_func(self, ignore_classes=AssertionError):
         @excutils.exception_filter
         def ignore_exceptions(ex):
-            '''Ignore some exceptions F'''
+            '''Ignore some exceptions F.'''
             return isinstance(ex, ignore_classes)
 
         return ignore_exceptions
@@ -339,7 +339,7 @@ class ExceptionFilterTest(test_base.BaseTestCase):
 
             @excutils.exception_filter
             def ignore_exceptions(self, ex):
-                '''Ignore some exceptions M'''
+                '''Ignore some exceptions M.'''
                 return isinstance(ex, self.ignore)
 
         return ExceptionIgnorer(ignore_classes).ignore_exceptions
@@ -351,7 +351,7 @@ class ExceptionFilterTest(test_base.BaseTestCase):
             @excutils.exception_filter
             @classmethod
             def ignore_exceptions(cls, ex):
-                '''Ignore some exceptions C'''
+                '''Ignore some exceptions C.'''
                 return isinstance(ex, cls.ignore)
 
         return ExceptionIgnorer.ignore_exceptions
@@ -361,7 +361,7 @@ class ExceptionFilterTest(test_base.BaseTestCase):
             @excutils.exception_filter
             @staticmethod
             def ignore_exceptions(ex):
-                '''Ignore some exceptions S'''
+                '''Ignore some exceptions S.'''
                 return isinstance(ex, ignore_classes)
 
         return ExceptionIgnorer.ignore_exceptions
@@ -461,7 +461,7 @@ class ExceptionFilterTest(test_base.BaseTestCase):
 
     def test_func_docstring(self):
         ignore_func = self._make_filter_func()
-        self.assertEqual('Ignore some exceptions F', ignore_func.__doc__)
+        self.assertEqual('Ignore some exceptions F.', ignore_func.__doc__)
 
     def test_filter_method_call(self):
         ignore_assertion_error = self._make_filter_method()
@@ -496,7 +496,7 @@ class ExceptionFilterTest(test_base.BaseTestCase):
 
     def test_method_docstring(self):
         ignore_func = self._make_filter_method()
-        self.assertEqual('Ignore some exceptions M', ignore_func.__doc__)
+        self.assertEqual('Ignore some exceptions M.', ignore_func.__doc__)
 
     def test_filter_classmethod_call(self):
         ignore_assertion_error = self._make_filter_classmethod()
@@ -531,7 +531,7 @@ class ExceptionFilterTest(test_base.BaseTestCase):
 
     def test_classmethod_docstring(self):
         ignore_func = self._make_filter_classmethod()
-        self.assertEqual('Ignore some exceptions C', ignore_func.__doc__)
+        self.assertEqual('Ignore some exceptions C.', ignore_func.__doc__)
 
     def test_filter_staticmethod_call(self):
         ignore_assertion_error = self._make_filter_staticmethod()
@@ -566,4 +566,4 @@ class ExceptionFilterTest(test_base.BaseTestCase):
 
     def test_staticmethod_docstring(self):
         ignore_func = self._make_filter_staticmethod()
-        self.assertEqual('Ignore some exceptions S', ignore_func.__doc__)
+        self.assertEqual('Ignore some exceptions S.', ignore_func.__doc__)

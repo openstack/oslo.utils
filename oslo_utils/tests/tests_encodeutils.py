@@ -16,11 +16,11 @@
 #    under the License.
 
 import mock
+from oslo_i18n import fixture as oslo_i18n_fixture
 from oslotest import base as test_base
 import six
 import testtools
 
-import oslo_i18n.fixture
 from oslo_utils import encodeutils
 
 
@@ -116,7 +116,7 @@ class EncodeUtilsTest(test_base.BaseTestCase):
         # oslo.i18n Message objects should also be accepted for convenience.
         # It works because Message is a subclass of six.text_type. Use the
         # lazy translation to get a Message instance of oslo_i18n.
-        msg = oslo_i18n.fixture.Translation().lazy("test")
+        msg = oslo_i18n_fixture.Translation().lazy("test")
         self.assertEqual(encodeutils.to_utf8(msg),
                          b'test')
 
@@ -251,6 +251,6 @@ class ExceptionToUnicodeTest(test_base.BaseTestCase):
 
     def test_oslo_i18n_message(self):
         # use the lazy translation to get a Message instance of oslo_i18n
-        exc = oslo_i18n.fixture.Translation().lazy("test")
+        exc = oslo_i18n_fixture.Translation().lazy("test")
         self.assertEqual(encodeutils.exception_to_unicode(exc),
                          u"test")
