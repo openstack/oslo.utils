@@ -21,10 +21,10 @@ Helpers for comparing version strings.
 
 import logging
 
-from oslo_utils._i18n import _
 import pkg_resources
 import six
 
+from oslo_utils._i18n import _
 
 LOG = logging.getLogger(__name__)
 

@@ -139,7 +139,7 @@ def exception_to_unicode(exc):
         # be easily casted to unicode, whereas they have no __unicode__()
         # method.
         try:
-            msg = unicode(exc)
+            msg = unicode(exc)  # NOQA
         except UnicodeError:
             # unicode(exc) fail with UnicodeDecodeError on Python 2 if
             # exc.__unicode__() or exc.__str__() returns a bytes string not
