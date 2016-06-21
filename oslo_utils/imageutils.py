@@ -19,8 +19,13 @@
 Helper methods to deal with images.
 
 .. versionadded:: 3.1
+
+.. versionchanged:: 3.14.0
+   add paramter format.
+
 """
 
+import json
 import re
 
 from oslo_utils._i18n import _
@@ -33,6 +38,8 @@ class QemuImgInfo(object):
     The instance of :class:`QemuImgInfo` has properties: `image`,
     `backing_file`, `file_format`, `virtual_size`, `cluster_size`,
     `disk_size`, `snapshots` and `encrypted`.
+    The parameter format can be set to 'json' or 'human'. With 'json' format
+    output, qemu image information will be parsed more easily and readable.
     """
     BACKING_FILE_RE = re.compile((r"^(.*?)\s*\(actual\s+path\s*:"
                                   r"\s+(.*?)\)\s*$"), re.I)
@@ -40,16 +47,27 @@ class QemuImgInfo(object):
     SIZE_RE = re.compile(r"(\d*\.?\d+)(\w+)?(\s*\(\s*(\d+)\s+bytes\s*\))?",
                          re.I)
 
-    def __init__(self, cmd_output=None):
-        details = self._parse(cmd_output or '')
-        self.image = details.get('image')
-        self.backing_file = details.get('backing_file')
-        self.file_format = details.get('file_format')
-        self.virtual_size = details.get('virtual_size')
-        self.cluster_size = details.get('cluster_size')
-        self.disk_size = details.get('disk_size')
-        self.snapshots = details.get('snapshot_list', [])
-        self.encrypted = details.get('encrypted')
+    def __init__(self, cmd_output=None, format='human'):
+        if format == 'json':
+            details = json.loads(cmd_output or '{}')
+            self.image = details.get('filename')
+            self.backing_file = details.get('backing-filename')
+            self.file_format = details.get('format')
+            self.virtual_size = details.get('virtual-size')
+            self.cluster_size = details.get('cluster-size')
+            self.disk_size = details.get('actual-size')
+            self.snapshots = details.get('snapshots', [])
+            self.encrypted = details.get('encrypted')
+        else:
+            details = self._parse(cmd_output or '')
+            self.image = details.get('image')
+            self.backing_file = details.get('backing_file')
+            self.file_format = details.get('file_format')
+            self.virtual_size = details.get('virtual_size')
+            self.cluster_size = details.get('cluster_size')
+            self.disk_size = details.get('disk_size')
+            self.snapshots = details.get('snapshot_list', [])
+            self.encrypted = details.get('encrypted')
 
     def __str__(self):
         lines = [
