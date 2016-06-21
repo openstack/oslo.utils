@@ -616,6 +616,11 @@ class MaskDictionaryPasswordTestCase(test_base.BaseTestCase):
         self.assertEqual(expected,
                          strutils.mask_dict_password(payload))
 
+        payload = {'ipmi_password': 'KeDrahishvowphyecMornEm0or('}
+        expected = {'ipmi_password': '***'}
+        self.assertEqual(expected,
+                         strutils.mask_dict_password(payload))
+
     def test_do_no_harm(self):
         payload = {}
         expected = {}
