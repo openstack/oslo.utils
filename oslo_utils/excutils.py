@@ -97,7 +97,6 @@ class CausedByException(Exception):
                     buf.write(line)
                     if i + 1 != len(lines):
                         buf.write(os.linesep)
-            if not isinstance(next_up, CausedByException):
                 # Don't go deeper into non-caused-by exceptions... as we
                 # don't know if there exception 'cause' attributes are even
                 # useable objects...
