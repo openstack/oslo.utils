@@ -271,43 +271,43 @@ class MaskPasswordTestCase(test_base.BaseTestCase):
 
     def test_json(self):
         # Test 'adminPass' w/o spaces
-        payload = """{'adminPass':'mypassword'}"""
+        payload = """{'adminPass':'TL0EfN33'}"""
         expected = """{'adminPass':'***'}"""
         self.assertEqual(expected, strutils.mask_password(payload))
         # Test 'adminPass' with spaces
-        payload = """{ 'adminPass' : 'mypassword' }"""
+        payload = """{ 'adminPass' : 'TL0EfN33' }"""
         expected = """{ 'adminPass' : '***' }"""
         self.assertEqual(expected, strutils.mask_password(payload))
         # Test 'admin_pass' w/o spaces
-        payload = """{'admin_pass':'mypassword'}"""
+        payload = """{'admin_pass':'TL0EfN33'}"""
         expected = """{'admin_pass':'***'}"""
         self.assertEqual(expected, strutils.mask_password(payload))
         # Test 'admin_pass' with spaces
-        payload = """{ 'admin_pass' : 'mypassword' }"""
+        payload = """{ 'admin_pass' : 'TL0EfN33' }"""
         expected = """{ 'admin_pass' : '***' }"""
         self.assertEqual(expected, strutils.mask_password(payload))
         # Test 'admin_password' w/o spaces
-        payload = """{'admin_password':'mypassword'}"""
+        payload = """{'admin_password':'TL0EfN33'}"""
         expected = """{'admin_password':'***'}"""
         self.assertEqual(expected, strutils.mask_password(payload))
         # Test 'admin_password' with spaces
-        payload = """{ 'admin_password' : 'mypassword' }"""
+        payload = """{ 'admin_password' : 'TL0EfN33' }"""
         expected = """{ 'admin_password' : '***' }"""
         self.assertEqual(expected, strutils.mask_password(payload))
         # Test 'password' w/o spaces
-        payload = """{'password':'mypassword'}"""
+        payload = """{'password':'TL0EfN33'}"""
         expected = """{'password':'***'}"""
         self.assertEqual(expected, strutils.mask_password(payload))
         # Test 'password' with spaces
-        payload = """{ 'password' : 'mypassword' }"""
+        payload = """{ 'password' : 'TL0EfN33' }"""
         expected = """{ 'password' : '***' }"""
         self.assertEqual(expected, strutils.mask_password(payload))
         # Test 'auth_password' w/o spaces
-        payload = """{'auth_password':'mypassword'}"""
+        payload = """{'auth_password':'TL0EfN33'}"""
         expected = """{'auth_password':'***'}"""
         self.assertEqual(expected, strutils.mask_password(payload))
         # Test 'auth_password' with spaces
-        payload = """{ 'auth_password' : 'mypassword' }"""
+        payload = """{ 'auth_password' : 'TL0EfN33' }"""
         expected = """{ 'auth_password' : '***' }"""
         self.assertEqual(expected, strutils.mask_password(payload))
         # Test 'secret_uuid' w/o spaces
@@ -329,93 +329,93 @@ class MaskPasswordTestCase(test_base.BaseTestCase):
 
     def test_xml(self):
         # Test 'adminPass' w/o spaces
-        payload = """<adminPass>mypassword</adminPass>"""
+        payload = """<adminPass>TL0EfN33</adminPass>"""
         expected = """<adminPass>***</adminPass>"""
         self.assertEqual(expected, strutils.mask_password(payload))
         # Test 'adminPass' with spaces
         payload = """<adminPass>
-                        mypassword
+                        TL0EfN33
                      </adminPass>"""
         expected = """<adminPass>***</adminPass>"""
         self.assertEqual(expected, strutils.mask_password(payload))
         # Test 'admin_pass' w/o spaces
-        payload = """<admin_pass>mypassword</admin_pass>"""
+        payload = """<admin_pass>TL0EfN33</admin_pass>"""
         expected = """<admin_pass>***</admin_pass>"""
         self.assertEqual(expected, strutils.mask_password(payload))
         # Test 'admin_pass' with spaces
         payload = """<admin_pass>
-                        mypassword
+                        TL0EfN33
                      </admin_pass>"""
         expected = """<admin_pass>***</admin_pass>"""
         self.assertEqual(expected, strutils.mask_password(payload))
         # Test 'admin_password' w/o spaces
-        payload = """<admin_password>mypassword</admin_password>"""
+        payload = """<admin_password>TL0EfN33</admin_password>"""
         expected = """<admin_password>***</admin_password>"""
         self.assertEqual(expected, strutils.mask_password(payload))
         # Test 'admin_password' with spaces
         payload = """<admin_password>
-                        mypassword
+                        TL0EfN33
                      </admin_password>"""
         expected = """<admin_password>***</admin_password>"""
         self.assertEqual(expected, strutils.mask_password(payload))
         # Test 'password' w/o spaces
-        payload = """<password>mypassword</password>"""
+        payload = """<password>TL0EfN33</password>"""
         expected = """<password>***</password>"""
         self.assertEqual(expected, strutils.mask_password(payload))
         # Test 'password' with spaces
         payload = """<password>
-                        mypassword
+                        TL0EfN33
                      </password>"""
         expected = """<password>***</password>"""
         self.assertEqual(expected, strutils.mask_password(payload))
 
     def test_xml_attribute(self):
         # Test 'adminPass' w/o spaces
-        payload = """adminPass='mypassword'"""
+        payload = """adminPass='TL0EfN33'"""
         expected = """adminPass='***'"""
         self.assertEqual(expected, strutils.mask_password(payload))
         # Test 'adminPass' with spaces
-        payload = """adminPass = 'mypassword'"""
+        payload = """adminPass = 'TL0EfN33'"""
         expected = """adminPass = '***'"""
         self.assertEqual(expected, strutils.mask_password(payload))
         # Test 'adminPass' with double quotes
-        payload = """adminPass = "mypassword\""""
+        payload = """adminPass = "TL0EfN33\""""
         expected = """adminPass = "***\""""
         self.assertEqual(expected, strutils.mask_password(payload))
         # Test 'admin_pass' w/o spaces
-        payload = """admin_pass='mypassword'"""
+        payload = """admin_pass='TL0EfN33'"""
         expected = """admin_pass='***'"""
         self.assertEqual(expected, strutils.mask_password(payload))
         # Test 'admin_pass' with spaces
-        payload = """admin_pass = 'mypassword'"""
+        payload = """admin_pass = 'TL0EfN33'"""
         expected = """admin_pass = '***'"""
         self.assertEqual(expected, strutils.mask_password(payload))
         # Test 'admin_pass' with double quotes
-        payload = """admin_pass = "mypassword\""""
+        payload = """admin_pass = "TL0EfN33\""""
         expected = """admin_pass = "***\""""
         self.assertEqual(expected, strutils.mask_password(payload))
         # Test 'admin_password' w/o spaces
-        payload = """admin_password='mypassword'"""
+        payload = """admin_password='TL0EfN33'"""
         expected = """admin_password='***'"""
         self.assertEqual(expected, strutils.mask_password(payload))
         # Test 'admin_password' with spaces
-        payload = """admin_password = 'mypassword'"""
+        payload = """admin_password = 'TL0EfN33'"""
         expected = """admin_password = '***'"""
         self.assertEqual(expected, strutils.mask_password(payload))
         # Test 'admin_password' with double quotes
-        payload = """admin_password = "mypassword\""""
+        payload = """admin_password = "TL0EfN33\""""
         expected = """admin_password = "***\""""
         self.assertEqual(expected, strutils.mask_password(payload))
         # Test 'password' w/o spaces
-        payload = """password='mypassword'"""
+        payload = """password='TL0EfN33'"""
         expected = """password='***'"""
         self.assertEqual(expected, strutils.mask_password(payload))
         # Test 'password' with spaces
-        payload = """password = 'mypassword'"""
+        payload = """password = 'TL0EfN33'"""
         expected = """password = '***'"""
         self.assertEqual(expected, strutils.mask_password(payload))
         # Test 'password' with double quotes
-        payload = """password = "mypassword\""""
+        payload = """password = "TL0EfN33\""""
         expected = """password = "***\""""
         self.assertEqual(expected, strutils.mask_password(payload))
 
@@ -540,7 +540,7 @@ class MaskPasswordTestCase(test_base.BaseTestCase):
         expected = 'test = "param1" : "value"'
         self.assertEqual(expected, strutils.mask_password(payload))
 
-        payload = """{'adminPass':'mypassword'}"""
+        payload = """{'adminPass':'TL0EfN33'}"""
         payload = six.text_type(payload)
         expected = """{'adminPass':'***'}"""
         self.assertEqual(expected, strutils.mask_password(payload))
@@ -550,35 +550,35 @@ class MaskPasswordTestCase(test_base.BaseTestCase):
         expected = """{'token':'***'}"""
         self.assertEqual(expected, strutils.mask_password(payload))
 
-        payload = ("test = 'node.session.auth.password','-v','mypassword',"
+        payload = ("test = 'node.session.auth.password','-v','TL0EfN33',"
                    "'nomask'")
         expected = ("test = 'node.session.auth.password','-v','***',"
                     "'nomask'")
         self.assertEqual(expected, strutils.mask_password(payload))
 
         payload = ("test = 'node.session.auth.password', '--password', "
-                   "'mypassword', 'nomask'")
+                   "'TL0EfN33', 'nomask'")
         expected = ("test = 'node.session.auth.password', '--password', "
                     "'***', 'nomask'")
         self.assertEqual(expected, strutils.mask_password(payload))
 
         payload = ("test = 'node.session.auth.password', '--password', "
-                   "'mypassword'")
+                   "'TL0EfN33'")
         expected = ("test = 'node.session.auth.password', '--password', "
                     "'***'")
         self.assertEqual(expected, strutils.mask_password(payload))
 
-        payload = "test = node.session.auth.password -v mypassword nomask"
+        payload = "test = node.session.auth.password -v TL0EfN33 nomask"
         expected = "test = node.session.auth.password -v *** nomask"
         self.assertEqual(expected, strutils.mask_password(payload))
 
-        payload = ("test = node.session.auth.password --password mypassword "
+        payload = ("test = node.session.auth.password --password TL0EfN33 "
                    "nomask")
         expected = ("test = node.session.auth.password --password *** "
                     "nomask")
         self.assertEqual(expected, strutils.mask_password(payload))
 
-        payload = ("test = node.session.auth.password --password mypassword")
+        payload = ("test = node.session.auth.password --password TL0EfN33")
         expected = ("test = node.session.auth.password --password ***")
         self.assertEqual(expected, strutils.mask_password(payload))
 
@@ -590,18 +590,18 @@ class MaskPasswordTestCase(test_base.BaseTestCase):
 class MaskDictionaryPasswordTestCase(test_base.BaseTestCase):
 
     def test_dictionary(self):
-        payload = {'password': 'mypassword'}
+        payload = {'password': 'TL0EfN33'}
         expected = {'password': '***'}
         self.assertEqual(expected,
                          strutils.mask_dict_password(payload))
 
-        payload = {'user': 'admin', 'password': 'mypassword'}
+        payload = {'user': 'admin', 'password': 'TL0EfN33'}
         expected = {'user': 'admin', 'password': '***'}
         self.assertEqual(expected,
                          strutils.mask_dict_password(payload))
 
         payload = {'strval': 'somestring',
-                   'dictval': {'user': 'admin', 'password': 'mypassword'}}
+                   'dictval': {'user': 'admin', 'password': 'TL0EfN33'}}
         expected = {'strval': 'somestring',
                     'dictval': {'user': 'admin', 'password': '***'}}
         self.assertEqual(expected,
@@ -609,7 +609,7 @@ class MaskDictionaryPasswordTestCase(test_base.BaseTestCase):
 
         payload = {'strval': '--password abc',
                    'dont_change': 'this is fine',
-                   'dictval': {'user': 'admin', 'password': b'mypassword'}}
+                   'dictval': {'user': 'admin', 'password': b'TL0EfN33'}}
         expected = {'strval': '--password ***',
                     'dont_change': 'this is fine',
                     'dictval': {'user': 'admin', 'password': '***'}}
