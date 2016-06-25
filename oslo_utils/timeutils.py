@@ -534,9 +534,11 @@ class StopWatch(object):
         return self.elapsed() > self._duration
 
     def has_started(self):
+        """Returns True if the watch is in a started state."""
         return self._state == self._STARTED
 
     def has_stopped(self):
+        """Returns True if the watch is in a stopped state."""
         return self._state == self._STOPPED
 
     def resume(self):
