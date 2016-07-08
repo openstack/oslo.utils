@@ -15,6 +15,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import copy
 import math
 
 import mock
@@ -639,6 +640,29 @@ class MaskDictionaryPasswordTestCase(test_base.BaseTestCase):
         expected = {'somekey': 'test = cmd --password ***'}
         self.assertEqual(expected,
                          strutils.mask_dict_password(payload))
+
+    def test_other_non_str_values(self):
+        payload = {'password': 'DK0PK1AK3', 'bool': True,
+                   'dict': {'cat': 'meow', 'password': "*aa38skdjf"},
+                   'float': 0.1, 'int': 123, 'list': [1, 2], 'none': None,
+                   'str': 'foo'}
+        expected = {'password': '***', 'bool': True,
+                    'dict': {'cat': 'meow', 'password': '***'},
+                    'float': 0.1, 'int': 123, 'list': [1, 2], 'none': None,
+                    'str': 'foo'}
+        self.assertEqual(expected,
+                         strutils.mask_dict_password(payload))
+
+    def test_argument_untouched(self):
+        """Make sure that the argument passed in is not modified"""
+        payload = {'password': 'DK0PK1AK3', 'bool': True,
+                   'dict': {'cat': 'meow', 'password': "*aa38skdjf"},
+                   'float': 0.1, 'int': 123, 'list': [1, 2], 'none': None,
+                   'str': 'foo'}
+        pristine = copy.deepcopy(payload)
+        # Send the payload into the function, to see if it gets modified
+        strutils.mask_dict_password(payload)
+        self.assertEqual(pristine, payload)
 
 
 class IsIntLikeTestCase(test_base.BaseTestCase):
