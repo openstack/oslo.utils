@@ -19,14 +19,10 @@ Helpers for comparing version strings.
 .. versionadded:: 1.6
 """
 
-import logging
-
 import pkg_resources
 import six
 
 from oslo_utils._i18n import _
-
-LOG = logging.getLogger(__name__)
 
 
 def is_compatible(requested_version, current_version, same_major=True):

@@ -21,14 +21,12 @@ File utilities.
 
 import contextlib
 import errno
-import logging
 import os
 import stat
 import tempfile
 
 from oslo_utils import excutils
 
-LOG = logging.getLogger(__name__)
 _DEFAULT_MODE = stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO
 
 
