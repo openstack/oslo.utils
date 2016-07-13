@@ -98,11 +98,35 @@ class SpecsMatcherTestCase(test_base.BaseTestCase):
             req='s!= 123',
             matches=False)
 
+    def test_specs_matches_with_op_sge(self):
+        self._do_specs_matcher_test(
+            value='234',
+            req='s>= 1000',
+            matches=True)
+
+    def test_specs_matches_with_op_sge2(self):
+        self._do_specs_matcher_test(
+            value='234',
+            req='s>= 234',
+            matches=True)
+
     def test_specs_fails_with_op_sge(self):
         self._do_specs_matcher_test(
             value='1000',
             req='s>= 234',
             matches=False)
+
+    def test_specs_matches_with_op_sle(self):
+        self._do_specs_matcher_test(
+            value='1000',
+            req='s<= 1234',
+            matches=True)
+
+    def test_specs_matches_with_op_sle2(self):
+        self._do_specs_matcher_test(
+            value='1234',
+            req='s<= 1234',
+            matches=True)
 
     def test_specs_fails_with_op_sle(self):
         self._do_specs_matcher_test(
@@ -110,16 +134,40 @@ class SpecsMatcherTestCase(test_base.BaseTestCase):
             req='s<= 1000',
             matches=False)
 
+    def test_specs_matches_with_op_sl(self):
+        self._do_specs_matcher_test(
+            value='12',
+            req='s< 2',
+            matches=True)
+
     def test_specs_fails_with_op_sl(self):
         self._do_specs_matcher_test(
             value='2',
             req='s< 12',
             matches=False)
 
+    def test_specs_fails_with_op_sl2(self):
+        self._do_specs_matcher_test(
+            value='12',
+            req='s< 12',
+            matches=False)
+
+    def test_specs_matches_with_op_sg(self):
+        self._do_specs_matcher_test(
+            value='2',
+            req='s> 12',
+            matches=True)
+
     def test_specs_fails_with_op_sg(self):
         self._do_specs_matcher_test(
             value='12',
             req='s> 2',
+            matches=False)
+
+    def test_specs_fails_with_op_sg2(self):
+        self._do_specs_matcher_test(
+            value='12',
+            req='s> 12',
             matches=False)
 
     def test_specs_matches_with_op_in(self):
@@ -164,6 +212,12 @@ class SpecsMatcherTestCase(test_base.BaseTestCase):
             req='<or> 11 <or> 12 <or>',
             matches=True)
 
+    def test_specs_matches_with_op_or3(self):
+        self._do_specs_matcher_test(
+            value='12',
+            req='<or> 12',
+            matches=True)
+
     def test_specs_fails_with_op_or(self):
         self._do_specs_matcher_test(
             value='13',
@@ -176,9 +230,21 @@ class SpecsMatcherTestCase(test_base.BaseTestCase):
             req='<or> 11 <or> 12 <or>',
             matches=False)
 
+    def test_specs_fails_with_op_or3(self):
+        self._do_specs_matcher_test(
+            value='13',
+            req='<or> 11',
+            matches=False)
+
     def test_specs_matches_with_op_le(self):
         self._do_specs_matcher_test(
             value='2',
+            req='<= 10',
+            matches=True)
+
+    def test_specs_matches_with_op_le2(self):
+        self._do_specs_matcher_test(
+            value='10',
             req='<= 10',
             matches=True)
 
@@ -194,8 +260,44 @@ class SpecsMatcherTestCase(test_base.BaseTestCase):
             req='>= 1',
             matches=True)
 
+    def test_specs_matches_with_op_ge2(self):
+        self._do_specs_matcher_test(
+            value='3.0',
+            req='>= 3',
+            matches=True)
+
     def test_specs_fails_with_op_ge(self):
         self._do_specs_matcher_test(
             value='2',
             req='>= 3',
+            matches=False)
+
+    def test_specs_matches_with_op_ne(self):
+        self._do_specs_matcher_test(
+            value='3.2',
+            req='!= 3.1',
+            matches=True)
+
+    def test_specs_fails_with_op_ne(self):
+        self._do_specs_matcher_test(
+            value='3.2',
+            req='!= 3.2',
+            matches=False)
+
+    def test_specs_matches_with_op_eqeq(self):
+        self._do_specs_matcher_test(
+            value='3',
+            req='== 3',
+            matches=True)
+
+    def test_specs_matches_with_op_eqeq2(self):
+        self._do_specs_matcher_test(
+            value='3.0',
+            req='== 3',
+            matches=True)
+
+    def test_specs_fails_with_op_eqeq(self):
+        self._do_specs_matcher_test(
+            value='3.0',
+            req='== 3.1',
             matches=False)
