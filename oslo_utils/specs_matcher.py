@@ -28,8 +28,10 @@ op_methods = {
     # More sane ops/methods
     '!=': lambda x, y: float(x) != float(y),
     '<=': lambda x, y: float(x) <= float(y),
+    '<': lambda x, y: float(x) < float(y),
     '==': lambda x, y: float(x) == float(y),
     '>=': lambda x, y: float(x) >= float(y),
+    '>': lambda x, y: float(x) > float(y),
     's!=': operator.ne,
     's<': operator.lt,
     's<=': operator.le,
@@ -52,6 +54,7 @@ def make_grammar():
         Literal("==") | Literal("=") |
         Literal("!=") | Literal("<in>") |
         Literal(">=") | Literal("<=") |
+        Literal(">") | Literal("<") |
         Literal("s==") | Literal("s!=") |
         # Order matters here (so that '<' doesn't match before '<=')
         Literal("s<=") | Literal("s<") |

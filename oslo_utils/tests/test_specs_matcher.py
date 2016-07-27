@@ -47,7 +47,7 @@ class SpecsMatcherTestCase(test_base.BaseTestCase):
     def test_specs_fails_with_bogus_ops(self):
         self._do_specs_matcher_test(
             value='4',
-            req='> 2',
+            req='! 2',
             matches=False)
 
     def test_specs_matches_with_op_eq(self):
@@ -264,6 +264,42 @@ class SpecsMatcherTestCase(test_base.BaseTestCase):
         self._do_specs_matcher_test(
             value='3.0',
             req='>= 3',
+            matches=True)
+
+    def test_specs_matches_with_op_g(self):
+        self._do_specs_matcher_test(
+            value='3',
+            req='> 1',
+            matches=True)
+
+    def test_specs_matches_with_op_g2(self):
+        self._do_specs_matcher_test(
+            value='3',
+            req='> 3',
+            matches=False)
+
+    def test_specs_matches_with_op_g3(self):
+        self._do_specs_matcher_test(
+            value='3.0',
+            req='> 2',
+            matches=True)
+
+    def test_specs_matches_with_op_l(self):
+        self._do_specs_matcher_test(
+            value='3',
+            req='< 5',
+            matches=True)
+
+    def test_specs_matches_with_op_l2(self):
+        self._do_specs_matcher_test(
+            value='3',
+            req='< 3',
+            matches=False)
+
+    def test_specs_matches_with_op_l3(self):
+        self._do_specs_matcher_test(
+            value='1.0',
+            req='< 6',
             matches=True)
 
     def test_specs_fails_with_op_ge(self):
