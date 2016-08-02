@@ -22,6 +22,7 @@ import math
 import re
 import unicodedata
 
+import pyparsing as pp
 import six
 from six.moves import urllib
 
@@ -468,3 +469,20 @@ def split_path(path, minsegs=1, maxsegs=None, rest_with_last=False):
     segs = segs[1:maxsegs]
     segs.extend([None] * (maxsegs - 1 - len(segs)))
     return segs
+
+
+def split_by_commas(value):
+    """Split values by commas and quotes according to api-wg
+
+    :param value: value to be split
+
+    .. versionadded:: 3.17
+    """
+    word = (pp.QuotedString(quoteChar='"', escChar='\\')
+            | pp.Word(pp.printables, excludeChars='",'))
+    grammar = pp.stringStart + pp.delimitedList(word) + pp.stringEnd
+
+    try:
+        return list(grammar.parseString(value))
+    except pp.ParseException:
+        raise ValueError("Invalid value: %s" % value)

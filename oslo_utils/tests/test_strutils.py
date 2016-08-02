@@ -762,3 +762,30 @@ class SplitPathTestCase(test_base.BaseTestCase):
             strutils.split_path('o\nn e', 2, 3, True)
         except ValueError as err:
             self.assertEqual(str(err), 'Invalid path: o%0An%20e')
+
+
+class SplitByCommas(test_base.BaseTestCase):
+    def test_not_closed_quotes(self):
+        self.assertRaises(ValueError, strutils.split_by_commas, '"ab","b""')
+
+    def test_no_comma_before_opening_quotes(self):
+        self.assertRaises(ValueError, strutils.split_by_commas, '"ab""b"')
+
+    def test_quote_inside_unquoted(self):
+        self.assertRaises(ValueError, strutils.split_by_commas, 'a"b,cd')
+
+    def check(self, expect, input):
+        self.assertEqual(expect, strutils.split_by_commas(input))
+
+    def test_plain(self):
+        self.check(["a,b", "ac"], '"a,b",ac')
+
+    def test_with_backslash_inside_quoted(self):
+        self.check(['abc"', 'de', 'fg,h', 'klm\\', '"nop'],
+                   r'"abc\"","de","fg,h","klm\\","\"nop"')
+
+    def test_with_backslash_inside_unquoted(self):
+        self.check([r'a\bc', 'de'], r'a\bc,de')
+
+    def test_with_escaped_quotes_in_row_inside_quoted(self):
+        self.check(['a"b""c', 'd'], r'"a\"b\"\"c",d')
