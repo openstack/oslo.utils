@@ -116,6 +116,25 @@ class ImportUtilsTest(test_base.BaseTestCase):
         self.assertIsInstance(dt, sys.modules['datetime'].datetime)
         self.assertEqual(dt, datetime.datetime(2012, 4, 5))
 
+    def test_import_versioned_module(self):
+        v2 = importutils.import_versioned_module('oslo_utils.tests.fake', 2)
+        self.assertEqual(sys.modules['oslo_utils.tests.fake.v2'], v2)
+
+        dummpy = importutils.import_versioned_module('oslo_utils.tests.fake',
+                                                     2, 'dummpy')
+        self.assertEqual(sys.modules['oslo_utils.tests.fake.v2.dummpy'],
+                         dummpy)
+
+    def test_import_versioned_module_wrong_version_parameter(self):
+        self.assertRaises(ValueError,
+                          importutils.import_versioned_module,
+                          'oslo_utils.tests.fake', "2.0", 'fake')
+
+    def test_import_versioned_module_error(self):
+        self.assertRaises(ImportError,
+                          importutils.import_versioned_module,
+                          'oslo_utils.tests.fake', 2, 'fake')
+
     def test_try_import(self):
         dt = importutils.try_import('datetime')
         self.assertEqual(sys.modules['datetime'], dt)

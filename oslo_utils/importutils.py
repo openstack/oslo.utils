@@ -74,15 +74,27 @@ def import_module(import_str):
     return sys.modules[import_str]
 
 
-def import_versioned_module(version, submodule=None):
-    """Import a versioned module.
+def import_versioned_module(module, version, submodule=None):
+    """Import a versioned module in format {module}.v{version][.{submodule}].
+
+    :param module: the module name.
+    :param version: the version number.
+    :param submodule: the submodule name.
+    :raises ValueError: For any invalid input.
 
     .. versionadded:: 0.3
+
+    .. versionchanged:: 3.17
+       Added *module* parameter.
     """
-    module = 'oslo.v%s' % version
+
+    # NOTE(gcb) Disallow parameter version include character '.'
+    if '.' in '%s' % version:
+        raise ValueError("Parameter version shouldn't include character '.'.")
+    module_str = '%s.v%s' % (module, version)
     if submodule:
-        module = '.'.join((module, submodule))
-    return import_module(module)
+        module_str = '.'.join((module_str, submodule))
+    return import_module(module_str)
 
 
 def try_import(import_str, default=None):
