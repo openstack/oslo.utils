@@ -29,6 +29,7 @@ API Documentation
    api/netutils
    api/reflection
    api/secretutils
+   api/specs_matcher
    api/strutils
    api/timeutils
    api/units
