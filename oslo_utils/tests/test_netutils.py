@@ -191,6 +191,17 @@ class NetworkUtilsTest(test_base.BaseTestCase):
         self.assertFalse(netutils.is_valid_cidr('10.0.0.1/33'))
         self.assertFalse(netutils.is_valid_cidr(10))
 
+    def test_is_valid_ipv6_cidr(self):
+        self.assertTrue(netutils.is_valid_ipv6_cidr("2600::/64"))
+        self.assertTrue(netutils.is_valid_ipv6_cidr(
+            "abcd:ef01:2345:6789:abcd:ef01:192.168.254.254/48"))
+        self.assertTrue(netutils.is_valid_ipv6_cidr(
+            "0000:0000:0000:0000:0000:0000:0000:0001/32"))
+        self.assertTrue(netutils.is_valid_ipv6_cidr(
+            "0000:0000:0000:0000:0000:0000:0000:0001"))
+        self.assertFalse(netutils.is_valid_ipv6_cidr("foo"))
+        self.assertFalse(netutils.is_valid_ipv6_cidr("127.0.0.1"))
+
     def test_valid_port(self):
         valid_inputs = [0, '0', 1, '1', 2, '3', '5', 8, 13, 21,
                         '80', '3246', '65535']
