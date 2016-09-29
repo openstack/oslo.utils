@@ -145,6 +145,19 @@ def bool_from_string(subject, strict=False, default=False):
         return default
 
 
+def is_valid_boolstr(value):
+    """Check if the provided string is a valid bool string or not.
+
+    :param value: value to verify
+    :type value: string
+    :returns: true if value is boolean string, false otherwise
+
+    .. versionadded:: 3.17
+    """
+    boolstrs = TRUE_STRINGS + FALSE_STRINGS
+    return str(value).lower() in boolstrs
+
+
 def string_to_bytes(text, unit_system='IEC', return_int=False):
     """Converts a string into an float representation of bytes.
 

@@ -150,6 +150,21 @@ class StrUtilsTest(test_base.BaseTestCase):
         self.assertEqual(1, strutils.int_from_bool_as_string(True))
         self.assertEqual(0, strutils.int_from_bool_as_string(False))
 
+    def test_is_valid_boolstr(self):
+        self.assertTrue(strutils.is_valid_boolstr('true'))
+        self.assertTrue(strutils.is_valid_boolstr('false'))
+        self.assertTrue(strutils.is_valid_boolstr('yes'))
+        self.assertTrue(strutils.is_valid_boolstr('no'))
+        self.assertTrue(strutils.is_valid_boolstr('y'))
+        self.assertTrue(strutils.is_valid_boolstr('n'))
+        self.assertTrue(strutils.is_valid_boolstr('1'))
+        self.assertTrue(strutils.is_valid_boolstr('0'))
+        self.assertTrue(strutils.is_valid_boolstr(1))
+        self.assertTrue(strutils.is_valid_boolstr(0))
+
+        self.assertFalse(strutils.is_valid_boolstr('maybe'))
+        self.assertFalse(strutils.is_valid_boolstr('only on tuesdays'))
+
     def test_slugify(self):
         to_slug = strutils.to_slug
         self.assertRaises(TypeError, to_slug, True)
