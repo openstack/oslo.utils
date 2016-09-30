@@ -111,11 +111,14 @@ def int_from_bool_as_string(subject):
 
 
 def bool_from_string(subject, strict=False, default=False):
-    """Interpret a string as a boolean.
+    """Interpret a subject as a boolean.
 
-    A case-insensitive match is performed such that strings matching 't',
-    'true', 'on', 'y', 'yes', or '1' are considered True and, when
-    `strict=False`, anything else returns the value specified by 'default'.
+    A subject can be a boolean, a string or an integer. Boolean type value
+    will be returned directly, otherwise the subject will be converted to
+    a string. A case-insensitive match is performed such that strings
+    matching 't','true', 'on', 'y', 'yes', or '1' are considered True and,
+    when `strict=False`, anything else returns the value specified by
+    'default'.
 
     Useful for JSON-decoded stuff and config file parsing.
 
