@@ -19,10 +19,12 @@ Network-related utilities and helper functions.
 
 import logging
 import os
+import re
 import socket
 
 import netaddr
 import netifaces
+import six
 from six.moves.urllib import parse
 
 from oslo_utils._i18n import _
@@ -217,6 +219,22 @@ def is_valid_ip(address):
     .. versionadded:: 1.1
     """
     return is_valid_ipv4(address) or is_valid_ipv6(address)
+
+
+def is_valid_mac(address):
+    """Verify the format of a MAC address.
+
+    Check if a MAC address is valid and contains six octets. Accepts
+    colon-separated format only.
+
+    :param address: MAC address to be validated.
+    :returns: True if valid. False if not.
+
+    .. versionadded:: 3.17
+    """
+    m = "[0-9a-f]{2}(:[0-9a-f]{2}){5}$"
+    return (isinstance(address, six.string_types) and
+            re.match(m, address.lower()))
 
 
 def _is_int_in_range(value, start, end):
