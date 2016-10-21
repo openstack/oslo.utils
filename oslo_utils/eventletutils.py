@@ -138,3 +138,38 @@ def is_monkey_patched(module):
     if _patcher is None:
         return False
     return _patcher.is_monkey_patched(module)
+
+
+class _Event(object):
+    """A class that provides consistent eventlet/threading Event API.
+
+    This wraps the eventlet.event.Event class to have the same API as
+    the standard threading.Event object.
+    """
+    def __init__(self, *args, **kwargs):
+        self.clear()
+
+    def clear(self):
+        self._set = False
+        self._event = _eventlet.event.Event()
+
+    def is_set(self):
+        return self._set
+
+    isSet = is_set
+
+    def set(self):
+        self._set = True
+        self._event.send(True)
+
+    def wait(self, timeout=None):
+        with _eventlet.timeout.Timeout(timeout, False):
+            self._event.wait()
+        return self.is_set()
+
+
+def Event():
+    if EVENTLET_AVAILABLE:
+        return _Event()
+    else:
+        return threading.Event()

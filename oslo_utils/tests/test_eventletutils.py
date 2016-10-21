@@ -12,6 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import threading
 import warnings
 
 import mock
@@ -121,3 +122,22 @@ class EventletUtilsTest(test_base.BaseTestCase):
         self.assertRaises(ValueError,
                           eventletutils.warn_eventlet_not_patched,
                           ['blah.blah'])
+
+    @mock.patch('oslo_utils.eventletutils._Event.clear')
+    def test_event_api_compat(self, mock_clear):
+        e_event = eventletutils.Event()
+        self.assertIsInstance(e_event, eventletutils._Event)
+
+        eventletutils.EVENTLET_AVAILABLE = False
+        t_event = eventletutils.Event()
+        if six.PY3:
+            t_event_cls = threading.Event
+        else:
+            t_event_cls = threading._Event
+        self.assertIsInstance(t_event, t_event_cls)
+
+        public_methods = [m for m in dir(t_event) if not m.startswith("_") and
+                          callable(getattr(t_event, m))]
+
+        for method in public_methods:
+            self.assertTrue(hasattr(e_event, method))
