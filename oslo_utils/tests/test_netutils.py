@@ -163,6 +163,10 @@ class NetworkUtilsTest(test_base.BaseTestCase):
     def test_is_valid_ipv6(self):
         self.assertTrue(netutils.is_valid_ipv6('::1'))
 
+        self.assertTrue(netutils.is_valid_ipv6('fe80::1%eth0'))
+
+        self.assertFalse(netutils.is_valid_ip('fe%80::1%eth0'))
+
         self.assertFalse(netutils.is_valid_ipv6(
             '1fff::a88:85a3::172.31.128.1'))
 
@@ -173,11 +177,15 @@ class NetworkUtilsTest(test_base.BaseTestCase):
 
         self.assertTrue(netutils.is_valid_ip('2001:db8::ff00:42:8329'))
 
+        self.assertTrue(netutils.is_valid_ip('fe80::1%eth0'))
+
         self.assertFalse(netutils.is_valid_ip('256.0.0.0'))
 
         self.assertFalse(netutils.is_valid_ip('::1.2.3.'))
 
         self.assertFalse(netutils.is_valid_ip(''))
+
+        self.assertFalse(netutils.is_valid_ip(None))
 
     def test_is_valid_mac(self):
         self.assertTrue(netutils.is_valid_mac("52:54:00:cf:2d:31"))
