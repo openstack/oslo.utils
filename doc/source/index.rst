@@ -18,6 +18,7 @@ API Documentation
 .. toctree::
    :maxdepth: 2
 
+   api/dictutils
    api/encodeutils
    api/eventletutils
    api/excutils
