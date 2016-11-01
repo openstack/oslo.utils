@@ -64,7 +64,7 @@ def get_member_names(obj, exclude_hidden=True):
             get_members(obj, exclude_hidden=exclude_hidden)]
 
 
-def get_class_name(obj, fully_qualified=True):
+def get_class_name(obj, fully_qualified=True, truncate_builtins=True):
     """Get class name for object.
 
     If object is a type, returns name of the type. If object is a bound
@@ -82,14 +82,14 @@ def get_class_name(obj, fully_qualified=True):
         obj = get_method_self(obj)
     if not isinstance(obj, six.class_types):
         obj = type(obj)
-    try:
-        built_in = obj.__module__ in _BUILTIN_MODULES
-    except AttributeError:  # nosec
-        pass
-    else:
-        if built_in:
-            return obj.__name__
-
+    if truncate_builtins:
+        try:
+            built_in = obj.__module__ in _BUILTIN_MODULES
+        except AttributeError:  # nosec
+            pass
+        else:
+            if built_in:
+                return obj.__name__
     if fully_qualified and hasattr(obj, '__module__'):
         return '%s.%s' % (obj.__module__, obj.__name__)
     else:
