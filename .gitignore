@@ -50,3 +50,6 @@ ChangeLog
 # Editors
 *~
 .*.swp
+
+# reno build
+releasenotes/build
