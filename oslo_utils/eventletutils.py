@@ -169,7 +169,7 @@ class _Event(object):
 
 
 def Event():
-    if EVENTLET_AVAILABLE:
+    if is_monkey_patched("thread"):
         return _Event()
     else:
         return threading.Event()

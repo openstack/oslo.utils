@@ -125,10 +125,11 @@ class EventletUtilsTest(test_base.BaseTestCase):
 
     @mock.patch('oslo_utils.eventletutils._Event.clear')
     def test_event_api_compat(self, mock_clear):
-        e_event = eventletutils.Event()
+        with mock.patch('oslo_utils.eventletutils.is_monkey_patched',
+                        return_value=True):
+            e_event = eventletutils.Event()
         self.assertIsInstance(e_event, eventletutils._Event)
 
-        eventletutils.EVENTLET_AVAILABLE = False
         t_event = eventletutils.Event()
         if six.PY3:
             t_event_cls = threading.Event
