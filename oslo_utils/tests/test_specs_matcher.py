@@ -337,3 +337,86 @@ class SpecsMatcherTestCase(test_base.BaseTestCase):
             value='3.0',
             req='== 3.1',
             matches=False)
+
+    def test_specs_matches_all_with_op_allin(self):
+        self._do_specs_matcher_test(
+            value=str(['aes', 'mmx', 'aux']),
+            req='<all-in> aes mmx',
+            matches=True)
+
+    def test_specs_matches_one_with_op_allin(self):
+        self._do_specs_matcher_test(
+            value=str(['aes', 'mmx', 'aux']),
+            req='<all-in> mmx',
+            matches=True)
+
+    def test_specs_fails_with_op_allin(self):
+        self._do_specs_matcher_test(
+            value=str(['aes', 'mmx', 'aux']),
+            req='<all-in>  txt',
+            matches=False)
+
+    def test_specs_fails_all_with_op_allin(self):
+        self._do_specs_matcher_test(
+            value=str(['aes', 'mmx', 'aux']),
+            req='<all-in> txt 3dnow',
+            matches=False)
+
+    def test_specs_fails_match_one_with_op_allin(self):
+        self._do_specs_matcher_test(
+            value=str(['aes', 'mmx', 'aux']),
+            req='<all-in> txt aes',
+            matches=False)
+
+    def test_specs_fails_match_substr_single(self):
+        self._do_specs_matcher_test(
+            value=str(['X_X']),
+            req='<all-in> _',
+            matches=False)
+
+    def test_specs_fails_match_substr(self):
+        self._do_specs_matcher_test(
+            value=str(['X___X']),
+            req='<all-in> ___',
+            matches=False)
+
+    def test_specs_fails_match_substr_reversed(self):
+        self._do_specs_matcher_test(
+            value=str(['aes', 'mmx', 'aux']),
+            req='<all-in> XaesX',
+            matches=False)
+
+    def test_specs_fails_onechar_with_op_allin(self):
+        self.assertRaises(
+            TypeError,
+            specs_matcher.match,
+            value=str(['aes', 'mmx', 'aux']),
+            req='<all-in> e')
+
+    def test_specs_errors_list_with_op_allin(self):
+        self.assertRaises(
+            TypeError,
+            specs_matcher.match,
+            value=['aes', 'mmx', 'aux'],
+            req='<all-in> aes')
+
+    def test_specs_errors_str_with_op_allin(self):
+        self.assertRaises(
+            TypeError,
+            specs_matcher.match,
+            value='aes',
+            req='<all-in> aes')
+
+    def test_specs_errors_dict_literal_with_op_allin(self):
+        self.assertRaises(
+            TypeError,
+            specs_matcher.match,
+            value=str({'aes': 1}),
+            req='<all-in> aes')
+
+    def test_specs_errors_bad_literal_with_op_allin(self):
+        self.assertRaises(
+            TypeError,
+            specs_matcher.match,
+            value="^&*($",
+            req='<all-in> aes')
