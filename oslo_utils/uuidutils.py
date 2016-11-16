@@ -22,12 +22,16 @@ UUID related utilities and helper functions.
 import uuid
 
 
-def generate_uuid():
+def generate_uuid(dashed=True):
     """Creates a random uuid string.
 
+    :param dashed: Generate uuid with dashes or not
+    :type dashed: bool
     :returns: string
     """
-    return str(uuid.uuid4())
+    if dashed:
+        return str(uuid.uuid4())
+    return uuid.uuid4().hex
 
 
 def _format_uuid_string(string):
