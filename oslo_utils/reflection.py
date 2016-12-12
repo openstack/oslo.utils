@@ -96,7 +96,8 @@ def get_class_name(obj, fully_qualified=True, truncate_builtins=True):
         return obj.__name__
 
 
-def get_all_class_names(obj, up_to=object):
+def get_all_class_names(obj, up_to=object,
+                        fully_qualified=True, truncate_builtins=True):
     """Get class names of object parent classes.
 
     Iterate over all class names object is instance or subclass of,
@@ -107,7 +108,9 @@ def get_all_class_names(obj, up_to=object):
         obj = type(obj)
     for cls in obj.mro():
         if issubclass(cls, up_to):
-            yield get_class_name(cls)
+            yield get_class_name(cls,
+                                 fully_qualified=fully_qualified,
+                                 truncate_builtins=truncate_builtins)
 
 
 def get_callable_name(function):
