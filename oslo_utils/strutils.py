@@ -57,7 +57,7 @@ SLUGIFY_HYPHENATE_RE = re.compile(r"[-\s]+")
 _SANITIZE_KEYS = ['adminPass', 'admin_pass', 'password', 'admin_password',
                   'auth_token', 'new_pass', 'auth_password', 'secret_uuid',
                   'secret', 'sys_pswd', 'token', 'configdrive',
-                  'CHAPPASSWORD']
+                  'CHAPPASSWORD', 'encrypted_key']
 
 # NOTE(ldbragst): Let's build a list of regex objects using the list of
 # _SANITIZE_KEYS we already have. This way, we only have to add the new key
