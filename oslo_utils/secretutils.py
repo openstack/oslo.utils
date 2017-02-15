@@ -14,6 +14,8 @@
 
 import hmac
 
+import six
+
 
 try:
     constant_time_compare = hmac.compare_digest
@@ -27,6 +29,10 @@ except AttributeError:
         content-based short circuiting behaviour, making it appropriate
         for cryptography.
         """
+        if isinstance(first, six.string_types):
+            first = first.encode('utf-8')
+        if isinstance(second, six.string_types):
+            second = second.encode('utf-8')
         if len(first) != len(second):
             return False
         result = 0

@@ -34,6 +34,7 @@ class SecretUtilsTest(testscenarios.TestWithScenarios,
                             self.converter(u'abcd')))
         self.assertTrue(ctc(self.converter(u''),
                             self.converter(u'')))
+        self.assertTrue(ctc('abcd', 'abcd'))
         self.assertFalse(ctc(self.converter(u'abcd'),
                              self.converter(u'efgh')))
         self.assertFalse(ctc(self.converter(u'abc'),
@@ -50,3 +51,4 @@ class SecretUtilsTest(testscenarios.TestWithScenarios,
                              self.converter(u'a')))
         self.assertFalse(ctc(self.converter(u'abcd1234'),
                              self.converter(u'1234abcd')))
+        self.assertFalse(ctc('abcd1234', '1234abcd'))
