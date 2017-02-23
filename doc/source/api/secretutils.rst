@@ -3,4 +3,4 @@
 =============
 
 .. automodule:: oslo_utils.secretutils
-   :members:
+   :members: constant_time_compare
