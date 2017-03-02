@@ -107,8 +107,17 @@ def is_valid_ipv6(address):
 
     .. versionadded:: 1.1
     """
+    if not address:
+        return False
+
+    parts = address.rsplit("%", 1)
+    address = parts[0]
+    scope = parts[1] if len(parts) > 1 else None
+    if scope is not None and (len(scope) < 1 or len(scope) > 15):
+        return False
+
     try:
-        return netaddr.valid_ipv6(address)
+        return netaddr.valid_ipv6(address, netaddr.core.INET_PTON)
     except netaddr.AddrFormatError:
         return False
 
