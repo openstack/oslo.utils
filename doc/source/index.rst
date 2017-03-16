@@ -24,8 +24,6 @@ API Documentation
    api/excutils
    api/fileutils
    api/fixture
-   api/fnmatch
-   api/imageutils
    api/importutils
    api/netutils
    api/reflection

@@ -323,16 +323,16 @@ def mask_dict_password(dictionary, secret="***"):  # nosec
     A dictionary (which may contain nested dictionaries) contains
     information (such as passwords) which should not be revealed, and
     this function helps detect and replace those with the 'secret'
-    provided (or '***' if none is provided).
+    provided (or `***` if none is provided).
 
     Substitution is performed in one of three situations:
 
     If the key is something that is considered to be indicative of a
     secret, then the corresponding value is replaced with the secret
-    provided (or '***' if none is provided).
+    provided (or `***` if none is provided).
 
     If a value in the dictionary is a string, then it is masked
-    using the mask_password() function.
+    using the ``mask_password()`` function.
 
     Finally, if a value is a dictionary, this function will
     recursively mask that dictionary as well.
