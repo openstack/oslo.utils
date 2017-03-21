@@ -26,7 +26,7 @@ import traceback
 
 import six
 
-from oslo_utils._i18n import _LE
+
 from oslo_utils import encodeutils
 from oslo_utils import reflection
 from oslo_utils import timeutils
@@ -211,7 +211,7 @@ class save_and_reraise_exception(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         if exc_type is not None:
             if self.reraise:
-                self.logger.error(_LE('Original exception being dropped: %s'),
+                self.logger.error('Original exception being dropped: %s',
                                   traceback.format_exception(self.type_,
                                                              self.value,
                                                              self.tb))
@@ -258,8 +258,8 @@ def forever_retry_uncaught_exceptions(*args, **kwargs):
                         # The watch has expired or the exception message
                         # changed, so time to log it again...
                         logging.exception(
-                            _LE('Unexpected exception occurred %d time(s)... '
-                                'retrying.') % same_failure_count)
+                            'Unexpected exception occurred %d time(s)... '
+                            'retrying.' % same_failure_count)
                         if not watch.has_started():
                             watch.start()
                         else:

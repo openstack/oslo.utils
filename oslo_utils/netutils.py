@@ -28,8 +28,7 @@ import six
 from six.moves.urllib import parse
 
 from oslo_utils._i18n import _
-from oslo_utils._i18n import _LI
-from oslo_utils._i18n import _LW
+
 
 LOG = logging.getLogger(__name__)
 _IS_IPV6_ENABLED = None
@@ -330,19 +329,19 @@ def _get_my_ipv4_address():
     try:
         interface = gtw['default'][netifaces.AF_INET][1]
     except (KeyError, IndexError):
-        LOG.info(_LI('Could not determine default network interface, '
-                     'using 127.0.0.1 for IPv4 address'))
+        LOG.info('Could not determine default network interface, '
+                 'using 127.0.0.1 for IPv4 address')
         return LOCALHOST
 
     try:
         return netifaces.ifaddresses(interface)[netifaces.AF_INET][0]['addr']
     except (KeyError, IndexError):
-        LOG.info(_LI('Could not determine IPv4 address for interface %s, '
-                     'using 127.0.0.1'),
+        LOG.info('Could not determine IPv4 address for interface %s, '
+                 'using 127.0.0.1',
                  interface)
     except Exception as e:
-        LOG.info(_LI('Could not determine IPv4 address for '
-                     'interface %(interface)s: %(error)s'),
+        LOG.info('Could not determine IPv4 address for '
+                 'interface %(interface)s: %(error)s',
                  {'interface': interface, 'error': e})
     return LOCALHOST
 
@@ -437,18 +436,18 @@ def set_tcp_keepalive(sock, tcp_keepalive=True,
                             socket.TCP_KEEPIDLE,
                             tcp_keepidle)
         else:
-            LOG.warning(_LW('tcp_keepidle not available on your system'))
+            LOG.warning('tcp_keepidle not available on your system')
     if tcp_keepalive_interval is not None:
         if hasattr(socket, 'TCP_KEEPINTVL'):
             sock.setsockopt(socket.IPPROTO_TCP,
                             socket.TCP_KEEPINTVL,
                             tcp_keepalive_interval)
         else:
-            LOG.warning(_LW('tcp_keepintvl not available on your system'))
+            LOG.warning('tcp_keepintvl not available on your system')
     if tcp_keepalive_count is not None:
         if hasattr(socket, 'TCP_KEEPCNT'):
             sock.setsockopt(socket.IPPROTO_TCP,
                             socket.TCP_KEEPCNT,
                             tcp_keepalive_count)
         else:
-            LOG.warning(_LW('tcp_keepcnt not available on your system'))
+            LOG.warning('tcp_keepcnt not available on your system')
