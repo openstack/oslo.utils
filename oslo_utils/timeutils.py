@@ -416,7 +416,7 @@ class StopWatch(object):
         self._started_at = None
         self._stopped_at = None
         self._state = None
-        self._splits = []
+        self._splits = ()
 
     def start(self):
         """Starts the watch (if not already started).
@@ -428,13 +428,13 @@ class StopWatch(object):
         self._started_at = now()
         self._stopped_at = None
         self._state = self._STARTED
-        self._splits = []
+        self._splits = ()
         return self
 
     @property
     def splits(self):
         """Accessor to all/any splits that have been captured."""
-        return tuple(self._splits)
+        return self._splits
 
     def split(self):
         """Captures a split/elapsed since start time (and doesn't stop)."""
@@ -444,7 +444,7 @@ class StopWatch(object):
                 length = self._delta_seconds(self._splits[-1].elapsed, elapsed)
             else:
                 length = elapsed
-            self._splits.append(Split(elapsed, length))
+            self._splits = self._splits + (Split(elapsed, length),)
             return self._splits[-1]
         else:
             raise RuntimeError("Can not create a split time of a stopwatch"
