@@ -7,7 +7,7 @@
 # adding a new feature to oslo.utils means adding a new dependency,
 # that is a likely indicator that the feature belongs somewhere else.
 
-pbr<2.0.0,>=1.8 # Apache-2.0
+pbr>=1.8 # Apache-2.0
 six>=1.9.0 # MIT
 funcsigs>=0.4;python_version=='2.7' or python_version=='2.6' # Apache-2.0
 iso8601>=0.1.11 # MIT
