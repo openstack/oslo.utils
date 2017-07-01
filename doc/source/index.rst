@@ -8,51 +8,12 @@ such as encoding, exception handling, string manipulation, and time handling.
 .. toctree::
    :maxdepth: 1
 
-   installation
-   usage
-   contributing
+   install/index
+   user/index
+   reference/index
+   contributor/index
 
-API Documentation
-=================
-
-.. toctree::
-   :maxdepth: 2
-
-   api/dictutils
-   api/encodeutils
-   api/eventletutils
-   api/excutils
-   api/fileutils
-   api/fixture
-   api/importutils
-   api/netutils
-   api/reflection
-   api/secretutils
-   api/specs_matcher
-   api/strutils
-   api/timeutils
-   api/units
-   api/uuidutils
-   api/versionutils
-
-Examples
-========
-
-.. toctree::
-   :maxdepth: 2
-
-   examples/timeutils
-
-Release Notes
-=============
-
-.. toctree::
-   :maxdepth: 1
-
-   history
-
-Indices and tables
-==================
+.. rubric:: Indices and tables
 
 * :ref:`genindex`
 * :ref:`modindex`
