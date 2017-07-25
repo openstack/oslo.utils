@@ -42,8 +42,12 @@ def is_compatible(requested_version, current_version, same_major=True):
     requested_parts = pkg_resources.parse_version(requested_version)
     current_parts = pkg_resources.parse_version(current_version)
 
-    if same_major and (requested_parts[0] != current_parts[0]):
-        return False
+    if same_major:
+        # NOTE(jlvillal) pkg_resources issues a warning if we try to access
+        # portions of the version, for example requested_parts[0] will issue a
+        # warning message. So get the major_version from the string instead.
+        if requested_version.split('.')[0] != current_version.split('.')[0]:
+            return False
 
     return current_parts >= requested_parts
 
