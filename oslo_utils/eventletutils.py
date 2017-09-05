@@ -132,7 +132,7 @@ def warn_eventlet_not_patched(expected_patched_modules=None,
 def is_monkey_patched(module):
     """Determines safely is eventlet patching for module enabled or not
     :param module: String, module name
-    :return Bool, True if module is patched, False otherwise
+    :return Bool: True if module is patched, False otherwise
     """
 
     if _patcher is None:
