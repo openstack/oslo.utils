@@ -186,6 +186,7 @@ class StringToBytesTest(test_base.BaseTestCase):
     _unit_system = [
         ('si', dict(unit_system='SI')),
         ('iec', dict(unit_system='IEC')),
+        ('mixed', dict(unit_system='mixed')),
         ('invalid_unit_system', dict(unit_system='KKK', assert_error=True)),
     ]
 
@@ -258,6 +259,14 @@ class StringToBytesTest(test_base.BaseTestCase):
                     res = getattr(units, unit_prefix)
                 else:
                     res = getattr(units, '%si' % unit_prefix)
+            elif unit_system == 'mixed':
+                # Note: this will return 'i' units as power-of-two,
+                # and other units as power-of-ten.  Additionally, for
+                # compatability a "K" is interpreted as "k" in mixed
+                # mode
+                if unit_prefix == 'K':
+                    unit_prefix = 'k'
+                res = getattr(units, unit_prefix)
             return res
 
         text = ''.join([self.sign, self.magnitude, self.unit_prefix,
