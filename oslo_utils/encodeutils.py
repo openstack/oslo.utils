@@ -111,7 +111,7 @@ def to_utf8(text):
 
     .. versionadded:: 3.5
     """
-    if isinstance(text, bytes):
+    if isinstance(text, six.binary_type):
         return text
     elif isinstance(text, six.text_type):
         return text.encode('utf-8')
