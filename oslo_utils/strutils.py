@@ -438,6 +438,35 @@ def check_string_length(value, name=None, min_length=0, max_length=None):
         raise ValueError(msg)
 
 
+def validate_integer(value, name, min_value=None, max_value=None):
+    """Make sure that value is a valid integer, potentially within range.
+
+    :param value: value of the integer
+    :param name: name of the integer
+    :param min_value: min_value of the integer
+    :param max_value: max_value of the integer
+    :returns: integer
+    """
+    try:
+        value = int(str(value))
+    except (ValueError, UnicodeEncodeError):
+        msg = _('%(value_name)s must be an integer'
+                ) % {'value_name': name}
+        raise ValueError(msg)
+
+    if min_value is not None and value < min_value:
+        msg = _('%(value_name)s must be >= %(min_value)d'
+                ) % {'value_name': name, 'min_value': min_value}
+        raise ValueError(msg)
+
+    if max_value is not None and value > max_value:
+        msg = _('%(value_name)s must be <= %(max_value)d'
+                ) % {'value_name': name, 'max_value': max_value}
+        raise ValueError(msg)
+
+    return value
+
+
 def split_path(path, minsegs=1, maxsegs=None, rest_with_last=False):
     """Validate and split the given HTTP request path.
 
