@@ -446,6 +446,9 @@ def validate_integer(value, name, min_value=None, max_value=None):
     :param min_value: min_value of the integer
     :param max_value: max_value of the integer
     :returns: integer
+    :raises: ValueError if value is an invalid integer
+
+    .. versionadded:: 3.33
     """
     try:
         value = int(str(value))
