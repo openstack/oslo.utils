@@ -127,12 +127,19 @@ def compute_file_checksum(path, read_chunksize=65536, algorithm='sha256'):
 
 
 def last_bytes(path, num):
-    """Return num bytes from the end of the file, and unread byte count.
+    """Return num bytes from the end of the file and unread byte count.
+
+    Returns a tuple containing some content from the file and the
+    number of bytes that appear in the file before the point at which
+    reading started. The content will be at most ``num`` bytes, taken
+    from the end of the file. If the file is smaller than ``num``
+    bytes the entire content of the file is returned.
 
     :param path: The file path to read
     :param num: The number of bytes to return
 
     :returns: (data, unread_bytes)
+
     """
 
     with open(path, 'rb') as fp:
