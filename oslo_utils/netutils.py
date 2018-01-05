@@ -217,6 +217,20 @@ def is_ipv6_enabled():
     return _IS_IPV6_ENABLED
 
 
+def escape_ipv6(address):
+    """Escape an IP address in square brackets if IPv6
+
+    :param address: address to optionaly escape
+    :type address: string
+    :returns: string
+
+    .. versionadded:: 3.29.0
+    """
+    if is_valid_ipv6(address):
+        return "[%s]" % address
+    return address
+
+
 def is_valid_ip(address):
     """Verify that address represents a valid IP address.
 

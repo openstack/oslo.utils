@@ -172,6 +172,10 @@ class NetworkUtilsTest(test_base.BaseTestCase):
 
         self.assertFalse(netutils.is_valid_ipv6(''))
 
+    def test_escape_ipv6(self):
+        self.assertEqual('[1234::1234]', netutils.escape_ipv6('1234::1234'))
+        self.assertEqual('127.0.0.1', netutils.escape_ipv6('127.0.0.1'))
+
     def test_is_valid_ip(self):
         self.assertTrue(netutils.is_valid_ip('127.0.0.1'))
 
