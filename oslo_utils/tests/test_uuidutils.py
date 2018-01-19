@@ -33,7 +33,7 @@ class UUIDUtilsTest(test_base.BaseTestCase):
         uuid_string = uuidutils.generate_uuid(dashed=False)
         self.assertIsInstance(uuid_string, str)
         self.assertEqual(len(uuid_string), 32)
-        self.assertFalse('-' in uuid_string)
+        self.assertNotIn('-', uuid_string)
 
     def test_is_uuid_like(self):
         self.assertTrue(uuidutils.is_uuid_like(str(uuid.uuid4())))
