@@ -26,6 +26,21 @@ class SpecsMatcherTestCase(test_base.BaseTestCase):
             req='1',
             matches=True)
 
+    def test_specs_fails_string_vs_int(self):
+        # With no operator specified it is a string comparison test, therefore
+        # '1' does not equal '01'
+        self._do_specs_matcher_test(
+            value='01',
+            req='1',
+            matches=False)
+
+    def test_specs_match_int_leading_zero(self):
+        # Show that numerical comparison works with leading zero
+        self._do_specs_matcher_test(
+            value='01',
+            req='== 1',
+            matches=True)
+
     def test_specs_fails_simple(self):
         self._do_specs_matcher_test(
             value='',

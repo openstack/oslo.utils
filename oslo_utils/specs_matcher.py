@@ -36,18 +36,21 @@ op_methods = {
     # equal, see here for the original @ https://review.openstack.org/#/c/8089/
     '=': lambda x, y: float(x) >= float(y),
     # More sane ops/methods
+    # Numerical methods
     '!=': lambda x, y: float(x) != float(y),
     '<=': lambda x, y: float(x) <= float(y),
     '<': lambda x, y: float(x) < float(y),
     '==': lambda x, y: float(x) == float(y),
     '>=': lambda x, y: float(x) >= float(y),
     '>': lambda x, y: float(x) > float(y),
+    # String methods
     's!=': operator.ne,
     's<': operator.lt,
     's<=': operator.le,
     's==': operator.eq,
     's>': operator.gt,
     's>=': operator.ge,
+    # Other
     '<all-in>': _all_in,
     '<in>': lambda x, y: y in x,
     '<or>': lambda x, *y: any(x == a for a in y),
@@ -55,7 +58,46 @@ op_methods = {
 
 
 def make_grammar():
-    """Creates the grammar to be used by a spec matcher."""
+    """Creates the grammar to be used by a spec matcher.
+
+The grammar created supports the following operations.
+
+Numerical values:
+  * ``=  :`` equal to or greater than. This is equivalent to ``>=`` and is
+    supported for `legacy reasons
+    <http://docs.openstack.org/developer/nova/filter_scheduler.html#ComputeCapabilitiesFilter>`_
+  * ``!= :`` Float/integer value not equal
+  * ``<= :`` Float/integer value less than or equal
+  * ``<  :`` Float/integer value less than
+  * ``== :`` Float/integer value equal
+  * ``>= :`` Float/integer value greater than or equal
+  * ``>  :`` Float/integer value greater
+
+String operations:
+  * ``s!= :`` Not equal
+  * ``s<  :`` Less than
+  * ``s<= :`` Less than or equal
+  * ``s== :`` Equal
+  * ``s>  :`` Greater than
+  * ``s>= :`` Greater than or equal
+
+Other operations:
+  * ``<all-in> :`` All items 'in' value
+  * ``<in>     :`` Item 'in' value, like a substring in a string.
+  * ``<or>     :`` Logical 'or'
+
+If no operator is specified the default is ``s==`` (string equality comparison)
+
+Example operations:
+ * ``">= 60"`` Is the numerical value greater than or equal to 60
+ * ``"<or> spam <or> eggs"`` Does the value contain ``spam`` or ``eggs``
+ * ``"s== 2.1.0"`` Is the string value equal to ``2.1.0``
+ * ``"<in> gcc"`` Is the string ``gcc`` contained in the value string
+ * ``"<all-in> aes mmx"`` Are both ``aes`` and ``mmx`` in the value
+
+:returns: A pyparsing.MatchFirst object. See
+          https://pythonhosted.org/pyparsing/ for details on pyparsing.
+    """
     # This is apparently how pyparsing recommends to be used,
     # as http://pyparsing.wikispaces.com/share/view/644825 states that
     # it is not thread-safe to use a parser across threads.
@@ -90,14 +132,31 @@ def make_grammar():
 
 
 def match(cmp_value, spec):
-    """Match a given value to a given spec DSL."""
+    """Match a given value to a given spec DSL.
+
+    This uses the grammar defined by make_grammar()
+
+    :param cmp_value: Value to be checked for match.
+    :param spec: The comparison specification string, for example ``">= 70"``
+                 or ``"s== string_value"``. See ``make_grammar()`` for examples
+                 of a specification string.
+    :returns: True if cmp_value is a match for spec. False otherwise.
+    """
     expr = make_grammar()
     try:
+        # As of 2018-01-29 documentation on parseString()
+        # https://pythonhosted.org/pyparsing/pyparsing.ParserElement-class.html#parseString
+        #
+        # parseString() will take our specification string, for example "< 6"
+        # and convert it into a list of ['<', "6"]
         tree = expr.parseString(spec)
     except pyparsing.ParseException:
+        # If an exception then we will just check if the value matches the spec
         tree = [spec]
     if len(tree) == 1:
         return tree[0] == cmp_value
 
-    op = op_methods[tree[0]]
-    return op(cmp_value, *tree[1:])
+    # tree[0] will contain a string representation of a comparison operation
+    # such as '>=', we then convert that string to a comparison function
+    compare_func = op_methods[tree[0]]
+    return compare_func(cmp_value, *tree[1:])
