@@ -55,7 +55,8 @@ def isotime(at=None, subsecond=False):
                      if not subsecond
                      else _ISO8601_TIME_FORMAT_SUBSECOND)
     tz = at.tzinfo.tzname(None) if at.tzinfo else 'UTC'
-    st += ('Z' if tz == 'UTC' else tz)
+    # Need to handle either iso8601 or python UTC format
+    st += ('Z' if tz in ('UTC', 'UTC+00:00') else tz)
     return st
 
 
@@ -256,7 +257,9 @@ def marshall_now(now=None):
              minute=now.minute, second=now.second,
              microsecond=now.microsecond)
     if now.tzinfo:
-        d['tzname'] = now.tzinfo.tzname(None)
+        # Need to handle either iso8601 or python UTC format
+        tzname = now.tzinfo.tzname(None)
+        d['tzname'] = 'UTC' if tzname == 'UTC+00:00' else tzname
     return d
 
 
@@ -283,6 +286,8 @@ def unmarshall_time(tyme):
                            microsecond=tyme['microsecond'])
     tzname = tyme.get('tzname')
     if tzname:
+        # Need to handle either iso8601 or python UTC format
+        tzname = 'UTC' if tzname == 'UTC+00:00' else tzname
         tzinfo = pytz.timezone(tzname)
         dt = tzinfo.localize(dt)
     return dt
