@@ -1,13 +1,14 @@
 # Andi Chandler <andi@gowling.com>, 2017. #zanata
+# Andi Chandler <andi@gowling.com>, 2018. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: oslo.utils Release Notes 3.29.1.dev5\n"
+"Project-Id-Version: oslo.utils Release Notes\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-09-20 20:51+0000\n"
+"POT-Creation-Date: 2018-02-07 07:52+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2017-10-07 09:32+0000\n"
+"PO-Revision-Date: 2018-02-06 11:26+0000\n"
 "Last-Translator: Andi Chandler <andi@gowling.com>\n"
 "Language-Team: English (United Kingdom)\n"
 "Language: en-GB\n"
@@ -40,6 +41,9 @@ msgstr "Other Notes"
 
 msgid "Pike Series Release Notes"
 msgstr "Pike Series Release Notes"
+
+msgid "Queens Series Release Notes"
+msgstr "Queens Series Release Notes"
 
 msgid "Unreleased Release Notes"
 msgstr "Unreleased Release Notes"
