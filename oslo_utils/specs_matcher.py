@@ -17,9 +17,6 @@ import ast
 import operator
 
 import pyparsing
-from pyparsing import Literal
-from pyparsing import OneOrMore
-from pyparsing import Regex
 
 
 def _all_in(x, *y):
@@ -104,25 +101,25 @@ Example operations:
 
     unary_ops = (
         # Order matters here (so that '=' doesn't match before '==')
-        Literal("==") | Literal("=") |
-        Literal("!=") | Literal("<in>") |
-        Literal(">=") | Literal("<=") |
-        Literal(">") | Literal("<") |
-        Literal("s==") | Literal("s!=") |
+        pyparsing.Literal("==") | pyparsing.Literal("=") |
+        pyparsing.Literal("!=") | pyparsing.Literal("<in>") |
+        pyparsing.Literal(">=") | pyparsing.Literal("<=") |
+        pyparsing.Literal(">") | pyparsing.Literal("<") |
+        pyparsing.Literal("s==") | pyparsing.Literal("s!=") |
         # Order matters here (so that '<' doesn't match before '<=')
-        Literal("s<=") | Literal("s<") |
+        pyparsing.Literal("s<=") | pyparsing.Literal("s<") |
         # Order matters here (so that '>' doesn't match before '>=')
-        Literal("s>=") | Literal("s>"))
+        pyparsing.Literal("s>=") | pyparsing.Literal("s>"))
 
-    all_in_nary_op = Literal("<all-in>")
-    or_ = Literal("<or>")
+    all_in_nary_op = pyparsing.Literal("<all-in>")
+    or_ = pyparsing.Literal("<or>")
 
     # An atom is anything not an keyword followed by anything but whitespace
-    atom = ~(unary_ops | all_in_nary_op | or_) + Regex(r"\S+")
+    atom = ~(unary_ops | all_in_nary_op | or_) + pyparsing.Regex(r"\S+")
 
     unary = unary_ops + atom
-    nary = all_in_nary_op + OneOrMore(atom)
-    disjunction = OneOrMore(or_ + atom)
+    nary = all_in_nary_op + pyparsing.OneOrMore(atom)
+    disjunction = pyparsing.OneOrMore(or_ + atom)
 
     # Even-numbered tokens will be '<or>', so we drop them
     disjunction.setParseAction(lambda _s, _l, t: ["<or>"] + t[1::2])
