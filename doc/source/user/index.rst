@@ -1,6 +1,6 @@
-==================
-Using oslo.service
-==================
+================
+Using oslo.utils
+================
 
 .. toctree::
    :maxdepth: 2
