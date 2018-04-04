@@ -123,8 +123,8 @@ class EventletUtilsTest(test_base.BaseTestCase):
                           eventletutils.warn_eventlet_not_patched,
                           ['blah.blah'])
 
-    @mock.patch('oslo_utils.eventletutils._Event.clear')
-    def test_event_api_compat(self, mock_clear):
+    @mock.patch('oslo_utils.eventletutils._eventlet')
+    def test_event_api_compat(self, mock_eventlet):
         with mock.patch('oslo_utils.eventletutils.is_monkey_patched',
                         return_value=True):
             e_event = eventletutils.Event()
@@ -142,3 +142,11 @@ class EventletUtilsTest(test_base.BaseTestCase):
 
         for method in public_methods:
             self.assertTrue(hasattr(e_event, method))
+
+        # Ensure set() allows multiple invocations, same as in
+        # threading implementation.  Must call reset on underlying
+        # Event before reusing it
+        e_event.set()
+        self.assertEqual(0, mock_eventlet.event.Event().reset.call_count)
+        e_event.set()
+        self.assertEqual(1, mock_eventlet.event.Event().reset.call_count)
