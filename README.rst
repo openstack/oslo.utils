@@ -12,11 +12,11 @@ oslo.utils
 ==========
 
 .. image:: https://img.shields.io/pypi/v/oslo.utils.svg
-    :target: https://pypi.python.org/pypi/oslo.utils/
+    :target: https://pypi.org/project/oslo.utils/
     :alt: Latest Version
 
 .. image:: https://img.shields.io/pypi/dm/oslo.utils.svg
-    :target: https://pypi.python.org/pypi/oslo.utils/
+    :target: https://pypi.org/project/oslo.utils/
     :alt: Downloads
 
 The oslo.utils library provides support for common utility type functions,

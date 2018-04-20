@@ -406,7 +406,7 @@ class StopWatch(object):
     monotonically increasing time providing function (which typically varies
     depending on operating system and python version).
 
-    .. _monotonic: https://pypi.python.org/pypi/monotonic/
+    .. _monotonic: https://pypi.org/project/monotonic/
 
     .. versionadded:: 1.4
     """
