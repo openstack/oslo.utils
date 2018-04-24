@@ -2,7 +2,7 @@
 Welcome to oslo.utils's documentation!
 ======================================
 
-The `oslo`_ utils library provides support for common utility type functions,
+The `Oslo`_ utils library provides support for common utility type functions,
 such as encoding, exception handling, string manipulation, and time handling.
 
 .. toctree::
@@ -19,4 +19,4 @@ such as encoding, exception handling, string manipulation, and time handling.
 * :ref:`modindex`
 * :ref:`search`
 
-.. _oslo: https://wiki.openstack.org/wiki/Oslo
+.. _Oslo: https://wiki.openstack.org/wiki/Oslo
