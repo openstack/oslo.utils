@@ -12,6 +12,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import hmac
+
 from oslotest import base as test_base
 import testscenarios
 
@@ -21,15 +23,20 @@ from oslo_utils import secretutils
 class SecretUtilsTest(testscenarios.TestWithScenarios,
                       test_base.BaseTestCase):
 
+    _gen_digest = lambda text: hmac.new(b'foo', text.encode('utf-8')).digest()
     scenarios = [
-        ('binary', {'converter': lambda text: text.encode('utf-8')}),
+        ('binary', {'converter': _gen_digest}),
         ('unicode', {'converter': lambda text: text}),
     ]
 
     def test_constant_time_compare(self):
         # make sure it works as a compare, the "constant time" aspect
         # isn't appropriate to test in unittests
-        ctc = secretutils.constant_time_compare
+
+        # Make sure the unittests are applied to our function instead of
+        # the built-in function, otherwise that is in vain.
+        ctc = secretutils._constant_time_compare
+
         self.assertTrue(ctc(self.converter(u'abcd'),
                             self.converter(u'abcd')))
         self.assertTrue(ctc(self.converter(u''),
