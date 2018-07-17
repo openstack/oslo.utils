@@ -634,6 +634,13 @@ class MaskDictionaryPasswordTestCase(test_base.BaseTestCase):
         self.assertEqual(expected,
                          strutils.mask_dict_password(payload))
 
+    def test_do_an_int(self):
+        payload = {}
+        payload[1] = 2
+        expected = payload.copy()
+        self.assertEqual(expected,
+                         strutils.mask_dict_password(payload))
+
     def test_mask_values(self):
         payload = {'somekey': 'test = cmd --password my\xe9\x80\x80pass'}
         expected = {'somekey': 'test = cmd --password ***'}

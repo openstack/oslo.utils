@@ -361,15 +361,21 @@ def mask_dict_password(dictionary, secret="***"):  # nosec
             continue
         # NOTE(jlvillal): Check to see if anything in the dictionary 'key'
         # contains any key specified in _SANITIZE_KEYS.
-        for sani_key in _SANITIZE_KEYS:
-            if sani_key in k:
-                out[k] = secret
-                break
-        else:
+        k_matched = False
+        if isinstance(k, six.string_types):
+            for sani_key in _SANITIZE_KEYS:
+                if sani_key in k:
+                    out[k] = secret
+                    k_matched = True
+                    break
+        if not k_matched:
             # We did not find a match for the key name in the
             # _SANITIZE_KEYS, so we fall through to here
             if isinstance(v, six.string_types):
                 out[k] = mask_password(v, secret=secret)
+            else:
+                # Just leave it alone.
+                out[k] = v
     return out
 
 
