@@ -17,7 +17,6 @@
 System-level utilities and helper functions.
 """
 
-import copy
 import math
 import re
 import unicodedata
@@ -394,9 +393,7 @@ def mask_dict_password(dictionary, secret="***"):  # nosec
     if not isinstance(dictionary, dict):
         raise TypeError("Expected a dictionary, got %s instead."
                         % type(dictionary))
-
-    out = copy.deepcopy(dictionary)
-
+    out = {}
     for k, v in dictionary.items():
         if isinstance(v, dict):
             out[k] = mask_dict_password(v, secret=secret)
