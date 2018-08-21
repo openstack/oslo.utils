@@ -17,9 +17,12 @@
 import datetime
 
 from oslotest import base as test_base
+import six
 
 from oslo_utils import fixture
+from oslo_utils.fixture import uuidsentinel as uuids
 from oslo_utils import timeutils
+from oslo_utils import uuidutils
 
 
 class TimeFixtureTest(test_base.BaseTestCase):
@@ -61,3 +64,21 @@ class TimeFixtureTest(test_base.BaseTestCase):
         time_fixture.advance_time_seconds(2)
         expected_time = datetime.datetime(2015, 1, 2, 3, 4, 8, 7)
         self.assertEqual(expected_time, timeutils.utcnow())
+
+
+class UUIDSentinelsTest(test_base.BaseTestCase):
+
+    def test_different_sentinel(self):
+        uuid1 = uuids.foobar
+        uuid2 = uuids.barfoo
+        self.assertNotEqual(uuid1, uuid2)
+
+    def test_returns_uuid(self):
+        self.assertTrue(uuidutils.is_uuid_like(uuids.foo))
+
+    def test_returns_string(self):
+        self.assertIsInstance(uuids.foo, str)
+
+    def test_with_underline_prefix(self):
+        ex = self.assertRaises(ValueError, getattr, uuids, '_foo')
+        self.assertIn("Sentinels must not start with _", six.text_type(ex))
