@@ -13,8 +13,8 @@
 #    under the License.
 
 import logging
-import time
 
+import fixtures
 import mock
 from oslotest import base as test_base
 from oslotest import moxstubout
@@ -170,7 +170,6 @@ class ForeverRetryUncaughtExceptionsTest(test_base.BaseTestCase):
         super(ForeverRetryUncaughtExceptionsTest, self).setUp()
         moxfixture = self.useFixture(moxstubout.MoxStubout())
         self.mox = moxfixture.mox
-        self.stubs = moxfixture.stubs
 
     @excutils.forever_retry_uncaught_exceptions
     def exception_generator(self):
@@ -186,7 +185,10 @@ class ForeverRetryUncaughtExceptionsTest(test_base.BaseTestCase):
         pass
 
     def exc_retrier_common_start(self):
-        self.stubs.Set(time, 'sleep', self.my_time_sleep)
+        patch_time = fixtures.MockPatch(
+            'time.sleep', self.my_time_sleep)
+        self.useFixture(patch_time)
+
         self.mox.StubOutWithMock(logging, 'exception')
         self.mox.StubOutWithMock(timeutils, 'now',
                                  use_mock_anything=True)
@@ -211,7 +213,6 @@ class ForeverRetryUncaughtExceptionsTest(test_base.BaseTestCase):
         self.exception_to_raise().AndReturn(None)
         self.mox.ReplayAll()
         self.exception_generator()
-        self.addCleanup(self.stubs.UnsetAll)
 
     def test_exc_retrier_1exc_gives_1log(self):
         self.exc_retrier_common_start()
