@@ -20,9 +20,12 @@ Test fixtures.
 .. versionadded:: 1.3
 """
 
+import threading
+
 import fixtures
 
 from oslo_utils import timeutils
+from oslo_utils import uuidutils
 
 
 class TimeFixture(fixtures.Fixture):
@@ -49,3 +52,41 @@ class TimeFixture(fixtures.Fixture):
     def advance_time_seconds(self, seconds):
         """Advance overridden time by seconds."""
         timeutils.advance_time_seconds(seconds)
+
+
+class _UUIDSentinels(object):
+    """Registry of dynamically created, named, random UUID strings.
+
+    An instance of this class will dynamically generate attributes as they are
+    referenced, associating a random UUID string with each. Thereafter,
+    referring to the same attribute will give the same UUID for the life of the
+    instance. Plan accordingly.
+
+    Usage:
+
+        from oslo_utils.fixture import uuidsentinel as uuids
+        ...
+        foo = uuids.foo
+        do_a_thing(foo)
+        # Referencing the same sentinel again gives the same value
+        assert foo == uuids.foo
+        # But a different one will be different
+        assert foo != uuids.bar
+    """
+    def __init__(self):
+        self._sentinels = {}
+        self._lock = threading.Lock()
+
+    def __getattr__(self, name):
+        if name.startswith('_'):
+            raise ValueError('Sentinels must not start with _')
+        with self._lock:
+            if name not in self._sentinels:
+                self._sentinels[name] = uuidutils.generate_uuid()
+        return self._sentinels[name]
+
+
+# Singleton sentinel instance. Caveat emptor: using this multiple times in the
+# same process (including across multiple modules) will result in the same
+# values
+uuidsentinel = _UUIDSentinels()
