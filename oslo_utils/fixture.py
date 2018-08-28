@@ -62,7 +62,7 @@ class _UUIDSentinels(object):
     referring to the same attribute will give the same UUID for the life of the
     instance. Plan accordingly.
 
-    Usage:
+    Usage::
 
         from oslo_utils.fixture import uuidsentinel as uuids
         ...
