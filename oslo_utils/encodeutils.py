@@ -42,7 +42,7 @@ def safe_decode(text, incoming=None, errors='strict'):
         return text
 
     if not incoming:
-        incoming = (sys.stdin.encoding or
+        incoming = (getattr(sys.stdin, 'encoding', None) or
                     sys.getdefaultencoding())
 
     try:
@@ -85,7 +85,7 @@ def safe_encode(text, incoming=None,
         raise TypeError("%s can't be encoded" % type(text))
 
     if not incoming:
-        incoming = (sys.stdin.encoding or
+        incoming = (getattr(sys.stdin, 'encoding', None) or
                     sys.getdefaultencoding())
 
     # Avoid case issues in comparisons
