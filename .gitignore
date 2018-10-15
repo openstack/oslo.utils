@@ -1,3 +1,15 @@
+# Add patterns in here to exclude files created by tools integrated with this
+# repository, such as test frameworks from the project's recommended workflow,
+# rendered documentation and package builds.
+#
+# Don't add patterns to exclude files created by preferred personal tools
+# (editors, IDEs, your operating system itself even). These should instead be
+# maintained outside the repository, for example in a ~/.gitignore file added
+# with:
+#
+# git config --global core.excludesfile '~/.gitignore'
+
+# Bytecompiled Python
 *.py[cod]
 
 # C extensions
@@ -30,11 +42,6 @@ cover
 # Translations
 *.mo
 
-# Mr Developer
-.mr.developer.cfg
-.project
-.pydevproject
-
 # Complexity
 output/*.html
 output/*/index.html
@@ -45,10 +52,6 @@ doc/build
 # pbr generates these
 AUTHORS
 ChangeLog
-
-# Editors
-*~
-.*.swp
 
 # reno build
 releasenotes/build
