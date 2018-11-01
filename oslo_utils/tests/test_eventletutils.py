@@ -128,7 +128,7 @@ class EventletUtilsTest(test_base.BaseTestCase):
         with mock.patch('oslo_utils.eventletutils.is_monkey_patched',
                         return_value=True):
             e_event = eventletutils.Event()
-        self.assertIsInstance(e_event, eventletutils._Event)
+        self.assertIsInstance(e_event, eventletutils.EventletEvent)
 
         t_event = eventletutils.Event()
         if six.PY3:

@@ -140,13 +140,14 @@ def is_monkey_patched(module):
     return _patcher.is_monkey_patched(module)
 
 
-class _Event(object):
+class EventletEvent(object):
     """A class that provides consistent eventlet/threading Event API.
 
     This wraps the eventlet.event.Event class to have the same API as
     the standard threading.Event object.
     """
     def __init__(self, *args, **kwargs):
+        super(EventletEvent, self).__init__()
         self.clear()
 
     def clear(self):
@@ -173,6 +174,6 @@ class _Event(object):
 
 def Event():
     if is_monkey_patched("thread"):
-        return _Event()
+        return EventletEvent()
     else:
         return threading.Event()
