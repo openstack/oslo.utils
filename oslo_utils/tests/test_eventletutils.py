@@ -15,6 +15,8 @@
 import threading
 import warnings
 
+import eventlet
+from eventlet import greenthread
 import mock
 from oslotest import base as test_base
 import six
@@ -150,3 +152,52 @@ class EventletUtilsTest(test_base.BaseTestCase):
         self.assertEqual(0, mock_eventlet.event.Event().reset.call_count)
         e_event.set()
         self.assertEqual(1, mock_eventlet.event.Event().reset.call_count)
+
+    def test_event_no_timeout(self):
+        event = eventletutils.EventletEvent()
+
+        def thread_a():
+            self.assertTrue(event.wait())
+
+        a = greenthread.spawn(thread_a)
+
+        with eventlet.timeout.Timeout(0.5, False):
+            a.wait()
+            self.fail('wait() timed out')
+
+    def test_event_race(self):
+        event = eventletutils.EventletEvent()
+
+        def thread_a():
+            self.assertTrue(event.wait(2))
+
+        a = greenthread.spawn(thread_a)
+
+        def thread_b():
+            eventlet.sleep(0.1)
+            event.clear()
+            event.set()
+            a.wait()
+
+        b = greenthread.spawn(thread_b)
+        with eventlet.timeout.Timeout(0.5):
+            b.wait()
+
+    def test_event_clear_timeout(self):
+        event = eventletutils.EventletEvent()
+
+        def thread_a():
+            self.assertFalse(event.wait(0.5))
+
+        a = greenthread.spawn(thread_a)
+
+        def thread_b():
+            eventlet.sleep(0.1)
+            event.clear()
+            eventlet.sleep(0.1)
+            event.clear()
+            a.wait()
+
+        b = greenthread.spawn(thread_b)
+        with eventlet.timeout.Timeout(0.7):
+            b.wait()

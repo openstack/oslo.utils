@@ -4,6 +4,7 @@ bandit==1.4.0
 coverage==4.0
 ddt==1.0.1
 debtcollector==1.2.0
+eventlet==0.18.2
 extras==1.0.0
 fixtures==3.0.0
 flake8==2.5.5

@@ -24,6 +24,8 @@ import threading
 import warnings
 
 from oslo_utils import importutils
+from oslo_utils import timeutils
+
 
 # These may or may not exist; so carefully import them if we can...
 _eventlet = importutils.try_import('eventlet')
@@ -151,8 +153,11 @@ class EventletEvent(object):
         self.clear()
 
     def clear(self):
+        old_event = getattr(self, "_event", None)
         self._set = False
         self._event = _eventlet.event.Event()
+        if old_event is not None:
+            old_event.send(True)
 
     def is_set(self):
         return self._set
@@ -167,9 +172,15 @@ class EventletEvent(object):
         self._event.send(True)
 
     def wait(self, timeout=None):
-        with _eventlet.timeout.Timeout(timeout, False):
-            self._event.wait()
-        return self.is_set()
+        with timeutils.StopWatch(timeout) as sw:
+            while True:
+                event = self._event
+                with _eventlet.timeout.Timeout(sw.leftover(return_none=True),
+                                               False):
+                    event.wait()
+                    if event is not self._event:
+                        continue
+                return self.is_set()
 
 
 def Event():
