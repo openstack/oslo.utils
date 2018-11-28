@@ -17,6 +17,7 @@
 System-level utilities and helper functions.
 """
 
+import collections
 import math
 import re
 import unicodedata
@@ -390,12 +391,12 @@ def mask_dict_password(dictionary, secret="***"):  # nosec
 
     """
 
-    if not isinstance(dictionary, dict):
-        raise TypeError("Expected a dictionary, got %s instead."
+    if not isinstance(dictionary, collections.Mapping):
+        raise TypeError("Expected a Mapping, got %s instead."
                         % type(dictionary))
     out = {}
     for k, v in dictionary.items():
-        if isinstance(v, dict):
+        if isinstance(v, collections.Mapping):
             out[k] = mask_dict_password(v, secret=secret)
             continue
         # NOTE(jlvillal): Check to see if anything in the dictionary 'key'

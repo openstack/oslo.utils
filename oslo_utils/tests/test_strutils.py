@@ -15,6 +15,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import collections
 import copy
 import math
 
@@ -613,6 +614,31 @@ class MaskPasswordTestCase(test_base.BaseTestCase):
         self.assertEqual(expected, strutils.mask_password(payload))
 
 
+class TestMapping(collections.Mapping):
+    """Test class for non-dict mappings"""
+    def __init__(self):
+        super(TestMapping, self).__init__()
+        self.data = {'password': 'shhh',
+                     'foo': 'bar',
+                     }
+
+    def __getitem__(self, key):
+        return self.data[key]
+
+    def __iter__(self):
+        return self.data.__iter__()
+
+    def __len__(self):
+        return len(self.data)
+
+
+class NestedMapping(TestMapping):
+    """Test class that contains an instance of TestMapping"""
+    def __init__(self):
+        super(NestedMapping, self).__init__()
+        self.data = {'nested': TestMapping()}
+
+
 class MaskDictionaryPasswordTestCase(test_base.BaseTestCase):
 
     def test_dictionary(self):
@@ -695,6 +721,21 @@ class MaskDictionaryPasswordTestCase(test_base.BaseTestCase):
         # Send the payload into the function, to see if it gets modified
         strutils.mask_dict_password(payload)
         self.assertEqual(pristine, payload)
+
+    def test_non_dict(self):
+        expected = {'password': '***',
+                    'foo': 'bar',
+                    }
+        payload = TestMapping()
+        self.assertEqual(expected, strutils.mask_dict_password(payload))
+
+    def test_nested_non_dict(self):
+        expected = {'nested': {'password': '***',
+                               'foo': 'bar',
+                               }
+                    }
+        payload = NestedMapping()
+        self.assertEqual(expected, strutils.mask_dict_password(payload))
 
 
 class IsIntLikeTestCase(test_base.BaseTestCase):
