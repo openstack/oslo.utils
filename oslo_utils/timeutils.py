@@ -24,11 +24,15 @@ import time
 
 from debtcollector import removals
 import iso8601
-from monotonic import monotonic as now  # noqa
 import pytz
 import six
 
 from oslo_utils import reflection
+
+if hasattr(time, 'monotonic'):
+    now = time.monotonic
+else:
+    from monotonic import monotonic as now  # noqa
 
 # ISO 8601 extended time format with microseconds
 _ISO8601_TIME_FORMAT_SUBSECOND = '%Y-%m-%dT%H:%M:%S.%f'
