@@ -208,8 +208,8 @@ def get_callable_args(function, required_only=False):
     sig = get_signature(function)
     function_args = list(six.iterkeys(sig.parameters))
     for param_name, p in six.iteritems(sig.parameters):
-        if (p.kind in (Parameter.VAR_POSITIONAL, Parameter.VAR_KEYWORD)
-                or (required_only and p.default is not Parameter.empty)):
+        if (p.kind in (Parameter.VAR_POSITIONAL, Parameter.VAR_KEYWORD) or
+                (required_only and p.default is not Parameter.empty)):
             function_args.remove(param_name)
     return function_args
 

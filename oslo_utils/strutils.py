@@ -554,8 +554,8 @@ def split_by_commas(value):
 
     .. versionadded:: 3.17
     """
-    word = (pp.QuotedString(quoteChar='"', escChar='\\')
-            | pp.Word(pp.printables, excludeChars='",'))
+    word = (pp.QuotedString(quoteChar='"', escChar='\\') |
+            pp.Word(pp.printables, excludeChars='",'))
     grammar = pp.stringStart + pp.delimitedList(word) + pp.stringEnd
 
     try:
