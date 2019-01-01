@@ -165,11 +165,9 @@ class EventletEvent(object):
     isSet = is_set
 
     def set(self):
-        if self._set:
-            self._event.reset()
-
-        self._set = True
-        self._event.send(True)
+        if not self._set:
+            self._set = True
+            self._event.send(True)
 
     def wait(self, timeout=None):
         with timeutils.StopWatch(timeout) as sw:

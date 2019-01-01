@@ -146,12 +146,11 @@ class EventletUtilsTest(test_base.BaseTestCase):
             self.assertTrue(hasattr(e_event, method))
 
         # Ensure set() allows multiple invocations, same as in
-        # threading implementation.  Must call reset on underlying
-        # Event before reusing it
+        # threading implementation.
         e_event.set()
-        self.assertEqual(0, mock_eventlet.event.Event().reset.call_count)
+        self.assertTrue(e_event.isSet())
         e_event.set()
-        self.assertEqual(1, mock_eventlet.event.Event().reset.call_count)
+        self.assertTrue(e_event.isSet())
 
     def test_event_no_timeout(self):
         event = eventletutils.EventletEvent()
