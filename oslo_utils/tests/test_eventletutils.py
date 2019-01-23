@@ -200,3 +200,13 @@ class EventletUtilsTest(test_base.BaseTestCase):
         b = greenthread.spawn(thread_b)
         with eventlet.timeout.Timeout(0.7):
             b.wait()
+
+    @mock.patch('oslo_utils.eventletutils._eventlet.event.Event')
+    def test_event_clear_already_sent(self, mock_event):
+        old_event = mock.Mock()
+        new_event = mock.Mock()
+        mock_event.side_effect = [old_event, new_event]
+        event = eventletutils.EventletEvent()
+        event.set()
+        event.clear()
+        self.assertEqual(1, old_event.send.call_count)
