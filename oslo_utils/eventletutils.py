@@ -150,16 +150,12 @@ class EventletEvent(object):
     """
     def __init__(self, *args, **kwargs):
         super(EventletEvent, self).__init__()
-        self._set = False
         self.clear()
 
     def clear(self):
-        old_event = getattr(self, "_event", None)
-        was_set = self._set
-        self._set = False
-        self._event = _eventlet.event.Event()
-        if old_event is not None and not was_set:
-            old_event.send(True)
+        if getattr(self, '_set', True):
+            self._set = False
+            self._event = _eventlet.event.Event()
 
     def is_set(self):
         return self._set
