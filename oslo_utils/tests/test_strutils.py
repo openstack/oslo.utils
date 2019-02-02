@@ -459,6 +459,9 @@ class MaskPasswordTestCase(test_base.BaseTestCase):
         payload = """body: {"rescue": {"password": "1234567"}}"""
         expected = """body: {"rescue": {"password": "***"}}"""
         self.assertEqual(expected, strutils.mask_password(payload))
+        payload = """body: {"rescue": {"encryption_key_id": "1234567"}}"""
+        expected = """body: {"rescue": {"encryption_key_id": "***"}}"""
+        self.assertEqual(expected, strutils.mask_password(payload))
 
     def test_xml_message(self):
         payload = """<?xml version="1.0" encoding="UTF-8"?>
