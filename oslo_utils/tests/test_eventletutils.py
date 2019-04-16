@@ -201,6 +201,30 @@ class EventletUtilsTest(test_base.BaseTestCase):
         with eventlet.timeout.Timeout(0.7):
             b.wait()
 
+    def test_event_set_clear_timeout(self):
+        event = eventletutils.EventletEvent()
+        wakes = []
+
+        def thread_func():
+            result = event.wait(0.2)
+            wakes.append(result)
+            if len(wakes) == 1:
+                self.assertTrue(result)
+                event.clear()
+            else:
+                self.assertFalse(result)
+
+        a = greenthread.spawn(thread_func)
+        b = greenthread.spawn(thread_func)
+        eventlet.sleep(0)  # start threads
+        event.set()
+
+        with eventlet.timeout.Timeout(0.3):
+            a.wait()
+            b.wait()
+        self.assertFalse(event.is_set())
+        self.assertEqual([True, False], wakes)
+
     @mock.patch('oslo_utils.eventletutils._eventlet.event.Event')
     def test_event_clear_already_sent(self, mock_event):
         old_event = mock.Mock()
