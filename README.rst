@@ -24,6 +24,6 @@ such as encoding, exception handling, string manipulation, and time handling.
 
 * Free software: Apache license
 * Documentation: https://docs.openstack.org/oslo.utils/latest/
-* Source: https://git.openstack.org/cgit/openstack/oslo.utils
+* Source: https://opendev.org/openstack/oslo.utils
 * Bugs: https://bugs.launchpad.net/oslo.utils
 * Release notes: https://docs.openstack.org/releasenotes/oslo.utils/
