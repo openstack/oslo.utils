@@ -12,6 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import hashlib
 import hmac
 
 from oslotest import base as test_base
@@ -23,7 +24,8 @@ from oslo_utils import secretutils
 class SecretUtilsTest(testscenarios.TestWithScenarios,
                       test_base.BaseTestCase):
 
-    _gen_digest = lambda text: hmac.new(b'foo', text.encode('utf-8')).digest()
+    _gen_digest = lambda text: hmac.new(b'foo', text.encode('utf-8'),
+                                        digestmod=hashlib.sha1).digest()
     scenarios = [
         ('binary', {'converter': _gen_digest}),
         ('unicode', {'converter': lambda text: text}),
