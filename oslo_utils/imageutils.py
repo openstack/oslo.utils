@@ -44,7 +44,7 @@ class QemuImgInfo(object):
     BACKING_FILE_RE = re.compile((r"^(.*?)\s*\(actual\s+path\s*:"
                                   r"\s+(.*?)\)\s*$"), re.I)
     TOP_LEVEL_RE = re.compile(r"^([\w\d\s\_\-]+):(.*)$")
-    SIZE_RE = re.compile(r"(\d*\.?\d+)(\w+)?(\s*\(\s*(\d+)\s+bytes\s*\))?",
+    SIZE_RE = re.compile(r"(\d*\.?\d+)\s*(\w+)?(\s*\(\s*(\d+)\s+bytes\s*\))?",
                          re.I)
 
     def __init__(self, cmd_output=None, format='human'):
@@ -106,7 +106,10 @@ class QemuImgInfo(object):
             return int(real_size.group(4))
         elif not unit_of_measure:
             return int(magnitude)
-        return strutils.string_to_bytes('%s%sB' % (magnitude, unit_of_measure),
+        # Allow abbreviated unit such as K to mean KB for compatibility.
+        if len(unit_of_measure) == 1 and unit_of_measure != 'B':
+            unit_of_measure += 'B'
+        return strutils.string_to_bytes('%s%s' % (magnitude, unit_of_measure),
                                         return_int=True)
 
     def _extract_details(self, root_cmd, root_details, lines_after):
