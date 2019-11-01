@@ -59,7 +59,7 @@ _SANITIZE_KEYS = ['adminPass', 'admin_pass', 'password', 'admin_password',
                   'auth_token', 'new_pass', 'auth_password', 'secret_uuid',
                   'secret', 'sys_pswd', 'token', 'configdrive',
                   'CHAPPASSWORD', 'encrypted_key', 'private_key',
-                  'encryption_key_id']
+                  'encryption_key_id', 'fernetkey', 'sslkey', 'passphrase']
 
 # NOTE(ldbragst): Let's build a list of regex objects using the list of
 # _SANITIZE_KEYS we already have. This way, we only have to add the new key
@@ -70,17 +70,18 @@ _SANITIZE_PATTERNS_1 = {}
 
 # NOTE(amrith): Some regular expressions have only one parameter, some
 # have two parameters. Use different lists of patterns here.
-_FORMAT_PATTERNS_1 = [r'(%(key)s\s*[=]\s*)[^\s^\'^\"]+']
-_FORMAT_PATTERNS_2 = [r'(%(key)s\s*[=]\s*[\"\'])[^\"\']*([\"\'])',
-                      r'(%(key)s\s+[\"\'])[^\"\']*([\"\'])',
-                      r'([-]{2}%(key)s\s+)[^\'^\"^=^\s]+([\s]*)',
-                      r'(<%(key)s>)[^<]*(</%(key)s>)',
-                      r'([\"\']%(key)s[\"\']\s*:\s*[\"\'])[^\"\']*([\"\'])',
-                      r'([\'"][^"\']*%(key)s[\'"]\s*:\s*u?[\'"])[^\"\']*'
+_FORMAT_PATTERNS_1 = [r'(%(key)s[0-9]*\s*[=]\s*)[^\s^\'^\"]+']
+_FORMAT_PATTERNS_2 = [r'(%(key)s[0-9]*\s*[=]\s*[\"\'])[^\"\']*([\"\'])',
+                      r'(%(key)s[0-9]*\s+[\"\'])[^\"\']*([\"\'])',
+                      r'([-]{2}%(key)s[0-9]*\s+)[^\'^\"^=^\s]+([\s]*)',
+                      r'(<%(key)s[0-9]*>)[^<]*(</%(key)s[0-9]*>)',
+                      r'([\"\']%(key)s[0-9]*[\"\']\s*:\s*[\"\'])[^\"\']*'
+                      '([\"\'])',
+                      r'([\'"][^"\']*%(key)s[0-9]*[\'"]\s*:\s*u?[\'"])[^\"\']*'
                       '([\'"])',
-                      r'([\'"][^\'"]*%(key)s[\'"]\s*,\s*\'--?[A-z]+\'\s*,\s*u?'
-                      '[\'"])[^\"\']*([\'"])',
-                      r'(%(key)s\s*--?[A-z]+\s*)\S+(\s*)']
+                      r'([\'"][^\'"]*%(key)s[0-9]*[\'"]\s*,\s*\'--?[A-z]+'
+                      '\'\s*,\s*u?[\'"])[^\"\']*([\'"])',
+                      r'(%(key)s[0-9]*\s*--?[A-z]+\s*)\S+(\s*)']
 
 # NOTE(dhellmann): Keep a separate list of patterns by key so we only
 # need to apply the substitutions for keys we find using a quick "in"
@@ -90,11 +91,11 @@ for key in _SANITIZE_KEYS:
     _SANITIZE_PATTERNS_2[key] = []
 
     for pattern in _FORMAT_PATTERNS_2:
-        reg_ex = re.compile(pattern % {'key': key}, re.DOTALL)
+        reg_ex = re.compile(pattern % {'key': key}, re.DOTALL | re.IGNORECASE)
         _SANITIZE_PATTERNS_2[key].append(reg_ex)
 
     for pattern in _FORMAT_PATTERNS_1:
-        reg_ex = re.compile(pattern % {'key': key}, re.DOTALL)
+        reg_ex = re.compile(pattern % {'key': key}, re.DOTALL | re.IGNORECASE)
         _SANITIZE_PATTERNS_1[key].append(reg_ex)
 
 
@@ -329,7 +330,7 @@ def mask_password(message, secret="***"):  # nosec
     # specified in _SANITIZE_KEYS, if not then just return the message since
     # we don't have to mask any passwords.
     for key in _SANITIZE_KEYS:
-        if key in message:
+        if key.lower() in message.lower():
             for pattern in _SANITIZE_PATTERNS_2[key]:
                 message = re.sub(pattern, substitute2, message)
             for pattern in _SANITIZE_PATTERNS_1[key]:
