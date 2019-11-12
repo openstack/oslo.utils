@@ -353,6 +353,43 @@ class MaskPasswordTestCase(test_base.BaseTestCase):
         payload = """{ 'token' : 'token' }"""
         expected = """{ 'token' : '***' }"""
         self.assertEqual(expected, strutils.mask_password(payload))
+        # Test 'fernetkey'
+        payload = """{ 'fernetkey' : 'token' }"""
+        expected = """{ 'fernetkey' : '***' }"""
+        self.assertEqual(expected, strutils.mask_password(payload))
+        # Test 'FernetKey'
+        payload = """{ 'FernetKey' : 'token' }"""
+        expected = """{ 'FernetKey' : '***' }"""
+        self.assertEqual(expected, strutils.mask_password(payload))
+        # Test 'sslkey'
+        payload = """{ 'sslkey' : 'token' }"""
+        expected = """{ 'sslkey' : '***' }"""
+        self.assertEqual(expected, strutils.mask_password(payload))
+        # Test 'SslKey'
+        payload = """{ 'SslKey' : 'token' }"""
+        expected = """{ 'SslKey' : '***' }"""
+        self.assertEqual(expected, strutils.mask_password(payload))
+        # Test 'passphrase'
+        payload = """{ 'passphrase' : 'token' }"""
+        expected = """{ 'passphrase' : '***' }"""
+        self.assertEqual(expected, strutils.mask_password(payload))
+        # Test 'PassPhrase'
+        payload = """{ 'PassPhrase' : 'token' }"""
+        expected = """{ 'PassPhrase' : '***' }"""
+        self.assertEqual(expected, strutils.mask_password(payload))
+        # Some real-life cases
+        # Test 'KeystoneFernetKey1'
+        payload = """{ 'KeystoneFernetKey1' : 'token' }"""
+        expected = """{ 'KeystoneFernetKey1' : '***' }"""
+        self.assertEqual(expected, strutils.mask_password(payload))
+        # Test 'OctaviaCaKeyPassword'
+        payload = """{ 'OctaviaCaKeyPassword' : 'token' }"""
+        expected = """{ 'OctaviaCaKeyPassword' : '***' }"""
+        self.assertEqual(expected, strutils.mask_password(payload))
+        # Test 'OctaviaCaKeyPassphrase'
+        payload = """{ 'OctaviaCaKeyPassphrase' : 'token' }"""
+        expected = """{ 'OctaviaCaKeyPassphrase' : '***' }"""
+        self.assertEqual(expected, strutils.mask_password(payload))
 
     def test_xml(self):
         # Test 'adminPass' w/o spaces
@@ -394,6 +431,10 @@ class MaskPasswordTestCase(test_base.BaseTestCase):
                         TL0EfN33
                      </password>"""
         expected = """<password>***</password>"""
+        self.assertEqual(expected, strutils.mask_password(payload))
+        # Test 'Password1' - case-insensitive + number
+        payload = """<Password1>TL0EfN33</Password1>"""
+        expected = """<Password1>***</Password1>"""
         self.assertEqual(expected, strutils.mask_password(payload))
 
     def test_xml_attribute(self):
