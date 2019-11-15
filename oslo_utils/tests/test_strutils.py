@@ -717,6 +717,16 @@ class MaskDictionaryPasswordTestCase(test_base.BaseTestCase):
         self.assertEqual(expected,
                          strutils.mask_dict_password(payload))
 
+        payload = {'passwords': {'KeystoneFernetKey1': 'c5FijjS'}}
+        expected = {'passwords': {'KeystoneFernetKey1': '***'}}
+        self.assertEqual(expected,
+                         strutils.mask_dict_password(payload))
+
+        payload = {'passwords': {'keystonecredential0': 'c5FijjS'}}
+        expected = {'passwords': {'keystonecredential0': '***'}}
+        self.assertEqual(expected,
+                         strutils.mask_dict_password(payload))
+
     def test_do_no_harm(self):
         payload = {}
         expected = {}
