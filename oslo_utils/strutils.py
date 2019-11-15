@@ -54,12 +54,19 @@ SLUGIFY_STRIP_RE = re.compile(r"[^\w\s-]")
 SLUGIFY_HYPHENATE_RE = re.compile(r"[-\s]+")
 
 
-# NOTE(flaper87): The following globals are used by `mask_password`
-_SANITIZE_KEYS = ['adminPass', 'admin_pass', 'password', 'admin_password',
+# NOTE(flaper87): The following globals are used by `mask_password` and
+#                 `mask_dict_password`
+_SANITIZE_KEYS = ['adminpass', 'admin_pass', 'password', 'admin_password',
                   'auth_token', 'new_pass', 'auth_password', 'secret_uuid',
                   'secret', 'sys_pswd', 'token', 'configdrive',
-                  'CHAPPASSWORD', 'encrypted_key', 'private_key',
-                  'encryption_key_id', 'fernetkey', 'sslkey', 'passphrase']
+                  'chappassword', 'encrypted_key', 'private_key',
+                  'encryption_key_id', 'fernetkey', 'sslkey', 'passphrase',
+                  'cephclusterfsid', 'octaviaheartbeatkey', 'rabbitcookie',
+                  'cephmanilaclientkey', 'pacemakerremoteauthkey',
+                  'designaterndckey', 'cephadminkey', 'heatauthencryptionkey',
+                  'cephclientkey', 'keystonecredential',
+                  'barbicansimplecryptokek', 'cephrgwkey', 'swifthashsuffix',
+                  'migrationsshkey', 'cephmdskey', 'cephmonkey']
 
 # NOTE(ldbragst): Let's build a list of regex objects using the list of
 # _SANITIZE_KEYS we already have. This way, we only have to add the new key
@@ -408,7 +415,7 @@ def mask_dict_password(dictionary, secret="***"):  # nosec
         k_matched = False
         if isinstance(k, six.string_types):
             for sani_key in _SANITIZE_KEYS:
-                if sani_key in k:
+                if sani_key.lower() in k.lower():
                     out[k] = secret
                     k_matched = True
                     break
