@@ -55,7 +55,7 @@ SLUGIFY_HYPHENATE_RE = re.compile(r"[-\s]+")
 
 
 # NOTE(flaper87): The following globals are used by `mask_password` and
-#                 `mask_dict_password`
+#                 `mask_dict_password`. They must all be lowercase.
 _SANITIZE_KEYS = ['adminpass', 'admin_pass', 'password', 'admin_password',
                   'auth_token', 'new_pass', 'auth_password', 'secret_uuid',
                   'secret', 'sys_pswd', 'token', 'configdrive',
@@ -337,7 +337,7 @@ def mask_password(message, secret="***"):  # nosec
     # specified in _SANITIZE_KEYS, if not then just return the message since
     # we don't have to mask any passwords.
     for key in _SANITIZE_KEYS:
-        if key.lower() in message.lower():
+        if key in message.lower():
             for pattern in _SANITIZE_PATTERNS_2[key]:
                 message = re.sub(pattern, substitute2, message)
             for pattern in _SANITIZE_PATTERNS_1[key]:
@@ -413,7 +413,7 @@ def mask_dict_password(dictionary, secret="***"):  # nosec
         k_matched = False
         if isinstance(k, six.string_types):
             for sani_key in _SANITIZE_KEYS:
-                if sani_key.lower() in k.lower():
+                if sani_key in k.lower():
                     out[k] = secret
                     k_matched = True
                     break
