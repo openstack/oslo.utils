@@ -296,6 +296,12 @@ StringToBytesTest.generate_scenarios()
 
 class MaskPasswordTestCase(test_base.BaseTestCase):
 
+    def test_sanitize_keys(self):
+
+        lowered = [k.lower() for k in strutils._SANITIZE_KEYS]
+        message = "The _SANITIZE_KEYS must all be lowercase."
+        self.assertEqual(strutils._SANITIZE_KEYS, lowered, message)
+
     def test_json(self):
         # Test 'adminPass' w/o spaces
         payload = """{'adminPass':'TL0EfN33'}"""
