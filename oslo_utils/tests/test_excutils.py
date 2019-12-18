@@ -171,6 +171,13 @@ class ForeverRetryUncaughtExceptionsTest(test_base.BaseTestCase):
         moxfixture = self.useFixture(moxstubout.MoxStubout())
         self.mox = moxfixture.mox
 
+        self.useFixture(fixtures.MockPatch('time.sleep', return_value=None))
+
+        self.mox.StubOutWithMock(logging, 'exception')
+        self.mox.StubOutWithMock(timeutils, 'now',
+                                 use_mock_anything=True)
+        self.mox.StubOutWithMock(self, 'exception_to_raise')
+
     @excutils.forever_retry_uncaught_exceptions
     def exception_generator(self):
         exc = self.exception_to_raise()
@@ -180,19 +187,6 @@ class ForeverRetryUncaughtExceptionsTest(test_base.BaseTestCase):
 
     def exception_to_raise(self):
         return None
-
-    def my_time_sleep(self, arg):
-        pass
-
-    def exc_retrier_common_start(self):
-        patch_time = fixtures.MockPatch(
-            'time.sleep', self.my_time_sleep)
-        self.useFixture(patch_time)
-
-        self.mox.StubOutWithMock(logging, 'exception')
-        self.mox.StubOutWithMock(timeutils, 'now',
-                                 use_mock_anything=True)
-        self.mox.StubOutWithMock(self, 'exception_to_raise')
 
     def exc_retrier_sequence(self, exc_id=None,
                              exc_count=None, before_timestamp_calls=(),
@@ -215,13 +209,11 @@ class ForeverRetryUncaughtExceptionsTest(test_base.BaseTestCase):
         self.exception_generator()
 
     def test_exc_retrier_1exc_gives_1log(self):
-        self.exc_retrier_common_start()
         self.exc_retrier_sequence(exc_id=1, exc_count=1,
                                   after_timestamp_calls=[0])
         self.exc_retrier_common_end()
 
     def test_exc_retrier_same_10exc_1min_gives_1log(self):
-        self.exc_retrier_common_start()
         self.exc_retrier_sequence(exc_id=1,
                                   after_timestamp_calls=[0], exc_count=1)
         # By design, the following exception don't get logged because they
@@ -233,7 +225,6 @@ class ForeverRetryUncaughtExceptionsTest(test_base.BaseTestCase):
         self.exc_retrier_common_end()
 
     def test_exc_retrier_same_2exc_2min_gives_2logs(self):
-        self.exc_retrier_common_start()
         self.exc_retrier_sequence(exc_id=1,
                                   after_timestamp_calls=[0], exc_count=1)
         self.exc_retrier_sequence(exc_id=1,
@@ -242,7 +233,6 @@ class ForeverRetryUncaughtExceptionsTest(test_base.BaseTestCase):
         self.exc_retrier_common_end()
 
     def test_exc_retrier_same_10exc_2min_gives_2logs(self):
-        self.exc_retrier_common_start()
         self.exc_retrier_sequence(exc_id=1,
                                   after_timestamp_calls=[0], exc_count=1)
         for ts in [12, 23, 34, 45]:
@@ -263,7 +253,6 @@ class ForeverRetryUncaughtExceptionsTest(test_base.BaseTestCase):
         self.exc_retrier_common_end()
 
     def test_exc_retrier_mixed_4exc_1min_gives_2logs(self):
-        self.exc_retrier_common_start()
         self.exc_retrier_sequence(exc_id=1,
                                   # The stop watch will be started,
                                   # which will consume one timestamp call.
@@ -288,7 +277,6 @@ class ForeverRetryUncaughtExceptionsTest(test_base.BaseTestCase):
         self.exc_retrier_common_end()
 
     def test_exc_retrier_mixed_4exc_2min_gives_2logs(self):
-        self.exc_retrier_common_start()
         self.exc_retrier_sequence(exc_id=1,
                                   # The stop watch will now be started.
                                   after_timestamp_calls=[0], exc_count=1)
@@ -306,7 +294,6 @@ class ForeverRetryUncaughtExceptionsTest(test_base.BaseTestCase):
         self.exc_retrier_common_end()
 
     def test_exc_retrier_mixed_4exc_2min_gives_3logs(self):
-        self.exc_retrier_common_start()
         self.exc_retrier_sequence(exc_id=1,
                                   # The stop watch will now be started.
                                   after_timestamp_calls=[0], exc_count=1)
