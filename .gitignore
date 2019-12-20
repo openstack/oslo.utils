@@ -56,3 +56,5 @@ ChangeLog
 
 # reno build
 releasenotes/build
+RELEASENOTES.rst
+releasenotes/notes/reno.cache
