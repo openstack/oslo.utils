@@ -44,7 +44,8 @@ class QemuImgInfo(object):
     BACKING_FILE_RE = re.compile((r"^(.*?)\s*\(actual\s+path\s*:"
                                   r"\s+(.*?)\)\s*$"), re.I)
     TOP_LEVEL_RE = re.compile(r"^([\w\d\s\_\-]+):(.*)$")
-    SIZE_RE = re.compile(r"(\d*\.?\d+)\s*(\w+)?(\s*\(\s*(\d+)\s+bytes\s*\))?",
+    SIZE_RE = re.compile(r"([0-9]+[eE][-+][0-9]+|\d*\.?\d+)"
+                         "\s*(\w+)?(\s*\(\s*(\d+)\s+bytes\s*\))?",
                          re.I)
 
     def __init__(self, cmd_output=None, format='human'):
@@ -100,6 +101,8 @@ class QemuImgInfo(object):
         if not real_size:
             raise ValueError(_('Invalid input value "%s".') % details)
         magnitude = real_size.group(1)
+        if "e" in magnitude.lower():
+            magnitude = format(float(real_size.group(1)), '.0f')
         unit_of_measure = real_size.group(2)
         bytes_info = real_size.group(3)
         if bytes_info:
