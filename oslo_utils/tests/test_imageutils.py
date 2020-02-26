@@ -52,6 +52,8 @@ class ImageUtilsRawTestCase(test_base.BaseTestCase):
                                    exp_virtual_size=2048)),
         ('2_KiB_with_byte_hint', dict(virtual_size='2 KiB (2048 bytes)',
                                       exp_virtual_size=2048)),
+        ('1e+03_MiB', dict(virtual_size='1e+03 MiB',
+                           exp_virtual_size=1048576000)),
     ]
 
     _disk_size = [
@@ -69,7 +71,7 @@ class ImageUtilsRawTestCase(test_base.BaseTestCase):
                          exp_disk_size=3328599655)),
         ('unavailable', dict(disk_size='unavailable',
                              exp_disk_size=0)),
-        ('1e+03 MiB', dict(disk_size='1e+03 MiB',
+        ('1e+03_MiB', dict(disk_size='1e+03 MiB',
                            exp_disk_size=1048576000)),
     ]
 
