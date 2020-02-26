@@ -28,6 +28,8 @@ Helper methods to deal with images.
 import json
 import re
 
+import debtcollector
+
 from oslo_utils._i18n import _
 from oslo_utils import strutils
 
@@ -38,8 +40,11 @@ class QemuImgInfo(object):
     The instance of :class:`QemuImgInfo` has properties: `image`,
     `backing_file`, `file_format`, `virtual_size`, `cluster_size`,
     `disk_size`, `snapshots` and `encrypted`.
+
     The parameter format can be set to 'json' or 'human'. With 'json' format
     output, qemu image information will be parsed more easily and readable.
+    However 'human' format support will be dropped in next cycle and only
+    'json' format will be supported. Prefer to use 'json' instead of 'human'.
     """
     BACKING_FILE_RE = re.compile((r"^(.*?)\s*\(actual\s+path\s*:"
                                   r"\s+(.*?)\)\s*$"), re.I)
@@ -61,6 +66,11 @@ class QemuImgInfo(object):
             self.encrypted = details.get('encrypted')
             self.format_specific = details.get('format-specific')
         else:
+            debtcollector.deprecate(
+                'The human format is deprecated and the format parameter '
+                'will be removed. Use explicitly json instead',
+                version="xena",
+                category=FutureWarning)
             details = self._parse(cmd_output or '')
             self.image = details.get('image')
             self.backing_file = details.get('backing_file')

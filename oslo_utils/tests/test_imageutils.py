@@ -13,15 +13,19 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import warnings
+
 from oslotest import base as test_base
 import testscenarios
 
 from oslo_utils import imageutils
 
+from unittest import mock
+
 load_tests = testscenarios.load_tests_apply_scenarios
 
 
-class ImageUtilsRawTestCase(test_base.BaseTestCase):
+class ImageUtilsHumanRawTestCase(test_base.BaseTestCase):
 
     _image_name = [
         ('disk_config', dict(image_name='disk.config')),
@@ -125,7 +129,8 @@ class ImageUtilsRawTestCase(test_base.BaseTestCase):
         if self.snapshot_count is not None:
             self.assertEqual(len(image_info.snapshots), self.snapshot_count)
 
-    def test_qemu_img_info(self):
+    @mock.patch('debtcollector.deprecate')
+    def test_qemu_img_info_human_format(self, mock_deprecate):
         img_info = self._initialize_img_info()
         if self.garbage_before_snapshot is True:
             img_info = img_info + ('blah BLAH: bb',)
@@ -134,14 +139,16 @@ class ImageUtilsRawTestCase(test_base.BaseTestCase):
         if self.garbage_before_snapshot is False:
             img_info = img_info + ('junk stuff: bbb',)
         example_output = '\n'.join(img_info)
+        warnings.simplefilter("always", FutureWarning)
         image_info = imageutils.QemuImgInfo(example_output)
+        mock_deprecate.assert_called()
         self._base_validation(image_info)
 
 
-ImageUtilsRawTestCase.generate_scenarios()
+ImageUtilsHumanRawTestCase.generate_scenarios()
 
 
-class ImageUtilsQemuTestCase(ImageUtilsRawTestCase):
+class ImageUtilsHumanQemuTestCase(ImageUtilsHumanRawTestCase):
 
     _file_format = [
         ('qcow2', dict(file_format='qcow2')),
@@ -180,7 +187,8 @@ class ImageUtilsQemuTestCase(ImageUtilsRawTestCase):
             cls._qcow2_encrypted,
             cls._qcow2_backing_file)
 
-    def test_qemu_img_info(self):
+    @mock.patch("debtcollector.deprecate")
+    def test_qemu_img_info_human_format(self, mock_deprecate):
         img_info = self._initialize_img_info()
         img_info = img_info + ('cluster_size: %s' % self.cluster_size,)
         if self.backing_file is not None:
@@ -195,7 +203,9 @@ class ImageUtilsQemuTestCase(ImageUtilsRawTestCase):
         if self.garbage_before_snapshot is False:
             img_info = img_info + ('junk stuff: bbb',)
         example_output = '\n'.join(img_info)
+        warnings.simplefilter("always", FutureWarning)
         image_info = imageutils.QemuImgInfo(example_output)
+        mock_deprecate.assert_called()
         self._base_validation(image_info)
         self.assertEqual(image_info.cluster_size, self.exp_cluster_size)
         if self.backing_file is not None:
@@ -205,7 +215,7 @@ class ImageUtilsQemuTestCase(ImageUtilsRawTestCase):
             self.assertEqual(image_info.encrypted, self.encrypted)
 
 
-ImageUtilsQemuTestCase.generate_scenarios()
+ImageUtilsHumanQemuTestCase.generate_scenarios()
 
 
 class ImageUtilsBlankTestCase(test_base.BaseTestCase):
@@ -220,7 +230,8 @@ class ImageUtilsBlankTestCase(test_base.BaseTestCase):
 
 
 class ImageUtilsJSONTestCase(test_base.BaseTestCase):
-    def test_qemu_img_info_json_format(self):
+    @mock.patch("debtcollector.deprecate")
+    def test_qemu_img_info(self, mock_deprecate):
         img_output = '''{
                        "virtual-size": 41126400,
                        "filename": "fake_img",
@@ -230,6 +241,7 @@ class ImageUtilsJSONTestCase(test_base.BaseTestCase):
                        "format-specific": {"data": {"foo": "bar"}}
                       }'''
         image_info = imageutils.QemuImgInfo(img_output, format='json')
+        mock_deprecate.assert_not_called()
         self.assertEqual(41126400, image_info.virtual_size)
         self.assertEqual('fake_img', image_info.image)
         self.assertEqual(65536, image_info.cluster_size)
@@ -237,9 +249,11 @@ class ImageUtilsJSONTestCase(test_base.BaseTestCase):
         self.assertEqual(13168640, image_info.disk_size)
         self.assertEqual("bar", image_info.format_specific["data"]["foo"])
 
-    def test_qemu_img_info_json_format_blank(self):
+    @mock.patch("debtcollector.deprecate")
+    def test_qemu_img_info_blank(self, mock_deprecate):
         img_output = '{}'
         image_info = imageutils.QemuImgInfo(img_output, format='json')
+        mock_deprecate.assert_not_called()
         self.assertIsNone(image_info.virtual_size)
         self.assertIsNone(image_info.image)
         self.assertIsNone(image_info.cluster_size)
