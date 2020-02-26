@@ -1,0 +1,5 @@
+---
+fixes:
+  - |
+    qemu 4.1.0 output shifts to scientific notation at 1000mb,
+    breaking oslo.utils. ``QemuImgInfo`` is now fixed to support this notation.
