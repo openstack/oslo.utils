@@ -17,13 +17,9 @@ import logging
 import fixtures
 import mock
 from oslotest import base as test_base
-from oslotest import moxstubout
 
 from oslo_utils import excutils
 from oslo_utils import timeutils
-
-
-mox = moxstubout.mox
 
 
 class Fail1(excutils.CausedByException):
@@ -168,255 +164,266 @@ class ForeverRetryUncaughtExceptionsTest(test_base.BaseTestCase):
 
     def setUp(self):
         super(ForeverRetryUncaughtExceptionsTest, self).setUp()
-        moxfixture = self.useFixture(moxstubout.MoxStubout())
-        self.mox = moxfixture.mox
+
+        self._exceptions = []
 
         self.useFixture(fixtures.MockPatch('time.sleep', return_value=None))
 
-        self.mox.StubOutWithMock(logging, 'exception')
-        self.mox.StubOutWithMock(timeutils, 'now',
-                                 use_mock_anything=True)
-        self.mox.StubOutWithMock(self, 'exception_to_raise')
-
     @excutils.forever_retry_uncaught_exceptions
     def exception_generator(self):
-        exc = self.exception_to_raise()
-        while exc is not None:
-            raise exc
+        while self._exceptions:
+            raise self._exceptions.pop(0)
 
-    def exception_to_raise(self):
-        return None
+    @mock.patch.object(logging, 'exception')
+    @mock.patch.object(timeutils, 'now')
+    def test_exc_retrier_1exc_gives_1log(self, mock_now, mock_log):
 
-    def test_exc_retrier_1exc_gives_1log(self):
-        self.exception_to_raise().AndReturn(
-            Exception('unexpected %d' % 1))
-        logging.exception(mox.In(
-            'Unexpected exception occurred %d time(s)' % 1))
-        # Timestamp calls that happen after the logging is possibly triggered.
-        for timestamp in [0]:
-            timeutils.now().AndReturn(timestamp)
+        self._exceptions = [
+            Exception('unexpected %d' % 1),
+        ]
+        mock_now.side_effect = [0]
 
-        self.exception_to_raise().AndReturn(None)
-        self.mox.ReplayAll()
         self.exception_generator()
 
-    def test_exc_retrier_same_10exc_1min_gives_1log(self):
-        self.exception_to_raise().AndReturn(
-            Exception('unexpected %d' % 1))
-        logging.exception(mox.In(
-            'Unexpected exception occurred %d time(s)' % 1))
-        # Timestamp calls that happen after the logging is possibly triggered.
-        for timestamp in [0]:
-            timeutils.now().AndReturn(timestamp)
+        self.assertEqual([], self._exceptions)
+        # log should only be called once
+        mock_log.assert_called_once_with(
+            'Unexpected exception occurred %d time(s)... retrying.' % 1
+        )
+        mock_now.assert_has_calls([
+            mock.call(),
+        ])
 
-        # By design, the following exception don't get logged because they
+    @mock.patch.object(logging, 'exception')
+    @mock.patch.object(timeutils, 'now')
+    def test_exc_retrier_same_10exc_1min_gives_1log(self, mock_now, mock_log):
+        self._exceptions = [
+            Exception('unexpected 1'),
+        ]
+        # Timestamp calls that happen after the logging is possibly triggered.
+        mock_now_side_effect = [0]
+
+        # By design, the following exceptions won't get logged because they
         # are within the same minute.
         for i in range(2, 11):
-            self.exception_to_raise().AndReturn(
-                Exception('unexpected %d' % 1))
+            self._exceptions.append(Exception('unexpected 1'))
             # Timestamp calls that happen before the logging is possibly
             # triggered.
-            for timestamp in [i]:
-                timeutils.now().AndReturn(timestamp)
+            mock_now_side_effect.append(i)
 
-        self.exception_to_raise().AndReturn(None)
-        self.mox.ReplayAll()
+        mock_now.side_effect = mock_now_side_effect
+
         self.exception_generator()
 
-    def test_exc_retrier_same_2exc_2min_gives_2logs(self):
-        self.exception_to_raise().AndReturn(
-            Exception('unexpected %d' % 1))
-        logging.exception(mox.In(
-            'Unexpected exception occurred %d time(s)' % 1))
-        # Timestamp calls that happen after the logging is possibly triggered.
-        for timestamp in [0]:
-            timeutils.now().AndReturn(timestamp)
+        self.assertEqual([], self._exceptions)
+        self.assertEqual(10, len(mock_now.mock_calls))
+        self.assertEqual(1, len(mock_log.mock_calls))
+        mock_log.assert_has_calls([
+            mock.call('Unexpected exception occurred 1 time(s)... retrying.'),
+        ])
 
-        self.exception_to_raise().AndReturn(
-            Exception('unexpected %d' % 1))
-        # Timestamp calls that happen before the logging is possibly triggered.
-        for timestamp in [65]:
-            timeutils.now().AndReturn(timestamp)
-        logging.exception(mox.In(
-            'Unexpected exception occurred %d time(s)' % 1))
-        # Timestamp calls that happen after the logging is possibly triggered.
-        for timestamp in [65, 66]:
-            timeutils.now().AndReturn(timestamp)
+    @mock.patch.object(logging, 'exception')
+    @mock.patch.object(timeutils, 'now')
+    def test_exc_retrier_same_2exc_2min_gives_2logs(self, mock_now, mock_log):
+        self._exceptions = [
+            Exception('unexpected 1'),
+            Exception('unexpected 1'),
+        ]
 
-        self.exception_to_raise().AndReturn(None)
-        self.mox.ReplayAll()
+        mock_now.side_effect = [
+            # Timestamp calls that happen after the logging is possibly
+            # triggered
+            0,
+            # Timestamp calls that happen before the logging is possibly
+            # triggered
+            65,
+            # Timestamp calls that happen after the logging is possibly
+            # triggered.
+            65,
+            66,
+        ]
+
         self.exception_generator()
 
-    def test_exc_retrier_same_10exc_2min_gives_2logs(self):
-        self.exception_to_raise().AndReturn(
-            Exception('unexpected %d' % 1))
-        logging.exception(mox.In(
-            'Unexpected exception occurred %d time(s)' % 1))
+        self.assertEqual([], self._exceptions)
+        self.assertEqual(4, len(mock_now.mock_calls))
+        self.assertEqual(2, len(mock_log.mock_calls))
+        mock_log.assert_has_calls([
+            mock.call('Unexpected exception occurred 1 time(s)... retrying.'),
+            mock.call('Unexpected exception occurred 1 time(s)... retrying.'),
+        ])
+
+    @mock.patch.object(logging, 'exception')
+    @mock.patch.object(timeutils, 'now')
+    def test_exc_retrier_same_10exc_2min_gives_2logs(self, mock_now, mock_log):
+        self._exceptions = [
+            Exception('unexpected 1'),
+        ]
+
         # Timestamp calls that happen after the logging is possibly triggered.
-        for timestamp in [0]:
-            timeutils.now().AndReturn(timestamp)
+        mock_now_side_effect = [
+            0,
+        ]
 
         for ts in [12, 23, 34, 45]:
-            self.exception_to_raise().AndReturn(
-                Exception('unexpected %d' % 1))
+            self._exceptions.append(Exception('unexpected 1'))
             # Timestamp calls that happen before the logging is possibly
             # triggered.
-            for timestamp in [ts]:
-                timeutils.now().AndReturn(timestamp)
+            mock_now_side_effect.append(ts)
 
         # The previous 4 exceptions are counted here
 
-        self.exception_to_raise().AndReturn(
-            Exception('unexpected %d' % 1))
+        self._exceptions.append(Exception('unexpected 1'))
         # Timestamp calls that happen before the logging is possibly triggered.
-        for timestamp in [106]:
-            timeutils.now().AndReturn(timestamp)
-        logging.exception(mox.In(
-            'Unexpected exception occurred %d time(s)' % 5))
-        # Timestamp calls that happen after the logging is possibly triggered.
-        for timestamp in [106, 107]:
-            timeutils.now().AndReturn(timestamp)
+        mock_now_side_effect.append(106)
+
+        for ts in [106, 107]:
+            # Timestamp calls that happen after the logging is possibly
+            # triggered.
+            mock_now_side_effect.append(ts)
 
         # Again, the following are not logged due to being within
         # the same minute
 
         for ts in [117, 128, 139, 150]:
-
-            self.exception_to_raise().AndReturn(
-                Exception('unexpected %d' % 1))
+            self._exceptions.append(Exception('unexpected 1'))
             # Timestamp calls that happen before the logging is possibly
             # triggered.
-            for timestamp in [ts]:
-                timeutils.now().AndReturn(timestamp)
+            mock_now_side_effect.append(ts)
 
-        self.exception_to_raise().AndReturn(None)
-        self.mox.ReplayAll()
+        mock_now.side_effect = mock_now_side_effect
+
         self.exception_generator()
 
-    def test_exc_retrier_mixed_4exc_1min_gives_2logs(self):
+        self.assertEqual([], self._exceptions)
+        self.assertEqual(12, len(mock_now.mock_calls))
+        self.assertEqual(2, len(mock_log.mock_calls))
+        mock_log.assert_has_calls([
+            mock.call('Unexpected exception occurred 1 time(s)... retrying.'),
+            mock.call('Unexpected exception occurred 5 time(s)... retrying.'),
+        ])
+
+    @mock.patch.object(logging, 'exception')
+    @mock.patch.object(timeutils, 'now')
+    def test_exc_retrier_mixed_4exc_1min_gives_2logs(self, mock_now, mock_log):
         # The stop watch will be started, which will consume one timestamp
         # call.
 
-        self.exception_to_raise().AndReturn(
-            Exception('unexpected %d' % 1))
-        logging.exception(mox.In(
-            'Unexpected exception occurred %d time(s)' % 1))
-        # Timestamp calls that happen after the logging is possibly triggered.
-        for timestamp in [0]:
-            timeutils.now().AndReturn(timestamp)
+        self._exceptions = [
+            Exception('unexpected 1'),
+        ]
+        # Timestamp calls that happen after the logging is possibly
+        # triggered.
+        mock_now_side_effect = [0]
 
         # By design, this second 'unexpected 1' exception is not counted.  This
         # is likely a rare thing and is a sacrifice for code simplicity.
+        self._exceptions.append(Exception('unexpected 1'))
 
-        self.exception_to_raise().AndReturn(
-            Exception('unexpected %d' % 1))
         # Timestamp calls that happen before the logging is possibly triggered.
         # Since the exception will be the same the expiry method will be
         # called, which uses up a timestamp call.
-        for timestamp in [5]:
-            timeutils.now().AndReturn(timestamp)
+        mock_now_side_effect.append(5)
 
-        self.exception_to_raise().AndReturn(
-            Exception('unexpected %d' % 2))
-        logging.exception(mox.In(
-            'Unexpected exception occurred %d time(s)' % 1))
+        self._exceptions.append(Exception('unexpected 2'))
         # Timestamp calls that happen after the logging is possibly triggered.
         # The watch should get reset, which uses up two timestamp calls.
-        for timestamp in [10, 20]:
-            timeutils.now().AndReturn(timestamp)
+        mock_now_side_effect.extend([10, 20])
 
-        self.exception_to_raise().AndReturn(
-            Exception('unexpected %d' % 2))
+        self._exceptions.append(Exception('unexpected 2'))
         # Timestamp calls that happen before the logging is possibly triggered.
         # Since the exception will be the same the expiry method will be
         # called, which uses up a timestamp call.
-        for timestamp in [25]:
-            timeutils.now().AndReturn(timestamp)
+        mock_now_side_effect.append(25)
 
-        self.exception_to_raise().AndReturn(None)
-        self.mox.ReplayAll()
+        mock_now.side_effect = mock_now_side_effect
+
         self.exception_generator()
 
-    def test_exc_retrier_mixed_4exc_2min_gives_2logs(self):
+        self.assertEqual([], self._exceptions)
+        self.assertEqual(5, len(mock_now.mock_calls))
+        self.assertEqual(2, len(mock_log.mock_calls))
+        mock_log.assert_has_calls([
+            mock.call('Unexpected exception occurred 1 time(s)... retrying.'),
+            mock.call('Unexpected exception occurred 1 time(s)... retrying.'),
+        ])
 
-        self.exception_to_raise().AndReturn(
-            Exception('unexpected %d' % 1))
-        logging.exception(mox.In(
-            'Unexpected exception occurred %d time(s)' % 1))
+    @mock.patch.object(logging, 'exception')
+    @mock.patch.object(timeutils, 'now')
+    def test_exc_retrier_mixed_4exc_2min_gives_2logs(self, mock_now, mock_log):
+
+        self._exceptions = [
+            Exception('unexpected 1'),
+        ]
         # Timestamp calls that happen after the logging is possibly triggered.
-        for timestamp in [0]:
-            timeutils.now().AndReturn(timestamp)
+        mock_now_side_effect = [0]
 
         # Again, this second exception of the same type is not counted
         # for the sake of code simplicity.
 
-        self.exception_to_raise().AndReturn(
-            Exception('unexpected %d' % 1))
+        self._exceptions.append(Exception('unexpected 1'))
         # Timestamp calls that happen before the logging is possibly triggered.
-        for timestamp in [10]:
-            timeutils.now().AndReturn(timestamp)
+        mock_now_side_effect.append(10)
 
         # The difference between this and the previous case is the log
         # is also triggered by more than a minute expiring.
 
-        self.exception_to_raise().AndReturn(
-            Exception('unexpected %d' % 2))
-        logging.exception(mox.In(
-            'Unexpected exception occurred %d time(s)' % 1))
+        self._exceptions.append(Exception('unexpected 2'))
         # Timestamp calls that happen after the logging is possibly triggered.
-        for timestamp in [100, 105]:
-            timeutils.now().AndReturn(timestamp)
+        mock_now_side_effect.extend([100, 105])
 
-        self.exception_to_raise().AndReturn(
-            Exception('unexpected %d' % 2))
+        self._exceptions.append(Exception('unexpected 2'))
         # Timestamp calls that happen before the logging is possibly triggered.
-        for timestamp in [110]:
-            timeutils.now().AndReturn(timestamp)
+        mock_now_side_effect.append(110)
 
-        self.exception_to_raise().AndReturn(None)
-        self.mox.ReplayAll()
+        mock_now.side_effect = mock_now_side_effect
+
         self.exception_generator()
 
-    def test_exc_retrier_mixed_4exc_2min_gives_3logs(self):
-        self.exception_to_raise().AndReturn(
-            Exception('unexpected %d' % 1))
-        logging.exception(mox.In(
-            'Unexpected exception occurred %d time(s)' % 1))
+        self.assertEqual([], self._exceptions)
+        self.assertEqual(5, len(mock_now.mock_calls))
+        self.assertEqual(2, len(mock_log.mock_calls))
+        mock_log.assert_has_calls([
+            mock.call('Unexpected exception occurred 1 time(s)... retrying.'),
+            mock.call('Unexpected exception occurred 1 time(s)... retrying.'),
+        ])
+
+    @mock.patch.object(logging, 'exception')
+    @mock.patch.object(timeutils, 'now')
+    def test_exc_retrier_mixed_4exc_2min_gives_3logs(self, mock_now, mock_log):
+        self._exceptions = [
+            Exception('unexpected 1'),
+        ]
         # Timestamp calls that happen after the logging is possibly triggered.
-        for timestamp in [0]:
-            timeutils.now().AndReturn(timestamp)
+        mock_now_side_effect = [0]
 
         # This time the second 'unexpected 1' exception is counted due
         # to the same exception occurring same when the minute expires.
 
-        self.exception_to_raise().AndReturn(
-            Exception('unexpected %d' % 1))
+        self._exceptions.append(Exception('unexpected 1'))
         # Timestamp calls that happen before the logging is possibly triggered.
-        for timestamp in [10]:
-            timeutils.now().AndReturn(timestamp)
+        mock_now_side_effect.append(10)
 
-        self.exception_to_raise().AndReturn(
-            Exception('unexpected %d' % 1))
+        self._exceptions.append(Exception('unexpected 1'))
         # Timestamp calls that happen before the logging is possibly triggered.
-        for timestamp in [100]:
-            timeutils.now().AndReturn(timestamp)
-        logging.exception(mox.In(
-            'Unexpected exception occurred %d time(s)' % 2))
-        # Timestamp calls that happen after the logging is possibly triggered.
-        for timestamp in [100, 105]:
-            timeutils.now().AndReturn(timestamp)
+        mock_now_side_effect.extend([100, 100, 105])
 
-        self.exception_to_raise().AndReturn(
-            Exception('unexpected %d' % 2))
-        logging.exception(mox.In(
-            'Unexpected exception occurred %d time(s)' % 1))
+        self._exceptions.append(Exception('unexpected 2'))
         # Timestamp calls that happen after the logging is possibly triggered.
-        for timestamp in [110, 111]:
-            timeutils.now().AndReturn(timestamp)
+        mock_now_side_effect.extend([110, 111])
 
-        self.exception_to_raise().AndReturn(None)
-        self.mox.ReplayAll()
+        mock_now.side_effect = mock_now_side_effect
+
         self.exception_generator()
+
+        self.assertEqual([], self._exceptions)
+        self.assertEqual(7, len(mock_now.mock_calls))
+        self.assertEqual(3, len(mock_log.mock_calls))
+        mock_log.assert_has_calls([
+            mock.call('Unexpected exception occurred 1 time(s)... retrying.'),
+            mock.call('Unexpected exception occurred 2 time(s)... retrying.'),
+            mock.call('Unexpected exception occurred 1 time(s)... retrying.'),
+        ])
 
 
 class ExceptionFilterTest(test_base.BaseTestCase):
