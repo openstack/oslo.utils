@@ -13,9 +13,9 @@
 #    under the License.
 
 import logging
+from unittest import mock
 
 import fixtures
-import mock
 from oslotest import base as test_base
 
 from oslo_utils import excutils

@@ -15,8 +15,8 @@
 
 import contextlib
 import socket
+from unittest import mock
 
-import mock
 import netifaces
 from oslotest import base as test_base
 import six

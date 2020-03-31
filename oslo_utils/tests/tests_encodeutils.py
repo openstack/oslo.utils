@@ -15,7 +15,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import mock
+from unittest import mock
+
 from oslo_i18n import fixture as oslo_i18n_fixture
 from oslotest import base as test_base
 import six
