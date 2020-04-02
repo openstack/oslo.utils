@@ -137,6 +137,7 @@ class ImageUtilsRawTestCase(test_base.BaseTestCase):
         image_info = imageutils.QemuImgInfo(example_output)
         self._base_validation(image_info)
 
+
 ImageUtilsRawTestCase.generate_scenarios()
 
 
@@ -202,6 +203,7 @@ class ImageUtilsQemuTestCase(ImageUtilsRawTestCase):
                              self.exp_backing_file)
         if self.encrypted is not None:
             self.assertEqual(image_info.encrypted, self.encrypted)
+
 
 ImageUtilsQemuTestCase.generate_scenarios()
 

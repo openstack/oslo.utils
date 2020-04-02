@@ -291,6 +291,7 @@ class StringToBytesTest(test_base.BaseTestCase):
         else:
             self.assertAlmostEqual(actual, expected)
 
+
 StringToBytesTest.generate_scenarios()
 
 

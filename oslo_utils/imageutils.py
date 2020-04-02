@@ -45,7 +45,7 @@ class QemuImgInfo(object):
                                   r"\s+(.*?)\)\s*$"), re.I)
     TOP_LEVEL_RE = re.compile(r"^([\w\d\s\_\-]+):(.*)$")
     SIZE_RE = re.compile(r"([0-9]+[eE][-+][0-9]+|\d*\.?\d+)"
-                         "\s*(\w+)?(\s*\(\s*(\d+)\s+bytes\s*\))?",
+                         r"\s*(\w+)?(\s*\(\s*(\d+)\s+bytes\s*\))?",
                          re.I)
 
     def __init__(self, cmd_output=None, format='human'):

@@ -7,11 +7,9 @@ debtcollector==1.2.0
 eventlet==0.18.2
 extras==1.0.0
 fixtures==3.0.0
-flake8==2.5.5
 funcsigs==1.0.0
 gitdb==0.6.4
 GitPython==1.0.1
-hacking==0.12.0
 iso8601==0.1.11
 keystoneauth1==3.4.0
 linecache2==1.0.0
@@ -24,8 +22,6 @@ oslo.config==5.2.0
 oslo.i18n==3.15.3
 oslotest==3.2.0
 pbr==2.0.0
-pep8==1.5.7
-pyflakes==0.8.1
 pyparsing==2.1.0
 python-mimeparse==1.6.0
 python-subunit==1.0.0

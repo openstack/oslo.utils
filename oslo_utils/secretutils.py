@@ -39,6 +39,7 @@ def _constant_time_compare(first, second):
         result |= ord(x) ^ ord(y)
     return result == 0
 
+
 try:
     constant_time_compare = hmac.compare_digest
 except AttributeError:
