@@ -18,9 +18,9 @@
 import collections
 import copy
 import math
+from unittest import mock
 
 import ddt
-import mock
 from oslotest import base as test_base
 import six
 import testscenarios

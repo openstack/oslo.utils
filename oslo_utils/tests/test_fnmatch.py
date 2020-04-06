@@ -16,8 +16,8 @@ import fnmatch as standard_fnmatch
 import ntpath
 import posixpath
 import sys
+from unittest import mock
 
-import mock
 from oslotest import base
 import six
 

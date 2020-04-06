@@ -13,11 +13,11 @@
 #    under the License.
 
 import threading
+from unittest import mock
 import warnings
 
 import eventlet
 from eventlet import greenthread
-import mock
 from oslotest import base as test_base
 import six
 

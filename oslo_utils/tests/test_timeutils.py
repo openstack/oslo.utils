@@ -17,9 +17,9 @@ import calendar
 import datetime
 import logging
 import time
+from unittest import mock
 
 import iso8601
-import mock
 from oslotest import base as test_base
 from testtools import matchers
 
