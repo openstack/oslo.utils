@@ -29,17 +29,14 @@ import six
 
 from oslo_utils import reflection
 
-if hasattr(time, 'monotonic'):
-    now = time.monotonic
-else:
-    from monotonic import monotonic as now  # noqa
-
 # ISO 8601 extended time format with microseconds
 _ISO8601_TIME_FORMAT_SUBSECOND = '%Y-%m-%dT%H:%M:%S.%f'
 _ISO8601_TIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
 PERFECT_TIME_FORMAT = _ISO8601_TIME_FORMAT_SUBSECOND
 
 _MAX_DATETIME_SEC = 59
+
+now = time.monotonic
 
 
 @removals.remove(
