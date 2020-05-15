@@ -13,7 +13,6 @@ GitPython==1.0.1
 iso8601==0.1.11
 keystoneauth1==3.4.0
 linecache2==1.0.0
-mccabe==0.2.1
 netaddr==0.7.18
 netifaces==0.10.4
 os-client-config==1.28.0
