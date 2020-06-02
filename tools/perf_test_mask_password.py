@@ -16,8 +16,6 @@
 """Performance tests for mask_password.
 """
 
-from __future__ import print_function
-
 import timeit
 
 from oslo_utils import strutils

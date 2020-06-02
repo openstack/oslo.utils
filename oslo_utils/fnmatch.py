@@ -19,8 +19,6 @@ https://bugs.python.org/issue23191
 .. versionadded:: 3.3
 """
 
-from __future__ import absolute_import
-
 import fnmatch as standard_fnmatch
 import os
 import posixpath
