@@ -19,8 +19,10 @@ import os
 import shutil
 import stat
 import tempfile
+import time
 import uuid
 
+import mock
 from oslotest import base as test_base
 import six
 
@@ -213,6 +215,23 @@ class TestComputeFileChecksum(test_base.BaseTestCase):
 
         actual_checksum = fileutils.compute_file_checksum(path)
 
+        self.assertEqual(expected_checksum.hexdigest(), actual_checksum)
+
+    def test_compute_checksum_sleep_0_called(self):
+        path = fileutils.write_to_tempfile(self.content)
+        self.assertTrue(os.path.exists(path))
+        self.check_file_content(self.content, path)
+
+        expected_checksum = hashlib.sha256()
+        expected_checksum.update(self.content)
+
+        with mock.patch.object(time, "sleep") as sleep_mock:
+            actual_checksum = fileutils.compute_file_checksum(
+                path, read_chunksize=4)
+
+        sleep_mock.assert_has_calls([mock.call(0)] * 3)
+        # Just to make sure that there were exactly 3 calls
+        self.assertEqual(3, sleep_mock.call_count)
         self.assertEqual(expected_checksum.hexdigest(), actual_checksum)
 
     def test_compute_checksum_named_algorithm(self):
