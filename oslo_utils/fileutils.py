@@ -25,6 +25,7 @@ import hashlib
 import os
 import stat
 import tempfile
+import time
 
 from oslo_utils import excutils
 
@@ -123,6 +124,8 @@ def compute_file_checksum(path, read_chunksize=65536, algorithm='sha256'):
     with open(path, 'rb') as f:
         for chunk in iter(lambda: f.read(read_chunksize), b''):
             checksum.update(chunk)
+            # Release greenthread, if greenthreads are not used it is a noop.
+            time.sleep(0)
     return checksum.hexdigest()
 
 
