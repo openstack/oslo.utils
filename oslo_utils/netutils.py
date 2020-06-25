@@ -193,6 +193,35 @@ def get_ipv6_addr_by_EUI64(prefix, mac):
                           'EUI-64: %s') % prefix)
 
 
+def get_mac_addr_by_ipv6(ipv6, dialect=netaddr.mac_unix_expanded):
+    """Extract MAC address from interface identifier based IPv6 address.
+
+    For example from link-local addresses (fe80::/10) generated from MAC.
+
+    :param ipv6: An interface identifier (i.e. mostly MAC) based IPv6
+                 address as a netaddr.IPAddress() object.
+    :param dialect: The netaddr dialect of the the object returned.
+                    Defaults to netaddr.mac_unix_expanded.
+    :returns: A MAC address as a netaddr.EUI() object.
+
+    See also:
+    * https://tools.ietf.org/html/rfc4291#appendix-A
+    * https://tools.ietf.org/html/rfc4291#section-2.5.6
+
+    .. versionadded:: 4.3.0
+    """
+    return netaddr.EUI(int(
+        # out of the lowest 8 bytes (byte positions 8-1)
+        # delete the middle 2 bytes (5-4, 0xff_fe)
+        # by shifting the highest 3 bytes to the right by 2 bytes (8-6 -> 6-4)
+        (((ipv6 & 0xff_ff_ff_00_00_00_00_00) >> 16) +
+         # adding the lowest 3 bytes as they are (3-1)
+         (ipv6 & 0xff_ff_ff)) ^
+        # then invert the universal/local bit
+        0x02_00_00_00_00_00),
+        dialect=dialect)
+
+
 def is_ipv6_enabled():
     """Check if IPv6 support is enabled on the platform.
 
