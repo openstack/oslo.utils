@@ -79,7 +79,7 @@ class _UUIDSentinels(object):
 
     def __getattr__(self, name):
         if name.startswith('_'):
-            raise ValueError('Sentinels must not start with _')
+            raise AttributeError('Sentinels must not start with _')
         with self._lock:
             if name not in self._sentinels:
                 self._sentinels[name] = uuidutils.generate_uuid()

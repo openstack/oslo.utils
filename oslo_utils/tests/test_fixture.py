@@ -80,5 +80,5 @@ class UUIDSentinelsTest(test_base.BaseTestCase):
         self.assertIsInstance(uuids.foo, str)
 
     def test_with_underline_prefix(self):
-        ex = self.assertRaises(ValueError, getattr, uuids, '_foo')
+        ex = self.assertRaises(AttributeError, getattr, uuids, '_foo')
         self.assertIn("Sentinels must not start with _", six.text_type(ex))
