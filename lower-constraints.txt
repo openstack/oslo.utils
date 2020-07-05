@@ -19,6 +19,7 @@ os-client-config==1.28.0
 oslo.config==5.2.0
 oslo.i18n==3.15.3
 oslotest==3.2.0
+packaging==20.4
 pbr==2.0.0
 pyparsing==2.1.0
 python-mimeparse==1.6.0

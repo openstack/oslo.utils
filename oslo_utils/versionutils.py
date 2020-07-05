@@ -19,7 +19,7 @@ Helpers for comparing version strings.
 .. versionadded:: 1.6
 """
 
-import pkg_resources
+import packaging.version
 import six
 
 from oslo_utils._i18n import _
@@ -39,17 +39,14 @@ def is_compatible(requested_version, current_version, same_major=True):
         True.
     :returns: True if compatible, False if not
     """
-    requested_parts = pkg_resources.parse_version(requested_version)
-    current_parts = pkg_resources.parse_version(current_version)
+    requested = packaging.version.Version(requested_version)
+    current = packaging.version.Version(current_version)
 
     if same_major:
-        # NOTE(jlvillal) pkg_resources issues a warning if we try to access
-        # portions of the version, for example requested_parts[0] will issue a
-        # warning message. So get the major_version from the string instead.
-        if requested_version.split('.')[0] != current_version.split('.')[0]:
+        if requested.major != current.major:
             return False
 
-    return current_parts >= requested_parts
+    return current >= requested
 
 
 def convert_version_to_int(version):
