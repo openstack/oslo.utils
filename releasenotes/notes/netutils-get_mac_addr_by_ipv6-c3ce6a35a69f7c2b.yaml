@@ -1,0 +1,5 @@
+---
+features:
+  - |
+    New method ``netutils.get_mac_addr_by_ipv6(ipv6, dialect)`` extracts
+    the MAC address from IPv6 addresses generated from MACs.
