@@ -1,0 +1,6 @@
+---
+features:
+  - |
+    New method ``is_json`` ``is_yaml`` added in fileutils.
+    These can be used to check if file is JSON or YAML
+    formatted.
