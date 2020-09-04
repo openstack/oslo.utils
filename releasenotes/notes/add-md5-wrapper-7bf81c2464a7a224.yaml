@@ -1,0 +1,16 @@
+---
+features:
+  - |
+    A wrapper for hashlib.md5() has been added to allow OpenStack to run on
+    systems where FIPS is enabled.  Under FIPS, md5 is disabled and calls to
+    hashlib.md5() will fail.  In most cases in OpenStack, though, md5 is not
+    used within a security context.
+
+    In https://bugs.python.org/issue9216, a proposal has been made to allow
+    the addition of a keyword parameter usedforsecurity, which can be used to
+    designate non-security context uses.  In this case, md5() operations would
+    be permitted.  This feature is expected to be delivered in python 3.9.
+
+    Downstream python already supports this option, though.  This wrapper
+    simply allows for this option to be supported where the underlying python
+    version supports it.

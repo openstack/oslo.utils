@@ -61,3 +61,50 @@ class SecretUtilsTest(testscenarios.TestWithScenarios,
         self.assertFalse(ctc(self.converter(u'abcd1234'),
                              self.converter(u'1234abcd')))
         self.assertFalse(ctc('abcd1234', '1234abcd'))
+
+    _test_data = "Openstack forever".encode('utf-8')
+    _md5_digest = hashlib.md5(_test_data).digest()
+
+    def test_md5_with_data(self):
+        digest = secretutils.md5(self._test_data).digest()
+        self.assertEqual(digest, self._md5_digest)
+
+        digest = secretutils.md5(self._test_data,
+                                 usedforsecurity=True).digest()
+        self.assertEqual(digest, self._md5_digest)
+
+        digest = secretutils.md5(self._test_data,
+                                 usedforsecurity=False).digest()
+        self.assertEqual(digest, self._md5_digest)
+
+    def test_md5_without_data(self):
+        md5 = secretutils.md5()
+        md5.update(self._test_data)
+        digest = md5.digest()
+        self.assertEqual(digest, self._md5_digest)
+
+        md5 = secretutils.md5(usedforsecurity=True)
+        md5.update(self._test_data)
+        digest = md5.digest()
+        self.assertEqual(digest, self._md5_digest)
+
+        md5 = secretutils.md5(usedforsecurity=False)
+        md5.update(self._test_data)
+        digest = md5.digest()
+        self.assertEqual(digest, self._md5_digest)
+
+    def test_string_data_raises_type_error(self):
+        self.assertRaises(TypeError, hashlib.md5, 'foo')
+        self.assertRaises(TypeError, secretutils.md5, 'foo')
+        self.assertRaises(
+            TypeError, secretutils.md5, 'foo', usedforsecurity=True)
+        self.assertRaises(
+            TypeError, secretutils.md5, 'foo', usedforsecurity=False)
+
+    def test_none_data_raises_type_error(self):
+        self.assertRaises(TypeError, hashlib.md5, None)
+        self.assertRaises(TypeError, secretutils.md5, None)
+        self.assertRaises(
+            TypeError, secretutils.md5, None, usedforsecurity=True)
+        self.assertRaises(
+            TypeError, secretutils.md5, None, usedforsecurity=False)
