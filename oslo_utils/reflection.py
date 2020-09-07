@@ -21,6 +21,7 @@ Reflection module.
 """
 
 import inspect
+import logging
 import types
 
 import six
@@ -34,6 +35,10 @@ except AttributeError:
 # and see https://docs.python.org/2/reference/executionmodel.html (and likely
 # others)...
 _BUILTIN_MODULES = ('builtins', '__builtin__', '__builtins__', 'exceptions')
+
+
+LOG = logging.getLogger(__name__)
+
 
 if six.PY3:
     Parameter = inspect.Parameter
@@ -164,19 +169,39 @@ def get_method_self(method):
 
 
 def is_same_callback(callback1, callback2, strict=True):
-    """Returns if the two callbacks are the same."""
+    """Returns if the two callbacks are the same.
+
+    'strict' arg has no meaning for python 3.8 onwards and will
+    always return the equality of both callback based on 'self'
+    comparison only.
+    """
     if callback1 is callback2:
         # This happens when plain methods are given (or static/non-bound
         # methods).
         return True
     if callback1 == callback2:
+        # NOTE(gmann): python3.8 onward, comparison of bound methods is
+        # changed. It no longer decide the bound method's equality based
+        # on their bounded objects equality instead it checks the identity
+        # of their '__self__'. So python3.8 onward, two different bound
+        # methods are no longer equal even __eq__ method return True.
+        # Or in other term, 'strict' arg has no meaning from python 3.8
+        # onwards above if condition never satisfy if both callback are
+        # bounded to two different objects.
+        # For backward compatibility for python <3.8, we can keep the 'strict'
+        # arg and the below code of comparing 'self' and once minimum
+        # supported python version is 3.8 we can remove both because python
+        # 3.8 onward == operator itself checks identity of 'self'.
+        # Ref bug: https://bugs.launchpad.net/oslo.utils/+bug/1841072
         if not strict:
+            LOG.warning('"strict" arg is deprecated because it no '
+                        'longer work for python 3.8 onwards')
             return True
-        # Two bound methods are equal if functions themselves are equal and
-        # objects they are applied to are equal. This means that a bound
-        # method could be the same bound method on another object if the
-        # objects have __eq__ methods that return true (when in fact it is a
-        # different bound method). Python u so crazy!
+        # Until python 3.7, two bound methods are equal if functions
+        # themselves are equal and objects they are applied to are equal.
+        # This means that a bound method could be the same bound method on
+        # another object if the objects have __eq__ methods that return true
+        # (when in fact it is a different bound method). Python u so crazy!
         try:
             self1 = six.get_method_self(callback1)
             self2 = six.get_method_self(callback2)

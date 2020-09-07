@@ -14,6 +14,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import sys
+
 from oslotest import base as test_base
 import six
 import testtools
@@ -153,7 +155,16 @@ class CallbackEqualityTest(test_base.BaseTestCase):
         c = A()
 
         self.assertFalse(reflection.is_same_callback(b.b, c.b))
-        self.assertTrue(reflection.is_same_callback(b.b, c.b, strict=False))
+        # NOTE(gmann): python3.8 onwards, comparision of bound methods is
+        # changed and 'strict' arg has no meaning.
+        # Ref bug: https://bugs.launchpad.net/oslo.utils/+bug/1841072
+        if sys.version_info < (3, 8):
+            self.assertTrue(reflection.is_same_callback(b.b, c.b,
+                            strict=False))
+        else:
+            self.assertFalse(reflection.is_same_callback(b.b, c.b,
+                             strict=False))
+            self.assertTrue(reflection.is_same_callback(b.b, b.b))
 
 
 class BoundMethodTest(test_base.BaseTestCase):
