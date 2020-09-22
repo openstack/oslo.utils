@@ -88,7 +88,7 @@ class CallableClass(object):
 
 
 class ClassWithInit(object):
-    def __init__(self, k, l):
+    def __init__(self, k, lll):
         pass
 
 
@@ -287,7 +287,7 @@ class GetCallableArgsTest(test_base.BaseTestCase):
 
     def test_class_constructor(self):
         result = reflection.get_callable_args(ClassWithInit)
-        self.assertEqual(['k', 'l'], result)
+        self.assertEqual(['k', 'lll'], result)
 
     def test_class_with_call(self):
         result = reflection.get_callable_args(CallableClass())
