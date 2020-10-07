@@ -13,8 +13,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import six
-
 
 def flatten_dict_to_keypairs(d, separator=':'):
     """Generator that produces sequence of keypairs for nested dictionaries.
@@ -22,7 +20,7 @@ def flatten_dict_to_keypairs(d, separator=':'):
     :param d: dictionaries which may be nested
     :param separator: symbol between names
     """
-    for name, value in sorted(six.iteritems(d)):
+    for name, value in sorted(iter(d.items())):
         if isinstance(value, dict):
             for subname, subvalue in flatten_dict_to_keypairs(value,
                                                               separator):

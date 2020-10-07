@@ -19,8 +19,9 @@ Helpers for comparing version strings.
 .. versionadded:: 1.6
 """
 
+import functools
+
 import packaging.version
-import six
 
 from oslo_utils._i18n import _
 
@@ -57,13 +58,13 @@ def convert_version_to_int(version):
     .. versionadded:: 2.0
     """
     try:
-        if isinstance(version, six.string_types):
+        if isinstance(version, str):
             version = convert_version_to_tuple(version)
         if isinstance(version, tuple):
-            return six.moves.reduce(lambda x, y: (x * 1000) + y, version)
+            return functools.reduce(lambda x, y: (x * 1000) + y, version)
     except Exception as ex:
         msg = _("Version %s is invalid.") % version
-        six.raise_from(ValueError(msg), ex)
+        raise ValueError(msg) from ex
 
 
 def convert_version_to_str(version_int):
@@ -75,7 +76,7 @@ def convert_version_to_str(version_int):
     factor = 1000
     while version_int != 0:
         version_number = version_int - (version_int // factor * factor)
-        version_numbers.insert(0, six.text_type(version_number))
+        version_numbers.insert(0, str(version_number))
         version_int = version_int // factor
 
     return '.'.join(map(str, version_numbers))

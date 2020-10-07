@@ -14,26 +14,21 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import functools
 import sys
 
 from oslotest import base as test_base
-import six
-import testtools
 
 from oslo_utils import reflection
 
 
-if six.PY3:
-    RUNTIME_ERROR_CLASSES = ['RuntimeError', 'Exception',
-                             'BaseException', 'object']
-else:
-    RUNTIME_ERROR_CLASSES = ['RuntimeError', 'StandardError', 'Exception',
-                             'BaseException', 'object']
+RUNTIME_ERROR_CLASSES = ['RuntimeError', 'Exception',
+                         'BaseException', 'object']
 
 
 def dummy_decorator(f):
 
-    @six.wraps(f)
+    @functools.wraps(f)
     def wrapper(*args, **kwargs):
         return f(*args, **kwargs)
 
@@ -192,13 +187,8 @@ class GetCallableNameTest(test_base.BaseTestCase):
 
     def test_static_method(self):
         name = reflection.get_callable_name(Class.static_method)
-        if six.PY3:
-            self.assertEqual('.'.join((__name__, 'Class', 'static_method')),
-                             name)
-        else:
-            # NOTE(imelnikov): static method are just functions, class name
-            # is not recorded anywhere in them.
-            self.assertEqual('.'.join((__name__, 'static_method')), name)
+        self.assertEqual('.'.join((__name__, 'Class', 'static_method')),
+                         name)
 
     def test_class_method(self):
         name = reflection.get_callable_name(Class.class_method)
@@ -218,9 +208,6 @@ class GetCallableNameTest(test_base.BaseTestCase):
                                    '__call__')), name)
 
 
-# These extended/special case tests only work on python 3, due to python 2
-# being broken/incorrect with regard to these special cases...
-@testtools.skipIf(not six.PY3, 'python 3.x is not currently available')
 class GetCallableNameTestExtended(test_base.BaseTestCase):
     # Tests items in http://legacy.python.org/dev/peps/pep-3155/
 

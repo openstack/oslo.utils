@@ -19,7 +19,6 @@ import warnings
 import eventlet
 from eventlet import greenthread
 from oslotest import base as test_base
-import six
 
 from oslo_utils import eventletutils
 
@@ -44,7 +43,7 @@ class EventletUtilsTest(test_base.BaseTestCase):
         self.assertEqual(1, len(capture))
         w = capture[0]
         self.assertEqual(RuntimeWarning, w.category)
-        self.assertIn('os', six.text_type(w.message))
+        self.assertIn('os', str(w.message))
 
     @mock.patch("oslo_utils.eventletutils._patcher")
     def test_warning_not_patched_none_provided(self, mock_patcher):
@@ -57,7 +56,7 @@ class EventletUtilsTest(test_base.BaseTestCase):
         w = capture[0]
         self.assertEqual(RuntimeWarning, w.category)
         for m in eventletutils._ALL_PATCH:
-            self.assertIn(m, six.text_type(w.message))
+            self.assertIn(m, str(w.message))
 
     @mock.patch("oslo_utils.eventletutils._patcher")
     def test_warning_not_patched_all(self, mock_patcher):
@@ -70,7 +69,7 @@ class EventletUtilsTest(test_base.BaseTestCase):
         w = capture[0]
         self.assertEqual(RuntimeWarning, w.category)
         for m in eventletutils._ALL_PATCH:
-            self.assertIn(m, six.text_type(w.message))
+            self.assertIn(m, str(w.message))
 
     @mock.patch("oslo_utils.eventletutils._patcher")
     def test_no_warning(self, mock_patcher):
@@ -118,7 +117,7 @@ class EventletUtilsTest(test_base.BaseTestCase):
         w = capture[0]
         self.assertEqual(RuntimeWarning, w.category)
         for m in ['os', 'thread']:
-            self.assertNotIn(m, six.text_type(w.message))
+            self.assertNotIn(m, str(w.message))
 
     def test_invalid_patch_check(self):
         self.assertRaises(ValueError,
@@ -133,10 +132,7 @@ class EventletUtilsTest(test_base.BaseTestCase):
         self.assertIsInstance(e_event, eventletutils.EventletEvent)
 
         t_event = eventletutils.Event()
-        if six.PY3:
-            t_event_cls = threading.Event
-        else:
-            t_event_cls = threading._Event
+        t_event_cls = threading.Event
         self.assertIsInstance(t_event, t_event_cls)
 
         public_methods = [m for m in dir(t_event) if not m.startswith("_") and

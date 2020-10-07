@@ -26,7 +26,6 @@ import uuid
 import yaml
 
 from oslotest import base as test_base
-import six
 
 from oslo_utils import fileutils
 
@@ -131,7 +130,7 @@ class WriteToTempfileTestCase(test_base.BaseTestCase):
     def check_file_content(self, path):
         with open(path, 'r') as fd:
             ans = fd.read()
-            self.assertEqual(self.content, six.b(ans))
+            self.assertEqual(self.content, ans.encode("latin-1"))
 
     def test_file_without_path_and_suffix(self):
         res = fileutils.write_to_tempfile(self.content)
@@ -204,7 +203,7 @@ class TestComputeFileChecksum(test_base.BaseTestCase):
     def check_file_content(self, content, path):
         with open(path, 'r') as fd:
             ans = fd.read()
-            self.assertEqual(content, six.b(ans))
+            self.assertEqual(content, ans.encode("latin-1"))
 
     def test_compute_checksum_default_algorithm(self):
         path = fileutils.write_to_tempfile(self.content)
