@@ -223,8 +223,8 @@ def get_callable_args(function, required_only=False):
     are not included into output.
     """
     sig = get_signature(function)
-    function_args = list(iter(sig.parameters.keys()))
-    for param_name, p in iter(sig.parameters.items()):
+    function_args = list(sig.parameters.keys())
+    for param_name, p in sig.parameters.items():
         if (p.kind in (Parameter.VAR_POSITIONAL, Parameter.VAR_KEYWORD) or
                 (required_only and p.default is not Parameter.empty)):
             function_args.remove(param_name)
@@ -234,5 +234,6 @@ def get_callable_args(function, required_only=False):
 def accepts_kwargs(function):
     """Returns ``True`` if function accepts kwargs otherwise ``False``."""
     sig = get_signature(function)
-    return any(p.kind == Parameter.VAR_KEYWORD
-               for p in iter(sig.parameters.values()))
+    return any(
+        p.kind == Parameter.VAR_KEYWORD for p in sig.parameters.values()
+    )
