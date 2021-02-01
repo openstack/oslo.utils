@@ -18,13 +18,12 @@ Exception related utilities.
 """
 
 import functools
+import io
 import logging
 import os
 import sys
 import time
 import traceback
-
-import six
 
 
 from oslo_utils import encodeutils
@@ -70,7 +69,7 @@ class CausedByException(Exception):
         if indent < 0:
             raise ValueError("Provided 'indent' must be greater than"
                              " or equal to zero instead of %s" % indent)
-        buf = six.StringIO()
+        buf = io.StringIO()
         if show_root_class:
             buf.write(reflection.get_class_name(self, fully_qualified=False))
             buf.write(": ")
@@ -140,7 +139,7 @@ def raise_with_cause(exc_cls, message, *args, **kwargs):
             # Leave no references around (especially with regards to
             # tracebacks and any variables that it retains internally).
             del(exc_type, exc, exc_tb)
-    six.raise_from(exc_cls(message, *args, **kwargs), kwargs.get('cause'))
+    raise exc_cls(message, *args, **kwargs) from kwargs.get('cause')
 
 
 class save_and_reraise_exception(object):
@@ -193,7 +192,15 @@ class save_and_reraise_exception(object):
         if self.type_ is None and self.value is None:
             raise RuntimeError("There is no (currently) captured exception"
                                " to force the reraising of")
-        six.reraise(self.type_, self.value, self.tb)
+        try:
+            if self.value is None:
+                self.value = self.type_()
+            if self.value.__traceback__ is not self.tb:
+                raise self.value.with_traceback(self.tb)
+            raise self.value
+        finally:
+            self.value = None
+            self.tb = None
 
     def capture(self, check=True):
         (type_, value, tb) = sys.exc_info()
@@ -240,7 +247,7 @@ def forever_retry_uncaught_exceptions(*args, **kwargs):
         retry_delay = max(0.0, float(kwargs.get('retry_delay', 1.0)))
         same_log_delay = max(0.0, float(kwargs.get('same_log_delay', 60.0)))
 
-        @six.wraps(infunc)
+        @functools.wraps(infunc)
         def wrapper(*args, **kwargs):
             last_exc_message = None
             same_failure_count = 0
@@ -339,7 +346,15 @@ class exception_filter(object):
         try:
             if not self._should_ignore_ex(ex):
                 if exc_val is ex:
-                    six.reraise(exc_type, exc_val, traceback)
+                    try:
+                        if exc_val is None:
+                            exc_val = exc_type()
+                        if exc_val.__traceback__ is not traceback:
+                            raise exc_val.with_traceback(traceback)
+                        raise exc_val
+                    finally:
+                        exc_val = None
+                        traceback = None
                 else:
                     raise ex
         finally:

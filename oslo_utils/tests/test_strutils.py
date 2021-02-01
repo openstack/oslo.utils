@@ -22,7 +22,6 @@ from unittest import mock
 
 import ddt
 from oslotest import base as test_base
-import six
 import testscenarios
 
 from oslo_utils import strutils
@@ -32,12 +31,6 @@ load_tests = testscenarios.load_tests_apply_scenarios
 
 
 class StrUtilsTest(test_base.BaseTestCase):
-
-    @mock.patch("six.text_type")
-    def test_bool_bool_from_string_no_text(self, mock_text):
-        self.assertTrue(strutils.bool_from_string(True))
-        self.assertFalse(strutils.bool_from_string(False))
-        self.assertEqual(0, mock_text.call_count)
 
     def test_bool_bool_from_string(self):
         self.assertTrue(strutils.bool_from_string(True))
@@ -85,7 +78,7 @@ class StrUtilsTest(test_base.BaseTestCase):
         self._test_bool_from_string(lambda s: s)
 
     def test_unicode_bool_from_string(self):
-        self._test_bool_from_string(six.text_type)
+        self._test_bool_from_string(str)
         self.assertFalse(strutils.bool_from_string(u'使用', strict=False))
 
         exc = self.assertRaises(ValueError, strutils.bool_from_string,
@@ -93,7 +86,7 @@ class StrUtilsTest(test_base.BaseTestCase):
         expected_msg = (u"Unrecognized value '使用', acceptable values are:"
                         u" '0', '1', 'f', 'false', 'n', 'no', 'off', 'on',"
                         u" 't', 'true', 'y', 'yes'")
-        self.assertEqual(expected_msg, six.text_type(exc))
+        self.assertEqual(expected_msg, str(exc))
 
     def test_other_bool_from_string(self):
         self.assertFalse(strutils.bool_from_string(None))
@@ -170,16 +163,17 @@ class StrUtilsTest(test_base.BaseTestCase):
     def test_slugify(self):
         to_slug = strutils.to_slug
         self.assertRaises(TypeError, to_slug, True)
-        self.assertEqual(six.u("hello"), to_slug("hello"))
-        self.assertEqual(six.u("two-words"), to_slug("Two Words"))
-        self.assertEqual(six.u("ma-any-spa-ce-es"),
+        self.assertEqual("hello", to_slug("hello"))
+        self.assertEqual("two-words", to_slug("Two Words"))
+        self.assertEqual("ma-any-spa-ce-es",
                          to_slug("Ma-any\t spa--ce- es"))
-        self.assertEqual(six.u("excamation"), to_slug("exc!amation!"))
-        self.assertEqual(six.u("ampserand"), to_slug("&ampser$and"))
-        self.assertEqual(six.u("ju5tnum8er"), to_slug("ju5tnum8er"))
-        self.assertEqual(six.u("strip-"), to_slug(" strip - "))
-        self.assertEqual(six.u("perche"), to_slug(six.b("perch\xc3\xa9")))
-        self.assertEqual(six.u("strange"),
+        self.assertEqual("excamation", to_slug("exc!amation!"))
+        self.assertEqual("ampserand", to_slug("&ampser$and"))
+        self.assertEqual("ju5tnum8er", to_slug("ju5tnum8er"))
+        self.assertEqual("strip-", to_slug(" strip - "))
+        self.assertEqual("perche",
+                         to_slug("perch\xc3\xa9".encode("latin-1")))
+        self.assertEqual("strange",
                          to_slug("\x80strange", errors="ignore"))
 
 
@@ -619,12 +613,12 @@ class MaskPasswordTestCase(test_base.BaseTestCase):
         self.assertEqual(expected, strutils.mask_password(payload))
 
         payload = """{'adminPass':'TL0EfN33'}"""
-        payload = six.text_type(payload)
+        payload = str(payload)
         expected = """{'adminPass':'***'}"""
         self.assertEqual(expected, strutils.mask_password(payload))
 
         payload = """{'token':'mytoken'}"""
-        payload = six.text_type(payload)
+        payload = str(payload)
         expected = """{'token':'***'}"""
         self.assertEqual(expected, strutils.mask_password(payload))
 
@@ -950,7 +944,7 @@ class ValidateIntegerTestCase(test_base.BaseTestCase):
                "min_value": 300, "max_value": 300},
               {"value": 55, "name": "doing 55 in a 54",
                "max_value": 54},
-              {"value": six.unichr(129), "name": "UnicodeError",
+              {"value": chr(129), "name": "UnicodeError",
                "max_value": 1000})
     def test_invalid_inputs(self, value, name, **kwargs):
         self.assertRaises(ValueError, strutils.validate_integer,

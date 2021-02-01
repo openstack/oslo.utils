@@ -22,9 +22,8 @@ Reflection module.
 
 import inspect
 import logging
+import operator
 import types
-
-import six
 
 try:
     _TYPE_TYPE = types.TypeType
@@ -40,16 +39,9 @@ _BUILTIN_MODULES = ('builtins', '__builtin__', '__builtins__', 'exceptions')
 LOG = logging.getLogger(__name__)
 
 
-if six.PY3:
-    Parameter = inspect.Parameter
-    Signature = inspect.Signature
-    get_signature = inspect.signature
-else:
-    # Provide an equivalent but use funcsigs instead...
-    import funcsigs
-    Parameter = funcsigs.Parameter
-    Signature = funcsigs.Signature
-    get_signature = funcsigs.signature
+Parameter = inspect.Parameter
+Signature = inspect.Signature
+get_signature = inspect.signature
 
 
 def get_members(obj, exclude_hidden=True):
@@ -85,7 +77,7 @@ def get_class_name(obj, fully_qualified=True, truncate_builtins=True):
 
     if inspect.ismethod(obj):
         obj = get_method_self(obj)
-    if not isinstance(obj, six.class_types):
+    if not isinstance(obj, type):
         obj = type(obj)
     if truncate_builtins:
         try:
@@ -109,7 +101,7 @@ def get_all_class_names(obj, up_to=object,
     in order of method resolution (mro). If up_to parameter is provided,
     only name of classes that are sublcasses to that class are returned.
     """
-    if not isinstance(obj, six.class_types):
+    if not isinstance(obj, type):
         obj = type(obj)
     for cls in obj.mro():
         if issubclass(cls, up_to):
@@ -126,7 +118,7 @@ def get_callable_name(function):
     method_self = get_method_self(function)
     if method_self is not None:
         # This is a bound method.
-        if isinstance(method_self, six.class_types):
+        if isinstance(method_self, type):
             # This is a bound class method.
             im_class = method_self
         else:
@@ -163,7 +155,7 @@ def get_method_self(method):
     if not inspect.ismethod(method):
         return None
     try:
-        return six.get_method_self(method)
+        return operator.attrgetter("__self__")(method)
     except AttributeError:
         return None
 
@@ -203,8 +195,8 @@ def is_same_callback(callback1, callback2, strict=True):
         # another object if the objects have __eq__ methods that return true
         # (when in fact it is a different bound method). Python u so crazy!
         try:
-            self1 = six.get_method_self(callback1)
-            self2 = six.get_method_self(callback2)
+            self1 = operator.attrgetter("__self__")(callback1)
+            self2 = operator.attrgetter("__self__")(callback2)
             return self1 is self2
         except AttributeError:  # nosec
             pass
@@ -231,8 +223,8 @@ def get_callable_args(function, required_only=False):
     are not included into output.
     """
     sig = get_signature(function)
-    function_args = list(six.iterkeys(sig.parameters))
-    for param_name, p in six.iteritems(sig.parameters):
+    function_args = list(iter(sig.parameters.keys()))
+    for param_name, p in iter(sig.parameters.items()):
         if (p.kind in (Parameter.VAR_POSITIONAL, Parameter.VAR_KEYWORD) or
                 (required_only and p.default is not Parameter.empty)):
             function_args.remove(param_name)
@@ -243,4 +235,4 @@ def accepts_kwargs(function):
     """Returns ``True`` if function accepts kwargs otherwise ``False``."""
     sig = get_signature(function)
     return any(p.kind == Parameter.VAR_KEYWORD
-               for p in six.itervalues(sig.parameters))
+               for p in iter(sig.parameters.values()))

@@ -21,11 +21,10 @@ import logging
 import os
 import re
 import socket
+from urllib import parse
 
 import netaddr
 import netifaces
-import six
-from six.moves.urllib import parse
 
 from oslo_utils._i18n import _
 
@@ -284,7 +283,7 @@ def is_valid_mac(address):
     .. versionadded:: 3.17
     """
     m = "[0-9a-f]{2}(:[0-9a-f]{2}){5}$"
-    return (isinstance(address, six.string_types) and
+    return (isinstance(address, str) and
             re.match(m, address.lower()))
 
 

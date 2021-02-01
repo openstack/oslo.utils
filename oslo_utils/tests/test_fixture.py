@@ -17,7 +17,6 @@
 import datetime
 
 from oslotest import base as test_base
-import six
 
 from oslo_utils import fixture
 from oslo_utils.fixture import uuidsentinel as uuids
@@ -81,4 +80,4 @@ class UUIDSentinelsTest(test_base.BaseTestCase):
 
     def test_with_underline_prefix(self):
         ex = self.assertRaises(AttributeError, getattr, uuids, '_foo')
-        self.assertIn("Sentinels must not start with _", six.text_type(ex))
+        self.assertIn("Sentinels must not start with _", str(ex))

@@ -19,13 +19,13 @@ Time related utilities and helper functions.
 
 import calendar
 import datetime
+import functools
 import logging
 import time
 
 from debtcollector import removals
 import iso8601
 import pytz
-import six
 
 from oslo_utils import reflection
 
@@ -66,9 +66,9 @@ def parse_isotime(timestr):
     try:
         return iso8601.parse_date(timestr)
     except iso8601.ParseError as e:
-        raise ValueError(six.text_type(e))
+        raise ValueError(str(e))
     except TypeError as e:
-        raise ValueError(six.text_type(e))
+        raise ValueError(str(e))
 
 
 @removals.remove(
@@ -114,7 +114,7 @@ def is_older_than(before, seconds):
        Accept datetime string with timezone information.
        Fix comparison with timezone aware datetime.
     """
-    if isinstance(before, six.string_types):
+    if isinstance(before, str):
         before = parse_isotime(before)
 
     before = normalize_time(before)
@@ -129,7 +129,7 @@ def is_newer_than(after, seconds):
        Accept datetime string with timezone information.
        Fix comparison with timezone aware datetime.
     """
-    if isinstance(after, six.string_types):
+    if isinstance(after, str):
         after = parse_isotime(after)
 
     after = normalize_time(after)
@@ -377,7 +377,7 @@ def time_it(logger, log_level=logging.DEBUG,
         if not enabled:
             return func
 
-        @six.wraps(func)
+        @functools.wraps(func)
         def wrapper(*args, **kwargs):
             with StopWatch() as w:
                 result = func(*args, **kwargs)

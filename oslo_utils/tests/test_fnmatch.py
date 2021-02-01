@@ -13,11 +13,9 @@
 import fnmatch as standard_fnmatch
 import ntpath
 import posixpath
-import sys
 from unittest import mock
 
 from oslotest import base
-import six
 
 
 fnmatch = None
@@ -48,12 +46,3 @@ class TestFnmatch(base.BaseTestCase):
 
         fnmatch = standard_fnmatch
         self._test_fnmatch_posix_nt()
-
-        with mock.patch.object(sys, 'version_info', new=(2, 7, 11)):
-            from oslo_utils import fnmatch as oslo_fnmatch
-            fnmatch = oslo_fnmatch
-            self._test_fnmatch_posix_nt()
-
-        with mock.patch.object(sys, 'version_info', new=(2, 7, 0)):
-            six.moves.reload_module(oslo_fnmatch)
-            self._test_fnmatch_posix_nt()

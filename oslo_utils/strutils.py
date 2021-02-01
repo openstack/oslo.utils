@@ -21,10 +21,9 @@ import collections
 import math
 import re
 import unicodedata
+import urllib
 
 import pyparsing as pp
-import six
-from six.moves import urllib
 
 from oslo_utils._i18n import _
 from oslo_utils import encodeutils
@@ -138,8 +137,8 @@ def bool_from_string(subject, strict=False, default=False):
     """
     if isinstance(subject, bool):
         return subject
-    if not isinstance(subject, six.string_types):
-        subject = six.text_type(subject)
+    if not isinstance(subject, str):
+        subject = str(subject)
 
     lowered = subject.strip().lower()
 
@@ -324,7 +323,7 @@ def mask_password(message, secret="***"):  # nosec
     """
 
     try:
-        message = six.text_type(message)
+        message = str(message)
     except UnicodeDecodeError:  # nosec
         # NOTE(jecarey): Temporary fix to handle cases where message is a
         # byte string. A better solution will be provided in Kilo.
@@ -411,7 +410,7 @@ def mask_dict_password(dictionary, secret="***"):  # nosec
         # NOTE(jlvillal): Check to see if anything in the dictionary 'key'
         # contains any key specified in _SANITIZE_KEYS.
         k_matched = False
-        if isinstance(k, six.string_types):
+        if isinstance(k, str):
             for sani_key in _SANITIZE_KEYS:
                 if sani_key in k.lower():
                     out[k] = secret
@@ -420,7 +419,7 @@ def mask_dict_password(dictionary, secret="***"):  # nosec
         if not k_matched:
             # We did not find a match for the key name in the
             # _SANITIZE_KEYS, so we fall through to here
-            if isinstance(v, six.string_types):
+            if isinstance(v, str):
                 out[k] = mask_password(v, secret=secret)
             else:
                 # Just leave it alone.
@@ -438,7 +437,7 @@ def is_int_like(val):
     .. versionadded:: 1.1
     """
     try:
-        return six.text_type(int(val)) == six.text_type(val)
+        return str(int(val)) == str(val)
     except (TypeError, ValueError):
         return False
 
@@ -457,7 +456,7 @@ def check_string_length(value, name=None, min_length=0, max_length=None):
     if name is None:
         name = value
 
-    if not isinstance(value, six.string_types):
+    if not isinstance(value, str):
         msg = _("%s is not a string or unicode") % name
         raise TypeError(msg)
 

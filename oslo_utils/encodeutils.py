@@ -15,8 +15,6 @@
 
 import sys
 
-import six
-
 
 # NOTE(blk-u): This provides a symbol that can be overridden just for this
 # module during testing. sys.getfilesystemencoding() is called by coverage so
@@ -35,10 +33,10 @@ def safe_decode(text, incoming=None, errors='strict'):
                 representation of it.
     :raises TypeError: If text is not an instance of str
     """
-    if not isinstance(text, (six.string_types, six.binary_type)):
+    if not isinstance(text, (str, bytes)):
         raise TypeError("%s can't be decoded" % type(text))
 
-    if isinstance(text, six.text_type):
+    if isinstance(text, str):
         return text
 
     if not incoming:
@@ -81,7 +79,7 @@ def safe_encode(text, incoming=None,
     See also to_utf8() function which is simpler and don't depend on
     the locale encoding.
     """
-    if not isinstance(text, (six.string_types, six.binary_type)):
+    if not isinstance(text, (str, bytes)):
         raise TypeError("%s can't be encoded" % type(text))
 
     if not incoming:
@@ -94,7 +92,7 @@ def safe_encode(text, incoming=None,
     if hasattr(encoding, 'lower'):
         encoding = encoding.lower()
 
-    if isinstance(text, six.text_type):
+    if isinstance(text, str):
         return text.encode(encoding, errors)
     elif text and encoding != incoming:
         # Decode text before encoding it with `encoding`
@@ -111,9 +109,9 @@ def to_utf8(text):
 
     .. versionadded:: 3.5
     """
-    if isinstance(text, six.binary_type):
+    if isinstance(text, bytes):
         return text
-    elif isinstance(text, six.text_type):
+    elif isinstance(text, str):
         return text.encode('utf-8')
     else:
         raise TypeError("bytes or Unicode expected, got %s"
@@ -133,24 +131,6 @@ def exception_to_unicode(exc):
     .. versionadded:: 1.6
     """
     msg = None
-    if six.PY2:
-        # First try by calling the unicode type constructor. We should try
-        # unicode() before exc.__unicode__() because subclasses of unicode can
-        # be easily casted to unicode, whereas they have no __unicode__()
-        # method.
-        try:
-            msg = unicode(exc)  # NOQA
-        except UnicodeError:
-            # unicode(exc) fail with UnicodeDecodeError on Python 2 if
-            # exc.__unicode__() or exc.__str__() returns a bytes string not
-            # decodable from the default encoding (ASCII)
-            if hasattr(exc, '__unicode__'):
-                # Call directly the __unicode__() method to avoid
-                # the implicit decoding from the default encoding
-                try:
-                    msg = exc.__unicode__()
-                except UnicodeError:  # nosec
-                    pass
 
     if msg is None:
         # Don't call directly str(exc), because it fails with
@@ -158,7 +138,7 @@ def exception_to_unicode(exc):
         # string not encodable to the default encoding (ASCII)
         msg = exc.__str__()
 
-    if isinstance(msg, six.text_type):
+    if isinstance(msg, str):
         # This should be the default path on Python 3 and an *optional* path
         # on Python 2 (if for some reason the exception message was already
         # in unicode instead of the more typical bytes string); so avoid
