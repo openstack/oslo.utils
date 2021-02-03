@@ -24,6 +24,7 @@ import socket
 from urllib import parse
 
 import netaddr
+from netaddr.core import INET_PTON
 import netifaces
 
 from oslo_utils._i18n import _
@@ -81,17 +82,43 @@ def parse_host_port(address, default_port=None):
     return (host, None if port is None else int(port))
 
 
-def is_valid_ipv4(address):
+def is_valid_ipv4(address, strict=None):
     """Verify that address represents a valid IPv4 address.
 
     :param address: Value to verify
     :type address: string
+    :param strict: flag allowing users to restrict validation
+        to IP addresses in presentation format (``a.b.c.d``) as opposed to
+        address format (``a.b.c.d``, ``a.b.c``, ``a.b``, ``a``).
+    :type flags: bool
     :returns: bool
 
     .. versionadded:: 1.1
+    .. versionchanged:: 4.8.0
+       Allow to restrict validation to IP addresses in presentation format
+       (``a.b.c.d``) as opposed to address format
+       (``a.b.c.d``, ``a.b.c``, ``a.b``, ``a``).
     """
+    if strict is not None:
+        flag = INET_PTON if strict else 0
+        try:
+            return netaddr.valid_ipv4(address, flags=flag)
+        except netaddr.AddrFormatError:
+            return False
+
+    # non strict mode
     try:
-        return netaddr.valid_ipv4(address)
+        if netaddr.valid_ipv4(address, flags=INET_PTON):
+            return True
+        else:
+            if netaddr.valid_ipv4(address):
+                LOG.warn(
+                    'Converting in non strict mode is deprecated. '
+                    'You should pass strict=False if you want to '
+                    'preserve legacy behavior')
+                return True
+            else:
+                return False
     except netaddr.AddrFormatError:
         return False
 

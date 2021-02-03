@@ -1,0 +1,6 @@
+---
+features:
+  - |
+    Add a ``strict`` flag to ``netutils.is_valid_ipv4`` to allowing users to
+    restrict validation to IP addresses in presentation format (``a.b.c.d``)
+    as opposed to address format (``a.b.c.d``, ``a.b.c``, ``a.b``, ``a``).
