@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Copyright 2011 OpenStack Foundation.
 # All Rights Reserved.
 #
@@ -15,7 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import collections
+import collections.abc
 import copy
 import math
 from unittest import mock
@@ -659,7 +657,7 @@ class MaskPasswordTestCase(test_base.BaseTestCase):
         self.assertEqual(expected, strutils.mask_password(payload))
 
 
-class TestMapping(collections.Mapping):
+class TestMapping(collections.abc.Mapping):
     """Test class for non-dict mappings"""
     def __init__(self):
         super(TestMapping, self).__init__()
