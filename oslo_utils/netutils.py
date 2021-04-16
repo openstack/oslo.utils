@@ -310,8 +310,7 @@ def is_valid_mac(address):
     .. versionadded:: 3.17
     """
     m = "[0-9a-f]{2}(:[0-9a-f]{2}){5}$"
-    return (isinstance(address, str) and
-            re.match(m, address.lower()))
+    return isinstance(address, str) and re.match(m, address.lower())
 
 
 def _is_int_in_range(value, start, end):

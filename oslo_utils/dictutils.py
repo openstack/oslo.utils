@@ -20,10 +20,10 @@ def flatten_dict_to_keypairs(d, separator=':'):
     :param d: dictionaries which may be nested
     :param separator: symbol between names
     """
-    for name, value in sorted(iter(d.items())):
+    for name, value in sorted(d.items()):
         if isinstance(value, dict):
             for subname, subvalue in flatten_dict_to_keypairs(value,
                                                               separator):
-                yield ('%s%s%s' % (name, separator, subname), subvalue)
+                yield '%s%s%s' % (name, separator, subname), subvalue
         else:
             yield name, value

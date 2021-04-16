@@ -22,8 +22,9 @@ from oslotest import base as test_base
 from oslo_utils import reflection
 
 
-RUNTIME_ERROR_CLASSES = ['RuntimeError', 'Exception',
-                         'BaseException', 'object']
+RUNTIME_ERROR_CLASSES = [
+    'RuntimeError', 'Exception', 'BaseException', 'object',
+]
 
 
 def dummy_decorator(f):
@@ -187,8 +188,7 @@ class GetCallableNameTest(test_base.BaseTestCase):
 
     def test_static_method(self):
         name = reflection.get_callable_name(Class.static_method)
-        self.assertEqual('.'.join((__name__, 'Class', 'static_method')),
-                         name)
+        self.assertEqual('.'.join((__name__, 'Class', 'static_method')), name)
 
     def test_class_method(self):
         name = reflection.get_callable_name(Class.class_method)
