@@ -12,74 +12,21 @@
 
 """Thread safe fnmatch re-implementation.
 
-Standard library fnmatch in Python versions <= 2.7.9 has thread safe
-issue, this module is created for such case. see:
-https://bugs.python.org/issue23191
-
 .. versionadded:: 3.3
 """
 
 import fnmatch as standard_fnmatch
-import os
-import posixpath
-import re
-import sys
 import warnings
 
 import debtcollector
 
 warnings.simplefilter("always")
 debtcollector.deprecate(
-    "Using the oslo.utils's 'fnmatch' module is deprecate, "
-    "please use the stdlib `fnmatch` module."
+    "Using the oslo.utils's 'fnmatch' module is deprecated, "
+    "please use the stdlib 'fnmatch' module."
 )
 
-
-if sys.version_info > (2, 7, 9):
-    fnmatch = standard_fnmatch.fnmatch
-    fnmatchcase = standard_fnmatch.fnmatchcase
-    filter = standard_fnmatch.filter
-    translate = standard_fnmatch.translate
-else:
-    _MATCH_CACHE = {}
-    _MATCH_CACHE_MAX = 100
-
-    translate = standard_fnmatch.translate
-
-    def _get_cached_pattern(pattern):
-        cached_pattern = _MATCH_CACHE.get(pattern)
-        if cached_pattern is None:
-            translated_pattern = translate(pattern)
-            cached_pattern = re.compile(translated_pattern)
-            if len(_MATCH_CACHE) >= _MATCH_CACHE_MAX:
-                _MATCH_CACHE.clear()
-            _MATCH_CACHE[pattern] = cached_pattern
-        return cached_pattern
-
-    def fnmatchcase(filename, pattern):
-        cached_pattern = _get_cached_pattern(pattern)
-        return cached_pattern.match(filename) is not None
-
-    def fnmatch(filename, pattern):
-        filename = os.path.normcase(filename)
-        pattern = os.path.normcase(pattern)
-        return fnmatchcase(filename, pattern)
-
-    def filter(filenames, pattern):
-        filtered_filenames = []
-
-        pattern = os.path.normcase(pattern)
-        cached_pattern = _get_cached_pattern(pattern)
-
-        if os.path is posixpath:
-            # normcase on posix is NOP. Optimize it away from the loop.
-            for filename in filenames:
-                if cached_pattern.match(filename):
-                    filtered_filenames.append(filename)
-        else:
-            for filename in filenames:
-                norm_name = os.path.normcase(filename)
-                if cached_pattern.match(norm_name):
-                    filtered_filenames.append(filename)
-
-        return filtered_filenames
+fnmatch = standard_fnmatch.fnmatch
+fnmatchcase = standard_fnmatch.fnmatchcase
+filter = standard_fnmatch.filter
+translate = standard_fnmatch.translate
