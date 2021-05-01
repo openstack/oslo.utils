@@ -58,6 +58,7 @@ class QemuImgInfo(object):
             details = json.loads(cmd_output or '{}')
             self.image = details.get('filename')
             self.backing_file = details.get('backing-filename')
+            self.backing_file_format = details.get('backing-filename-format')
             self.file_format = details.get('format')
             self.virtual_size = details.get('virtual-size')
             self.cluster_size = details.get('cluster-size')
@@ -75,6 +76,7 @@ class QemuImgInfo(object):
             details = self._parse(cmd_output or '')
             self.image = details.get('image')
             self.backing_file = details.get('backing_file')
+            self.backing_file_format = details.get('backing_file_format')
             self.file_format = details.get('file_format')
             self.virtual_size = details.get('virtual_size')
             self.cluster_size = details.get('cluster_size')
@@ -91,6 +93,7 @@ class QemuImgInfo(object):
             'disk_size: %s' % self.disk_size,
             'cluster_size: %s' % self.cluster_size,
             'backing_file: %s' % self.backing_file,
+            'backing_file_format: %s' % self.backing_file_format,
         ]
         if self.snapshots:
             lines.append("snapshots: %s" % self.snapshots)

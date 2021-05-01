@@ -174,6 +174,12 @@ class ImageUtilsHumanQemuTestCase(ImageUtilsHumanRawTestCase):
               exp_backing_file='/b/3a988059e51a_2')),
     ]
 
+    _qcow2_backing_file_format = [
+        ('no_backing_file_format', dict(backing_file_format=None)),
+        ('backing_file_format', dict(backing_file_format='qcow2',
+                                     exp_backing_file_format='qcow2')),
+    ]
+
     @classmethod
     def generate_scenarios(cls):
         cls.scenarios = testscenarios.multiply_scenarios(
@@ -185,7 +191,8 @@ class ImageUtilsHumanQemuTestCase(ImageUtilsHumanRawTestCase):
             cls._snapshot_count,
             cls._qcow2_cluster_size,
             cls._qcow2_encrypted,
-            cls._qcow2_backing_file)
+            cls._qcow2_backing_file,
+            cls._qcow2_backing_file_format)
 
     @mock.patch("debtcollector.deprecate")
     def test_qemu_img_info_human_format(self, mock_deprecate):
@@ -194,6 +201,9 @@ class ImageUtilsHumanQemuTestCase(ImageUtilsHumanRawTestCase):
         if self.backing_file is not None:
             img_info = img_info + ('backing file: %s' %
                                    self.backing_file,)
+            if self.backing_file_format is not None:
+                img_info = img_info + ('backing file format: %s' %
+                                       self.backing_file_format,)
         if self.encrypted is not None:
             img_info = img_info + ('encrypted: %s' % self.encrypted,)
         if self.garbage_before_snapshot is True:
@@ -211,6 +221,9 @@ class ImageUtilsHumanQemuTestCase(ImageUtilsHumanRawTestCase):
         if self.backing_file is not None:
             self.assertEqual(image_info.backing_file,
                              self.exp_backing_file)
+            if self.backing_file_format is not None:
+                self.assertEqual(image_info.backing_file_format,
+                                 self.exp_backing_file_format)
         if self.encrypted is not None:
             self.assertEqual(image_info.encrypted, self.encrypted)
 
@@ -223,7 +236,8 @@ class ImageUtilsBlankTestCase(test_base.BaseTestCase):
         example_output = '\n'.join(['image: None', 'file_format: None',
                                     'virtual_size: None', 'disk_size: None',
                                     'cluster_size: None',
-                                    'backing_file: None'])
+                                    'backing_file: None',
+                                    'backing_file_format: None'])
         image_info = imageutils.QemuImgInfo()
         self.assertEqual(str(image_info), example_output)
         self.assertEqual(len(image_info.snapshots), 0)
