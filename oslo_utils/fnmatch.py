@@ -24,6 +24,15 @@ import os
 import posixpath
 import re
 import sys
+import warnings
+
+import debtcollector
+
+warnings.simplefilter("always")
+debtcollector.deprecate(
+    "Using the oslo.utils's 'fnmatch' module is deprecate, "
+    "please use the stdlib `fnmatch` module."
+)
 
 
 if sys.version_info > (2, 7, 9):

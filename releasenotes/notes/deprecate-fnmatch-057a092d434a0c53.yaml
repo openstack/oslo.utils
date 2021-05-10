@@ -1,0 +1,5 @@
+---
+deprecations:
+  - |
+    Oslo.utils's ``fnmatch`` module is deprecated, please use the stdlib
+    ``fnmatch`` module which is thread safe for python 3+.
