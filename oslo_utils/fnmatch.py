@@ -16,11 +16,9 @@
 """
 
 import fnmatch as standard_fnmatch
-import warnings
 
 import debtcollector
 
-warnings.simplefilter("always")
 debtcollector.deprecate(
     "Using the oslo.utils's 'fnmatch' module is deprecated, "
     "please use the stdlib 'fnmatch' module."
