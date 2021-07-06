@@ -66,11 +66,12 @@ class QemuImgInfo(object):
             self.encrypted = details.get('encrypted')
             self.format_specific = details.get('format-specific')
         else:
-            debtcollector.deprecate(
-                'The human format is deprecated and the format parameter '
-                'will be removed. Use explicitly json instead',
-                version="xena",
-                category=FutureWarning)
+            if cmd_output is not None:
+                debtcollector.deprecate(
+                    'The human format is deprecated and the format parameter '
+                    'will be removed. Use explicitly json instead',
+                    version="xena",
+                    category=FutureWarning)
             details = self._parse(cmd_output or '')
             self.image = details.get('image')
             self.backing_file = details.get('backing_file')
