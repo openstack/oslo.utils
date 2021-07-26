@@ -55,7 +55,8 @@ class TimeFixture(fixtures.Fixture):
 
 
 class _UUIDSentinels(object):
-    """Registry of dynamically created, named, random UUID strings.
+    """Registry of dynamically created, named, random UUID strings in regular
+    (with hyphens) and similar to some keystone IDs (without hyphens) formats.
 
     An instance of this class will dynamically generate attributes as they are
     referenced, associating a random UUID string with each. Thereafter,
@@ -65,6 +66,7 @@ class _UUIDSentinels(object):
     Usage::
 
         from oslo_utils.fixture import uuidsentinel as uuids
+        from oslo_utils.fixture import keystoneidsentinel as keystids
         ...
         foo = uuids.foo
         do_a_thing(foo)
@@ -72,17 +74,22 @@ class _UUIDSentinels(object):
         assert foo == uuids.foo
         # But a different one will be different
         assert foo != uuids.bar
+        # Same approach is valid for keystoneidsentinel:
+        data = create_some_data_structure(keystids.bar, var1, var2, var3)
+        assert extract_bar(data) == keystids.bar
     """
-    def __init__(self):
+    def __init__(self, is_dashed=True):
         self._sentinels = {}
         self._lock = threading.Lock()
+        self.is_dashed = is_dashed
 
     def __getattr__(self, name):
         if name.startswith('_'):
             raise AttributeError('Sentinels must not start with _')
         with self._lock:
             if name not in self._sentinels:
-                self._sentinels[name] = uuidutils.generate_uuid()
+                self._sentinels[name] = uuidutils.generate_uuid(
+                    dashed=self.is_dashed)
         return self._sentinels[name]
 
 
@@ -90,3 +97,4 @@ class _UUIDSentinels(object):
 # same process (including across multiple modules) will result in the same
 # values
 uuidsentinel = _UUIDSentinels()
+keystoneidsentinel = _UUIDSentinels(is_dashed=False)

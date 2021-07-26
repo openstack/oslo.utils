@@ -1,0 +1,6 @@
+---
+features:
+  - |
+    keystoneidsentinel singleton was introduced to generate
+    random keystone-like UUIDs. New sentinel could be used in the same
+    way as existing uuidsentinel.
