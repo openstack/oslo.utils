@@ -1,0 +1,6 @@
+---
+fixes:
+  - |
+    `bug #1942682 <https://bugs.launchpad.net/oslo.utils/+bug/1942682>`_:
+    Fix inconsistent value of `QemuImgInfo.encrypted`. Now the attribute is
+    always `'yes'` or `None` regardless of the format(`human` or `json`) used.

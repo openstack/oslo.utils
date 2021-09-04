@@ -238,7 +238,8 @@ class ImageUtilsJSONTestCase(test_base.BaseTestCase):
                        "cluster-size": 65536,
                        "format": "qcow2",
                        "actual-size": 13168640,
-                       "format-specific": {"data": {"foo": "bar"}}
+                       "format-specific": {"data": {"foo": "bar"}},
+                       "encrypted": true
                       }'''
         image_info = imageutils.QemuImgInfo(img_output, format='json')
         mock_deprecate.assert_not_called()
@@ -248,6 +249,7 @@ class ImageUtilsJSONTestCase(test_base.BaseTestCase):
         self.assertEqual('qcow2', image_info.file_format)
         self.assertEqual(13168640, image_info.disk_size)
         self.assertEqual("bar", image_info.format_specific["data"]["foo"])
+        self.assertEqual('yes', image_info.encrypted)
 
     @mock.patch("debtcollector.deprecate")
     def test_qemu_img_info_blank(self, mock_deprecate):
@@ -260,3 +262,4 @@ class ImageUtilsJSONTestCase(test_base.BaseTestCase):
         self.assertIsNone(image_info.file_format)
         self.assertIsNone(image_info.disk_size)
         self.assertIsNone(image_info.format_specific)
+        self.assertIsNone(image_info.encrypted)
