@@ -63,7 +63,7 @@ class QemuImgInfo(object):
             self.cluster_size = details.get('cluster-size')
             self.disk_size = details.get('actual-size')
             self.snapshots = details.get('snapshots', [])
-            self.encrypted = details.get('encrypted')
+            self.encrypted = 'yes' if details.get('encrypted') else None
             self.format_specific = details.get('format-specific')
         else:
             if cmd_output is not None:
