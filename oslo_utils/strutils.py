@@ -74,6 +74,7 @@ _SANITIZE_KEYS = ['adminpass', 'admin_pass', 'password', 'admin_password',
 # for XML and JSON automatically.
 _SANITIZE_PATTERNS_2 = {}
 _SANITIZE_PATTERNS_1 = {}
+_SANITIZE_PATTERNS_WILDCARD = {}
 
 # NOTE(amrith): Some regular expressions have only one parameter, some
 # have two parameters. Use different lists of patterns here.
@@ -89,6 +90,7 @@ _FORMAT_PATTERNS_2 = [r'(%(key)s[0-9]*\s*[=]\s*[\"\'])[^\"\']*([\"\'])',
                       r'([\'"][^\'"]*%(key)s[0-9]*[\'"]\s*,\s*\'--?[A-z]+'
                       '\'\s*,\s*u?[\'"])[^\"\']*([\'"])',
                       r'(%(key)s[0-9]*\s*--?[A-z]+\s*)\S+(\s*)']
+_FORMAT_PATTERNS_WILDCARD = [r'([\'\"][^\"\']*%(key)s[0-9]*[\'\"]\s*:\s*u?[\'\"].*[\'\"])[^\"\']*([\'\"])']  # noqa: E501
 
 # NOTE(dhellmann): Keep a separate list of patterns by key so we only
 # need to apply the substitutions for keys we find using a quick "in"
@@ -96,6 +98,7 @@ _FORMAT_PATTERNS_2 = [r'(%(key)s[0-9]*\s*[=]\s*[\"\'])[^\"\']*([\"\'])',
 for key in _SANITIZE_KEYS:
     _SANITIZE_PATTERNS_1[key] = []
     _SANITIZE_PATTERNS_2[key] = []
+    _SANITIZE_PATTERNS_WILDCARD[key] = []
 
     for pattern in _FORMAT_PATTERNS_2:
         reg_ex = re.compile(pattern % {'key': key}, re.DOTALL | re.IGNORECASE)
@@ -104,6 +107,10 @@ for key in _SANITIZE_KEYS:
     for pattern in _FORMAT_PATTERNS_1:
         reg_ex = re.compile(pattern % {'key': key}, re.DOTALL | re.IGNORECASE)
         _SANITIZE_PATTERNS_1[key].append(reg_ex)
+
+    for pattern in _FORMAT_PATTERNS_WILDCARD:
+        reg_ex = re.compile(pattern % {'key': key}, re.DOTALL | re.IGNORECASE)
+        _SANITIZE_PATTERNS_WILDCARD[key].append(reg_ex)
 
 
 def int_from_bool_as_string(subject):
@@ -332,6 +339,7 @@ def mask_password(message, secret="***"):  # nosec
 
     substitute1 = r'\g<1>' + secret
     substitute2 = r'\g<1>' + secret + r'\g<2>'
+    substitute_wildcard = r'\g<1>'
 
     # NOTE(ldbragst): Check to see if anything in message contains any key
     # specified in _SANITIZE_KEYS, if not then just return the message since
@@ -342,7 +350,12 @@ def mask_password(message, secret="***"):  # nosec
                 message = re.sub(pattern, substitute2, message)
             for pattern in _SANITIZE_PATTERNS_1[key]:
                 message = re.sub(pattern, substitute1, message)
-
+            # NOTE(hberaud): Those case are poorly handled by previous
+            # patterns. They are passwords with quotes or double quotes.
+            # They also needs a different way to substitute group this is why
+            # they aren't fix in the pattern 1 or 2.
+            for pattern in _SANITIZE_PATTERNS_WILDCARD[key]:
+                message = re.sub(pattern, substitute_wildcard, message)
     return message
 
 
