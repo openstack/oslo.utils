@@ -618,8 +618,17 @@ class MaskPasswordTestCase(test_base.BaseTestCase):
         expected = 'test = "param1" : "value"'
         self.assertEqual(expected, strutils.mask_password(payload))
 
+        payload = 'test = "original_password" : "aaaaa"aaaa"'
+        expected = 'test = "original_password" : "***"'
+        self.assertEqual(expected, strutils.mask_password(payload))
+
         payload = """{'adminPass':'TL0EfN33'}"""
         payload = six.text_type(payload)
+        expected = """{'adminPass':'***'}"""
+        self.assertEqual(expected, strutils.mask_password(payload))
+
+        payload = """{'adminPass':'TL0E'fN33'}"""
+        payload = str(payload)
         expected = """{'adminPass':'***'}"""
         self.assertEqual(expected, strutils.mask_password(payload))
 
@@ -694,6 +703,11 @@ class MaskDictionaryPasswordTestCase(test_base.BaseTestCase):
 
     def test_dictionary(self):
         payload = {'password': 'TL0EfN33'}
+        expected = {'password': '***'}
+        self.assertEqual(expected,
+                         strutils.mask_dict_password(payload))
+
+        payload = {'password': 'TL0Ef"N33'}
         expected = {'password': '***'}
         self.assertEqual(expected,
                          strutils.mask_dict_password(payload))
