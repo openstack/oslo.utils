@@ -166,16 +166,16 @@ class NetworkUtilsTest(test_base.BaseTestCase):
         self.assertFalse(netutils.is_valid_ipv4(''))
 
         self.assertTrue(netutils.is_valid_ipv4('10'))
-        mock_log.warn.assert_called_with(expected_log)
+        mock_log.warning.assert_called_with(expected_log)
         mock_log.reset_mock()
         self.assertTrue(netutils.is_valid_ipv4('10.10'))
-        mock_log.warn.assert_called_with(expected_log)
+        mock_log.warning.assert_called_with(expected_log)
         mock_log.reset_mock()
         self.assertTrue(netutils.is_valid_ipv4('10.10.10'))
-        mock_log.warn.assert_called_with(expected_log)
+        mock_log.warning.assert_called_with(expected_log)
         mock_log.reset_mock()
         self.assertTrue(netutils.is_valid_ipv4('10.10.10.10'))
-        mock_log.warn.assert_not_called()
+        mock_log.warning.assert_not_called()
         mock_log.reset_mock()
         self.assertFalse(
             netutils.is_valid_ipv4('10', strict=True)
@@ -186,7 +186,7 @@ class NetworkUtilsTest(test_base.BaseTestCase):
         self.assertFalse(
             netutils.is_valid_ipv4('10.10.10', strict=True)
         )
-        mock_log.warn.assert_not_called()
+        mock_log.warning.assert_not_called()
         mock_log.reset_mock()
         self.assertTrue(
             netutils.is_valid_ipv4('10', strict=False)
@@ -197,7 +197,7 @@ class NetworkUtilsTest(test_base.BaseTestCase):
         self.assertTrue(
             netutils.is_valid_ipv4('10.10.10', strict=False)
         )
-        mock_log.warn.assert_not_called()
+        mock_log.warning.assert_not_called()
         mock_log.reset_mock()
 
     def test_is_valid_ipv6(self):

@@ -112,7 +112,7 @@ def is_valid_ipv4(address, strict=None):
             return True
         else:
             if netaddr.valid_ipv4(address):
-                LOG.warn(
+                LOG.warning(
                     'Converting in non strict mode is deprecated. '
                     'You should pass strict=False if you want to '
                     'preserve legacy behavior')
