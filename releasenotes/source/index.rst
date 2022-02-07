@@ -2,18 +2,18 @@
  oslo.utils Release Notes
 ===========================
 
- .. toctree::
-    :maxdepth: 1
+.. toctree::
+   :maxdepth: 1
 
-    unreleased
-    xena
-    wallaby
-    victoria
-    ussuri
-    train
-    stein
-    rocky
-    queens
-    pike
-    ocata
-    newton
+   unreleased
+   xena
+   wallaby
+   victoria
+   ussuri
+   train
+   stein
+   rocky
+   queens
+   pike
+   ocata
+   newton
