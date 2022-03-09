@@ -291,6 +291,17 @@ StringToBytesTest.generate_scenarios()
 
 class MaskPasswordTestCase(test_base.BaseTestCase):
 
+    def test_namespace_objects(self):
+        payload = """
+        Namespace(passcode='', username='', password='my"password',
+        profile='', verify=None, token='')
+        """
+        expected = """
+        Namespace(passcode='', username='', password='***',
+        profile='', verify=None, token='***')
+        """
+        self.assertEqual(expected, strutils.mask_password(payload))
+
     def test_sanitize_keys(self):
 
         lowered = [k.lower() for k in strutils._SANITIZE_KEYS]

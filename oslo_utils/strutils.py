@@ -79,6 +79,8 @@ _SANITIZE_PATTERNS_WILDCARD = {}
 # have two parameters. Use different lists of patterns here.
 _FORMAT_PATTERNS_1 = [r'(%(key)s[0-9]*\s*[=]\s*)[^\s^\'^\"]+']
 _FORMAT_PATTERNS_2 = [r'(%(key)s[0-9]*\s*[=]\s*[\"\'])[^\"\']*([\"\'])',
+                      r'(%(key)s[0-9]*\s*[=]\s*[\"])[^\"]*([\"])',
+                      r'(%(key)s[0-9]*\s*[=]\s*[\'])[^\']*([\'])',
                       r'(%(key)s[0-9]*\s+[\"\'])[^\"\']*([\"\'])',
                       r'([-]{2}%(key)s[0-9]*\s+)[^\'^\"^=^\s]+([\s]*)',
                       r'(<%(key)s[0-9]*>)[^<]*(</%(key)s[0-9]*>)',
