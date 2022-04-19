@@ -39,27 +39,27 @@ class SecretUtilsTest(testscenarios.TestWithScenarios,
         # the built-in function, otherwise that is in vain.
         ctc = secretutils._constant_time_compare
 
-        self.assertTrue(ctc(self.converter(u'abcd'),
-                            self.converter(u'abcd')))
-        self.assertTrue(ctc(self.converter(u''),
-                            self.converter(u'')))
+        self.assertTrue(ctc(self.converter('abcd'),
+                            self.converter('abcd')))
+        self.assertTrue(ctc(self.converter(''),
+                            self.converter('')))
         self.assertTrue(ctc('abcd', 'abcd'))
-        self.assertFalse(ctc(self.converter(u'abcd'),
-                             self.converter(u'efgh')))
-        self.assertFalse(ctc(self.converter(u'abc'),
-                             self.converter(u'abcd')))
-        self.assertFalse(ctc(self.converter(u'abc'),
-                             self.converter(u'abc\x00')))
-        self.assertFalse(ctc(self.converter(u''),
-                             self.converter(u'abc')))
-        self.assertTrue(ctc(self.converter(u'abcd1234'),
-                            self.converter(u'abcd1234')))
-        self.assertFalse(ctc(self.converter(u'abcd1234'),
-                             self.converter(u'ABCD234')))
-        self.assertFalse(ctc(self.converter(u'abcd1234'),
-                             self.converter(u'a')))
-        self.assertFalse(ctc(self.converter(u'abcd1234'),
-                             self.converter(u'1234abcd')))
+        self.assertFalse(ctc(self.converter('abcd'),
+                             self.converter('efgh')))
+        self.assertFalse(ctc(self.converter('abc'),
+                             self.converter('abcd')))
+        self.assertFalse(ctc(self.converter('abc'),
+                             self.converter('abc\x00')))
+        self.assertFalse(ctc(self.converter(''),
+                             self.converter('abc')))
+        self.assertTrue(ctc(self.converter('abcd1234'),
+                            self.converter('abcd1234')))
+        self.assertFalse(ctc(self.converter('abcd1234'),
+                             self.converter('ABCD234')))
+        self.assertFalse(ctc(self.converter('abcd1234'),
+                             self.converter('a')))
+        self.assertFalse(ctc(self.converter('abcd1234'),
+                             self.converter('1234abcd')))
         self.assertFalse(ctc('abcd1234', '1234abcd'))
 
     _test_data = "Openstack forever".encode('utf-8')

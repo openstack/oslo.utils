@@ -77,13 +77,13 @@ class StrUtilsTest(test_base.BaseTestCase):
 
     def test_unicode_bool_from_string(self):
         self._test_bool_from_string(str)
-        self.assertFalse(strutils.bool_from_string(u'使用', strict=False))
+        self.assertFalse(strutils.bool_from_string('使用', strict=False))
 
         exc = self.assertRaises(ValueError, strutils.bool_from_string,
-                                u'使用', strict=True)
-        expected_msg = (u"Unrecognized value '使用', acceptable values are:"
-                        u" '0', '1', 'f', 'false', 'n', 'no', 'off', 'on',"
-                        u" 't', 'true', 'y', 'yes'")
+                                '使用', strict=True)
+        expected_msg = ("Unrecognized value '使用', acceptable values are:"
+                        " '0', '1', 'f', 'false', 'n', 'no', 'off', 'on',"
+                        " 't', 'true', 'y', 'yes'")
         self.assertEqual(expected_msg, str(exc))
 
     def test_other_bool_from_string(self):
