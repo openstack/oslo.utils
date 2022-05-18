@@ -13,7 +13,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import calendar
 import datetime
 import logging
 import time
@@ -48,18 +47,6 @@ class TimeUtilsTest(test_base.BaseTestCase):
                                                                 6, 14, 0)
         self.addCleanup(timeutils.clear_time_override)
 
-    def test_isotime(self):
-        with mock.patch('datetime.datetime') as datetime_mock:
-            datetime_mock.utcnow.return_value = self.skynet_self_aware_time
-            dt = timeutils.isotime()
-            self.assertEqual(dt, self.skynet_self_aware_time_str)
-
-    def test_isotimei_micro_second_precision(self):
-        with mock.patch('datetime.datetime') as datetime_mock:
-            datetime_mock.utcnow.return_value = self.skynet_self_aware_ms_time
-            dt = timeutils.isotime(subsecond=True)
-            self.assertEqual(dt, self.skynet_self_aware_time_ms_str)
-
     def test_parse_isotime(self):
         expect = timeutils.parse_isotime(self.skynet_self_aware_time_str)
         skynet_self_aware_time_utc = self.skynet_self_aware_time.replace(
@@ -72,39 +59,23 @@ class TimeUtilsTest(test_base.BaseTestCase):
             tzinfo=iso8601.iso8601.UTC)
         self.assertEqual(skynet_self_aware_time_ms_utc, expect)
 
-    def test_strtime(self):
-        expect = timeutils.strtime(self.skynet_self_aware_time_perfect)
-        self.assertEqual(self.skynet_self_aware_time_perfect_str, expect)
-
     def test_parse_strtime(self):
         perfect_time_format = self.skynet_self_aware_time_perfect_str
         expect = timeutils.parse_strtime(perfect_time_format)
         self.assertEqual(self.skynet_self_aware_time_perfect, expect)
 
-    def test_strtime_and_back(self):
-        orig_t = datetime.datetime(1997, 8, 29, 6, 14, 0)
-        s = timeutils.strtime(orig_t)
-        t = timeutils.parse_strtime(s)
-        self.assertEqual(orig_t, t)
-
     @mock.patch('datetime.datetime', wraps=datetime.datetime)
     def _test_is_older_than(self, fn, datetime_mock):
         datetime_mock.utcnow.return_value = self.skynet_self_aware_time
-        expect_true = timeutils.is_older_than(fn(self.one_minute_before),
-                                              59)
+        expect_true = timeutils.is_older_than(fn(self.one_minute_before), 59)
         self.assertTrue(expect_true)
-        expect_false = timeutils.is_older_than(fn(self.one_minute_before),
-                                               60)
+        expect_false = timeutils.is_older_than(fn(self.one_minute_before), 60)
         self.assertFalse(expect_false)
-        expect_false = timeutils.is_older_than(fn(self.one_minute_before),
-                                               61)
+        expect_false = timeutils.is_older_than(fn(self.one_minute_before), 61)
         self.assertFalse(expect_false)
 
     def test_is_older_than_datetime(self):
         self._test_is_older_than(lambda x: x)
-
-    def test_is_older_than_str(self):
-        self._test_is_older_than(timeutils.strtime)
 
     def test_is_older_than_aware(self):
         """Tests sending is_older_than an 'aware' datetime."""
@@ -131,9 +102,6 @@ class TimeUtilsTest(test_base.BaseTestCase):
 
     def test_is_newer_than_datetime(self):
         self._test_is_newer_than(lambda x: x)
-
-    def test_is_newer_than_str(self):
-        self._test_is_newer_than(timeutils.strtime)
 
     def test_is_newer_than_aware(self):
         """Tests sending is_newer_than an 'aware' datetime."""
@@ -227,18 +195,6 @@ class TimeUtilsTest(test_base.BaseTestCase):
         self.assertAlmostEquals(604859.123456,
                                 timeutils.delta_seconds(before, after))
 
-    def test_iso8601_from_timestamp(self):
-        utcnow = timeutils.utcnow()
-        iso = timeutils.isotime(utcnow)
-        ts = calendar.timegm(utcnow.timetuple())
-        self.assertEqual(iso, timeutils.iso8601_from_timestamp(ts))
-
-    def test_iso8601_from_timestamp_ms(self):
-        ts = timeutils.utcnow_ts(microsecond=True)
-        utcnow = datetime.datetime.utcfromtimestamp(ts)
-        iso = timeutils.isotime(utcnow, subsecond=True)
-        self.assertEqual(iso, timeutils.iso8601_from_timestamp(ts, True))
-
     def test_is_soon(self):
         expires = timeutils.utcnow() + datetime.timedelta(minutes=5)
         self.assertFalse(timeutils.is_soon(expires, 120))
@@ -312,30 +268,6 @@ class TestIso8601Time(test_base.BaseTestCase):
         self.assertTrue(east < west)
         self.assertTrue(east < zulu)
         self.assertTrue(zulu < west)
-
-    def test_zulu_roundtrip(self):
-        time_str = '2012-02-14T20:53:07Z'
-        zulu = timeutils.parse_isotime(time_str)
-        self.assertEqual(zulu.tzinfo, iso8601.iso8601.UTC)
-        self.assertEqual(timeutils.isotime(zulu), time_str)
-
-    def test_east_roundtrip(self):
-        time_str = '2012-02-14T20:53:07-07:00'
-        east = timeutils.parse_isotime(time_str)
-        self.assertEqual(east.tzinfo.tzname(None), '-07:00')
-        self.assertEqual(timeutils.isotime(east), time_str)
-
-    def test_west_roundtrip(self):
-        time_str = '2012-02-14T20:53:07+11:30'
-        west = timeutils.parse_isotime(time_str)
-        self.assertEqual(west.tzinfo.tzname(None), '+11:30')
-        self.assertEqual(timeutils.isotime(west), time_str)
-
-    def test_now_roundtrip(self):
-        time_str = timeutils.isotime()
-        now = timeutils.parse_isotime(time_str)
-        self.assertEqual(now.tzinfo, iso8601.iso8601.UTC)
-        self.assertEqual(timeutils.isotime(now), time_str)
 
     def test_zulu_normalize(self):
         time_str = '2012-02-14T20:53:07Z'

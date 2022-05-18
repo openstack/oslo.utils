@@ -1,0 +1,7 @@
+---
+upgrade:
+  - |
+    The ``isotime``, ``strtime`` and ``iso8601_from_timestamp`` helpers have
+    been removed from ``oslo_utils.timeutils``. These are all available in the
+    stdlib in Python 3.
+
