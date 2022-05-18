@@ -23,8 +23,6 @@ import re
 import unicodedata
 import urllib
 
-import pyparsing as pp
-
 from oslo_utils._i18n import _
 from oslo_utils import encodeutils
 
@@ -577,8 +575,13 @@ def split_by_commas(value):
 
     .. versionadded:: 3.17
     """
-    word = (pp.QuotedString(quoteChar='"', escChar='\\') |
-            pp.Word(pp.printables, excludeChars='",'))
+    # pyparsing is a slow import; defer loading until we need it
+    import pyparsing as pp
+
+    word = (
+        pp.QuotedString(quoteChar='"', escChar='\\') |
+        pp.Word(pp.printables, excludeChars='",')
+    )
     grammar = pp.stringStart + pp.delimitedList(word) + pp.stringEnd
 
     try:
