@@ -96,7 +96,7 @@ class EncodeUtilsTest(test_base.BaseTestCase):
     def test_to_utf8(self):
         self.assertEqual(encodeutils.to_utf8(b'a\xe9\xff'),        # bytes
                          b'a\xe9\xff')
-        self.assertEqual(encodeutils.to_utf8(u'a\xe9\xff\u20ac'),  # Unicode
+        self.assertEqual(encodeutils.to_utf8('a\xe9\xff\u20ac'),  # Unicode
                          b'a\xc3\xa9\xc3\xbf\xe2\x82\xac')
         self.assertRaises(TypeError, encodeutils.to_utf8, 123)     # invalid
 
@@ -112,7 +112,7 @@ class ExceptionToUnicodeTest(test_base.BaseTestCase):
 
     def test_str_exception(self):
         # The regular Exception class cannot be used directly:
-        # Exception(u'\xe9').__str__() raises an UnicodeEncodeError
+        # Exception('\xe9').__str__() raises an UnicodeEncodeError
         # on Python 2
         class StrException(Exception):
             def __init__(self, value):
@@ -129,12 +129,12 @@ class ExceptionToUnicodeTest(test_base.BaseTestCase):
         # Decode from ASCII
         exc = StrException(b'bytes ascii')
         self.assertEqual(encodeutils.exception_to_unicode(exc),
-                         u'bytes ascii')
+                         'bytes ascii')
 
         # Decode from UTF-8
         exc = StrException(b'utf-8 \xc3\xa9\xe2\x82\xac')
         self.assertEqual(encodeutils.exception_to_unicode(exc),
-                         u'utf-8 \xe9\u20ac')
+                         'utf-8 \xe9\u20ac')
 
         # Force the locale encoding to ASCII to test the fallback
         with mock.patch.object(encodeutils, '_getfilesystemencoding',
@@ -142,17 +142,17 @@ class ExceptionToUnicodeTest(test_base.BaseTestCase):
             # Fallback: decode from ISO-8859-1
             exc = StrException(b'rawbytes \x80\xff')
             self.assertEqual(encodeutils.exception_to_unicode(exc),
-                             u'rawbytes \x80\xff')
+                             'rawbytes \x80\xff')
 
         # No conversion needed
-        exc = StrException(u'unicode ascii')
+        exc = StrException('unicode ascii')
         self.assertEqual(encodeutils.exception_to_unicode(exc),
-                         u'unicode ascii')
+                         'unicode ascii')
 
         # No conversion needed
-        exc = StrException(u'unicode \xe9\u20ac')
+        exc = StrException('unicode \xe9\u20ac')
         self.assertEqual(encodeutils.exception_to_unicode(exc),
-                         u'unicode \xe9\u20ac')
+                         'unicode \xe9\u20ac')
 
         # Test the locale encoding
         with mock.patch.object(encodeutils, '_getfilesystemencoding',
@@ -161,10 +161,10 @@ class ExceptionToUnicodeTest(test_base.BaseTestCase):
             # Decode from the locale encoding
             # (the message cannot be decoded from ASCII nor UTF-8)
             self.assertEqual(encodeutils.exception_to_unicode(exc),
-                             u'\u0420\u0443\u0441\u0441\u043a\u0438\u0439')
+                             '\u0420\u0443\u0441\u0441\u043a\u0438\u0439')
 
     def test_oslo_i18n_message(self):
         # use the lazy translation to get a Message instance of oslo_i18n
         exc = oslo_i18n_fixture.Translation().lazy("test")
         self.assertEqual(encodeutils.exception_to_unicode(exc),
-                         u"test")
+                         "test")

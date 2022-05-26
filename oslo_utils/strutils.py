@@ -303,8 +303,6 @@ def mask_password(message, secret="***"):  # nosec
     '"password" : "***"'
     >>> mask_password("'original_password' : 'aaaaa'")
     "'original_password' : '***'"
-    >>> mask_password("u'original_password' :   u'aaaaa'")
-    "u'original_password' :   u'***'"
 
     .. versionadded:: 0.2
 

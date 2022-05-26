@@ -233,7 +233,6 @@ class NetworkUtilsTest(test_base.BaseTestCase):
 
     def test_is_valid_mac(self):
         self.assertTrue(netutils.is_valid_mac("52:54:00:cf:2d:31"))
-        self.assertTrue(netutils.is_valid_mac(u"52:54:00:cf:2d:31"))
         self.assertFalse(netutils.is_valid_mac("127.0.0.1"))
         self.assertFalse(netutils.is_valid_mac("not:a:mac:address"))
         self.assertFalse(netutils.is_valid_mac("52-54-00-cf-2d-31"))
