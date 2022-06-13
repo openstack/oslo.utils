@@ -1,0 +1,5 @@
+---
+upgrade:
+  - |
+    The ``oslo_utils.fnmatch`` module has been removed. The stdlib ``fnmatch``
+    module is thread safe in Python 3+.
