@@ -23,7 +23,6 @@ import functools
 import logging
 import time
 
-from debtcollector import removals
 import iso8601
 import pytz
 
@@ -39,28 +38,6 @@ _MAX_DATETIME_SEC = 59
 now = time.monotonic
 
 
-@removals.remove(
-    message="use datetime.datetime.isoformat()",
-    version="1.6",
-    removal_version="?",
-    )
-def isotime(at=None, subsecond=False):
-    """Stringify time in ISO 8601 format.
-
-    .. deprecated:: 1.5.0
-       Use :func:`utcnow` and :func:`datetime.datetime.isoformat` instead.
-    """
-    if not at:
-        at = utcnow()
-    st = at.strftime(_ISO8601_TIME_FORMAT
-                     if not subsecond
-                     else _ISO8601_TIME_FORMAT_SUBSECOND)
-    tz = at.tzinfo.tzname(None) if at.tzinfo else 'UTC'
-    # Need to handle either iso8601 or python UTC format
-    st += ('Z' if tz in ('UTC', 'UTC+00:00') else tz)
-    return st
-
-
 def parse_isotime(timestr):
     """Parse time from ISO 8601 format."""
     try:
@@ -69,29 +46,6 @@ def parse_isotime(timestr):
         raise ValueError(str(e))
     except TypeError as e:
         raise ValueError(str(e))
-
-
-@removals.remove(
-    message="use either datetime.datetime.isoformat() "
-    "or datetime.datetime.strftime() instead",
-    version="1.6",
-    removal_version="?",
-    )
-def strtime(at=None, fmt=PERFECT_TIME_FORMAT):
-    """Returns formatted utcnow.
-
-    .. deprecated:: 1.5.0
-       Use :func:`utcnow()`, :func:`datetime.datetime.isoformat`
-       or :func:`datetime.strftime` instead:
-
-       * ``strtime()`` => ``utcnow().isoformat()``
-       * ``strtime(fmt=...)`` => ``utcnow().strftime(fmt)``
-       * ``strtime(at)`` => ``at.isoformat()``
-       * ``strtime(at, fmt)`` => ``at.strftime(fmt)``
-    """
-    if not at:
-        at = utcnow()
-    return at.strftime(fmt)
 
 
 def parse_strtime(timestr, fmt=PERFECT_TIME_FORMAT):
@@ -178,24 +132,6 @@ def utcnow(with_timezone=False):
     if with_timezone:
         return datetime.datetime.now(tz=iso8601.iso8601.UTC)
     return datetime.datetime.utcnow()
-
-
-@removals.remove(
-    message="use datetime.datetime.utcfromtimestamp().isoformat()",
-    version="1.6",
-    removal_version="?",
-    )
-def iso8601_from_timestamp(timestamp, microsecond=False):
-    """Returns an iso8601 formatted date from timestamp.
-
-    .. versionchanged:: 1.3
-       Added optional *microsecond* parameter.
-
-    .. deprecated:: 1.5.0
-       Use :func:`datetime.datetime.utcfromtimestamp` and
-       :func:`datetime.datetime.isoformat` instead.
-    """
-    return isotime(datetime.datetime.utcfromtimestamp(timestamp), microsecond)
 
 
 utcnow.override_time = None
