@@ -1,15 +1,16 @@
 # Andi Chandler <andi@gowling.com>, 2017. #zanata
 # Andi Chandler <andi@gowling.com>, 2018. #zanata
 # Andi Chandler <andi@gowling.com>, 2020. #zanata
+# Andi Chandler <andi@gowling.com>, 2022. #zanata
 msgid ""
 msgstr ""
 "Project-Id-Version: oslo.utils\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-14 11:54+0000\n"
+"POT-Creation-Date: 2022-05-26 18:44+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2020-04-27 08:23+0000\n"
+"PO-Revision-Date: 2022-06-01 06:40+0000\n"
 "Last-Translator: Andi Chandler <andi@gowling.com>\n"
 "Language-Team: English (United Kingdom)\n"
 "Language: en_GB\n"
@@ -21,6 +22,9 @@ msgstr "3.13.0"
 
 msgid "3.18.0"
 msgstr "3.18.0"
+
+msgid "3.35.1-4"
+msgstr "3.35.1-4"
 
 msgid "3.36.5"
 msgstr "3.36.5"
@@ -40,6 +44,9 @@ msgstr "3.41.4"
 msgid "3.41.5"
 msgstr "3.41.5"
 
+msgid "3.41.6-3"
+msgstr "3.41.6-3"
+
 msgid "3.42.1"
 msgstr "3.42.1"
 
@@ -48,6 +55,77 @@ msgstr "4.0.0"
 
 msgid "4.1.0"
 msgstr "4.1.0"
+
+msgid "4.1.2-3"
+msgstr "4.1.2-3"
+
+msgid "4.10.0"
+msgstr "4.10.0"
+
+msgid "4.10.1"
+msgstr "4.10.1"
+
+msgid "4.10.2"
+msgstr "4.10.2"
+
+msgid "4.11.0"
+msgstr "4.11.0"
+
+msgid "4.12.1"
+msgstr "4.12.1"
+
+msgid "4.12.3"
+msgstr "4.12.3"
+
+msgid "4.13.0"
+msgstr "4.13.0"
+
+msgid "4.4.0"
+msgstr "4.4.0"
+
+msgid "4.5.0"
+msgstr "4.5.0"
+
+msgid "4.6.1"
+msgstr "4.6.1"
+
+msgid "4.6.1-1"
+msgstr "4.6.1-1"
+
+msgid "4.7.0"
+msgstr "4.7.0"
+
+msgid "4.8.0"
+msgstr "4.8.0"
+
+msgid "4.8.1"
+msgstr "4.8.1"
+
+msgid "4.8.2"
+msgstr "4.8.2"
+
+msgid "4.9.1"
+msgstr "4.9.1"
+
+msgid ""
+"A wrapper for hashlib.md5() has been added to allow OpenStack to run on "
+"systems where FIPS is enabled.  Under FIPS, md5 is disabled and calls to "
+"hashlib.md5() will fail.  In most cases in OpenStack, though, md5 is not "
+"used within a security context."
+msgstr ""
+"A wrapper for hashlib.md5() has been added to allow OpenStack to run on "
+"systems where FIPS is enabled.  Under FIPS, md5 is disabled and calls to "
+"hashlib.md5() will fail.  In most cases in OpenStack, though, MD5 is not "
+"used within a security context."
+
+msgid ""
+"Add a ``strict`` flag to ``netutils.is_valid_ipv4`` to allowing users to "
+"restrict validation to IP addresses in presentation format (``a.b.c.d``) as "
+"opposed to address format (``a.b.c.d``, ``a.b.c``, ``a.b``, ``a``)."
+msgstr ""
+"Add a ``strict`` flag to ``netutils.is_valid_ipv4`` to allowing users to "
+"restrict validation to IP addresses in presentation format (``a.b.c.d``) as "
+"opposed to address format (``a.b.c.d``, ``a.b.c``, ``a.b``, ``a``)."
 
 msgid ""
 "Additional password names were included from real world logs that contained "
@@ -59,8 +137,40 @@ msgstr ""
 msgid "Bug Fixes"
 msgstr "Bug Fixes"
 
+msgid "Deprecation Notes"
+msgstr "Deprecation Notes"
+
+msgid ""
+"Downstream python already supports this option, though.  This wrapper simply "
+"allows for this option to be supported where the underlying python version "
+"supports it."
+msgstr ""
+"Downstream Python already supports this option, though.  This wrapper simply "
+"allows for this option to be supported where the underlying Python version "
+"supports it."
+
 msgid "Expanded range of allowed ports by adding 0 to valid number."
 msgstr "Expanded range of allowed ports by adding 0 to valid number."
+
+msgid ""
+"Fix regex used to mask password. The ``strutils.mask_password`` function "
+"will now correctly handle passwords that contain single or double quotes. "
+"Previously, only the characters before the quote were masked."
+msgstr ""
+"Fix regex used to mask the password. The ``strutils.mask_password`` function "
+"will now correctly handle passwords that contain single or double quotes. "
+"Previously, only the characters before the quote were masked."
+
+msgid ""
+"In https://bugs.python.org/issue9216, a proposal has been made to allow the "
+"addition of a keyword parameter usedforsecurity, which can be used to "
+"designate non-security context uses.  In this case, md5() operations would "
+"be permitted.  This feature is expected to be delivered in python 3.9."
+msgstr ""
+"In https://bugs.python.org/issue9216, a proposal has been made to allow the "
+"addition of a keyword parameter usedforsecurity, which can be used to "
+"designate non-security context uses.  In this case, md5() operations would "
+"be permitted.  This feature is expected to be delivered in python 3.9."
 
 msgid "Introduce reno for deployer release notes."
 msgstr "Introduce Reno for developer release notes."
@@ -72,11 +182,35 @@ msgstr ""
 "It also ensures that some fancy names with a common base, but added number "
 "are actually taken care of."
 
+msgid "New Features"
+msgstr "New Features"
+
+msgid ""
+"New method ``is_json`` ``is_yaml`` added in fileutils. These can be used to "
+"check if file is JSON or YAML formatted."
+msgstr ""
+"New method ``is_json`` ``is_yaml`` added in fileutils. These can be used to "
+"check if the file is JSON or YAML formatted."
+
+msgid ""
+"New method ``netutils.get_mac_addr_by_ipv6(ipv6, dialect)`` extracts the MAC "
+"address from IPv6 addresses generated from MACs."
+msgstr ""
+"New method ``netutils.get_mac_addr_by_ipv6(ipv6, dialect)`` extracts the MAC "
+"address from IPv6 addresses generated from MACs."
+
 msgid "Newton Series Release Notes"
 msgstr "Newton Series Release Notes"
 
 msgid "Ocata Series Release Notes"
 msgstr "Ocata Series Release Notes"
+
+msgid ""
+"Oslo.utils's ``fnmatch`` module is deprecated, please use the stdlib "
+"``fnmatch`` module which is thread safe for python 3+."
+msgstr ""
+"Oslo.utils's ``fnmatch`` module is deprecated, please use the stdlib "
+"``fnmatch`` module which is thread safe for python 3+."
 
 msgid "Other Notes"
 msgstr "Other Notes"
@@ -104,6 +238,13 @@ msgstr ""
 "supported is Python 3.6."
 
 msgid ""
+"Support for parsing the ``human`` format has been deprecated and will be "
+"removed in a future release."
+msgstr ""
+"Support for parsing the ``human`` format has been deprecated and will be "
+"removed in a future release."
+
+msgid ""
 "This patch ensures that we mask sensitive data when masking dicts, even if "
 "the case doesn't match. This means the behaviour of mask_password and "
 "mask_dict_password is now the same."
@@ -111,6 +252,13 @@ msgstr ""
 "This patch ensures that we mask sensitive data when masking dicts, even if "
 "the case doesn't match. This means the behaviour of mask_password and "
 "mask_dict_password is now the same."
+
+msgid ""
+"This patch ensures that we mask sensitive data when masking password, even "
+"if double quotes are used as password value."
+msgstr ""
+"This patch ensures that we mask sensitive data when masking passwords, even "
+"if double quotes are used as password values."
 
 msgid ""
 "This patch ensures we actually mask sensitive data, even if case doesn't "
@@ -131,8 +279,36 @@ msgstr "Upgrade Notes"
 msgid "Ussuri Series Release Notes"
 msgstr "Ussuri Series Release Notes"
 
+msgid "Victoria Series Release Notes"
+msgstr "Victoria Series Release Notes"
+
+msgid "Wallaby Series Release Notes"
+msgstr "Wallaby Series Release Notes"
+
+msgid "Xena Series Release Notes"
+msgstr "Xena Series Release Notes"
+
+msgid "Yoga Series Release Notes"
+msgstr "Yoga Series Release Notes"
+
+msgid ""
+"`bug #1942682 <https://bugs.launchpad.net/oslo.utils/+bug/1942682>`_: Fix "
+"inconsistent value of `QemuImgInfo.encrypted`. Now the attribute is always "
+"`'yes'` or `None` regardless of the format(`human` or `json`) used."
+msgstr ""
+"`bug #1942682 <https://bugs.launchpad.net/oslo.utils/+bug/1942682>`_: Fix "
+"inconsistent value of `QemuImgInfo.encrypted`. Now the attribute is always "
+"`'yes'` or `None` regardless of the format(`human` or `json`) used."
+
 msgid "https://bugs.launchpad.net/tripleo/+bug/1850843"
 msgstr "https://bugs.launchpad.net/tripleo/+bug/1850843"
+
+msgid ""
+"keystoneidsentinel singleton was introduced to generate random keystone-like "
+"UUIDs. New sentinel could be used in the same way as existing uuidsentinel."
+msgstr ""
+"keystoneidsentinel singleton was introduced to generate random keystone-like "
+"UUIDs. New Sentinel could be used in the same way as existing uuidsentinel."
 
 msgid "oslo.utils Release Notes"
 msgstr "oslo.utils Release Notes"
