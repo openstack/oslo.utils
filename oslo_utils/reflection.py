@@ -160,13 +160,8 @@ def get_method_self(method):
         return None
 
 
-def is_same_callback(callback1, callback2, strict=True):
-    """Returns if the two callbacks are the same.
-
-    'strict' arg has no meaning for python 3.8 onwards and will
-    always return the equality of both callback based on 'self'
-    comparison only.
-    """
+def is_same_callback(callback1, callback2):
+    """Returns if the two callbacks are the same."""
     if callback1 is callback2:
         # This happens when plain methods are given (or static/non-bound
         # methods).
@@ -175,31 +170,8 @@ def is_same_callback(callback1, callback2, strict=True):
         # NOTE(gmann): python3.8 onward, comparison of bound methods is
         # changed. It no longer decide the bound method's equality based
         # on their bounded objects equality instead it checks the identity
-        # of their '__self__'. So python3.8 onward, two different bound
-        # methods are no longer equal even __eq__ method return True.
-        # Or in other term, 'strict' arg has no meaning from python 3.8
-        # onwards above if condition never satisfy if both callback are
-        # bounded to two different objects.
-        # For backward compatibility for python <3.8, we can keep the 'strict'
-        # arg and the below code of comparing 'self' and once minimum
-        # supported python version is 3.8 we can remove both because python
-        # 3.8 onward == operator itself checks identity of 'self'.
-        # Ref bug: https://bugs.launchpad.net/oslo.utils/+bug/1841072
-        if not strict:
-            LOG.warning('"strict" arg is deprecated because it no '
-                        'longer work for python 3.8 onwards')
-            return True
-        # Until python 3.7, two bound methods are equal if functions
-        # themselves are equal and objects they are applied to are equal.
-        # This means that a bound method could be the same bound method on
-        # another object if the objects have __eq__ methods that return true
-        # (when in fact it is a different bound method). Python u so crazy!
-        try:
-            self1 = operator.attrgetter("__self__")(callback1)
-            self2 = operator.attrgetter("__self__")(callback2)
-            return self1 is self2
-        except AttributeError:  # nosec
-            pass
+        # of their '__self__'.
+        return True
     return False
 
 

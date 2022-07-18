@@ -1,0 +1,5 @@
+---
+upgrade:
+  - |
+    The ``strict`` argument has been removed from the ``is_same_callback``
+    function. The argument has had no effect in Python 3.8.
