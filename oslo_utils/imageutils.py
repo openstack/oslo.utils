@@ -97,7 +97,7 @@ class QemuImgInfo(object):
         if self.encrypted:
             lines.append("encrypted: %s" % self.encrypted)
         if self.format_specific:
-            lines.appened("format_specific: %s" % self.format_specific)
+            lines.append("format_specific: %s" % self.format_specific)
         return "\n".join(lines)
 
     def _canonicalize(self, field):

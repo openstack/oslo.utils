@@ -250,6 +250,9 @@ class ImageUtilsJSONTestCase(test_base.BaseTestCase):
         self.assertEqual(13168640, image_info.disk_size)
         self.assertEqual("bar", image_info.format_specific["data"]["foo"])
         self.assertEqual('yes', image_info.encrypted)
+        # test for Bug #1996426
+        expected_str = "format_specific: {'data': {'foo': 'bar'}}"
+        self.assertIn(expected_str, str(image_info))
 
     @mock.patch("debtcollector.deprecate")
     def test_qemu_img_info_blank(self, mock_deprecate):
