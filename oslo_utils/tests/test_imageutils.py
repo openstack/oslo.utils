@@ -236,6 +236,9 @@ class ImageUtilsJSONTestCase(test_base.BaseTestCase):
         self.assertEqual('qcow2', image_info.file_format)
         self.assertEqual(13168640, image_info.disk_size)
         self.assertEqual("bar", image_info.format_specific["data"]["foo"])
+        # test for Bug #1996426
+        expected_str = "format_specific: {'data': {'foo': 'bar'}}"
+        self.assertIn(expected_str, str(image_info))
 
     def test_qemu_img_info_json_format_blank(self):
         img_output = '{}'
