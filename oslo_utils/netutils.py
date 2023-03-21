@@ -414,6 +414,52 @@ def _get_my_ipv4_address():
     return LOCALHOST
 
 
+def get_my_ipv6():
+    """Returns the actual IPv6 address of the local machine.
+
+    This code figures out what source address would be used if some traffic
+    were to be sent out to some well known address on the Internet. In this
+    case, IPv6 from RFC3849 is used, but the specific address does not
+    matter much. No traffic is actually sent.
+
+    .. versionadded:: 6.1
+       Return ``'::1'`` if there is no default interface.
+    """
+    try:
+        csock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
+        csock.connect(('2001:db8::1', 80))
+        (addr, _, _, _) = csock.getsockname()
+        csock.close()
+        return addr
+    except socket.error:
+        return _get_my_ipv6_address()
+
+
+def _get_my_ipv6_address():
+    """Figure out the best IPv6 address
+    """
+    LOCALHOST = '::1'
+    gtw = netifaces.gateways()
+    try:
+        interface = gtw['default'][netifaces.AF_INET6][1]
+    except (KeyError, IndexError):
+        LOG.info('Could not determine default network interface, '
+                 'using %s for IPv6 address', LOCALHOST)
+        return LOCALHOST
+
+    try:
+        return netifaces.ifaddresses(interface)[netifaces.AF_INET6][0]['addr']
+    except (KeyError, IndexError):
+        LOG.info('Could not determine IPv6 address for interface '
+                 '%(interface)s, using %(address)s',
+                 {'interface': interface, 'address': LOCALHOST})
+    except Exception as e:
+        LOG.info('Could not determine IPv6 address for '
+                 'interface %(interface)s: %(error)s',
+                 {'interface': interface, 'error': e})
+    return LOCALHOST
+
+
 class _ModifiedSplitResult(parse.SplitResult):
     """Split results class for urlsplit."""
 

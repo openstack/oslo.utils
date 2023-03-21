@@ -276,12 +276,20 @@ class NetworkUtilsTest(test_base.BaseTestCase):
         for input_str in invalid_inputs:
             self.assertFalse(netutils.is_valid_port(input_str))
 
-    def test_get_my_ip(self):
+    def test_get_my_ipv4(self):
         sock_attrs = {
             'return_value.getsockname.return_value': ['1.2.3.4', '']}
         with mock.patch('socket.socket', **sock_attrs):
             addr = netutils.get_my_ipv4()
         self.assertEqual(addr, '1.2.3.4')
+
+    def test_get_my_ipv6(self):
+        sock_attrs = {
+            'return_value.getsockname.return_value': ['2001:db8::2', '',
+                                                      '', '']}
+        with mock.patch('socket.socket', **sock_attrs):
+            addr = netutils.get_my_ipv6()
+        self.assertEqual(addr, '2001:db8::2')
 
     def test_is_int_in_range(self):
         valid_inputs = [(1, -100, 100),
@@ -323,37 +331,44 @@ class NetworkUtilsTest(test_base.BaseTestCase):
 
     @mock.patch('socket.socket')
     @mock.patch('oslo_utils.netutils._get_my_ipv4_address')
-    def test_get_my_ip_socket_error(self, ip, mock_socket):
+    def test_get_my_ipv4_socket_error(self, ip, mock_socket):
         mock_socket.side_effect = socket.error
         ip.return_value = '1.2.3.4'
         addr = netutils.get_my_ipv4()
         self.assertEqual(addr, '1.2.3.4')
 
-    @mock.patch('netifaces.gateways')
-    @mock.patch('netifaces.ifaddresses')
-    def test_get_my_ipv4_address_with_default_route(
-            self, ifaddr, gateways):
-        with mock.patch.dict(netifaces.__dict__, {'AF_INET': '0'}):
-            ifaddr.return_value = {'0': [{'addr': '172.18.204.1'}]}
-            addr = netutils._get_my_ipv4_address()
-        self.assertEqual('172.18.204.1', addr)
+    @mock.patch('socket.socket')
+    @mock.patch('oslo_utils.netutils._get_my_ipv6_address')
+    def test_get_my_ipv6_socket_error(self, ip, mock_socket):
+        mock_socket.side_effect = socket.error
+        ip.return_value = '2001:db8::2'
+        addr = netutils.get_my_ipv6()
+        self.assertEqual(addr, '2001:db8::2')
 
     @mock.patch('netifaces.gateways')
     @mock.patch('netifaces.ifaddresses')
-    def test_get_my_ipv4_address_without_default_route(
+    def test_get_my_ip_address_with_default_route(
             self, ifaddr, gateways):
-        with mock.patch.dict(netifaces.__dict__, {'AF_INET': '0'}):
-            ifaddr.return_value = {}
-            addr = netutils._get_my_ipv4_address()
-        self.assertEqual('127.0.0.1', addr)
+        ifaddr.return_value = {netifaces.AF_INET: [{'addr': '172.18.204.1'}],
+                               netifaces.AF_INET6: [{'addr': '2001:db8::2'}]}
+        self.assertEqual('172.18.204.1', netutils._get_my_ipv4_address())
+        self.assertEqual('2001:db8::2', netutils._get_my_ipv6_address())
+
+    @mock.patch('netifaces.gateways')
+    @mock.patch('netifaces.ifaddresses')
+    def test_get_my_ip_address_without_default_route(
+            self, ifaddr, gateways):
+        ifaddr.return_value = {}
+        self.assertEqual('127.0.0.1', netutils._get_my_ipv4_address())
+        self.assertEqual('::1', netutils._get_my_ipv6_address())
 
     @mock.patch('netifaces.gateways')
     @mock.patch('netifaces.ifaddresses')
     def test_get_my_ipv4_address_without_default_interface(
             self, ifaddr, gateways):
         gateways.return_value = {}
-        addr = netutils._get_my_ipv4_address()
-        self.assertEqual('127.0.0.1', addr)
+        self.assertEqual('127.0.0.1', netutils._get_my_ipv4_address())
+        self.assertEqual('::1', netutils._get_my_ipv6_address())
         self.assertFalse(ifaddr.called)
 
 
