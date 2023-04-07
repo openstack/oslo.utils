@@ -34,6 +34,10 @@ Zi = 1024 ** 7
 "Binary zetta unit"
 Yi = 1024 ** 8
 "Binary yotta unit"
+Ri = 1024 ** 9
+"Binary ronna unit"
+Qi = 1024 ** 10
+"Binary quetta unit"
 
 # Decimal unit constants.
 k = 1000
@@ -52,3 +56,7 @@ Z = 1000 ** 7
 "Decimal zetta unit"
 Y = 1000 ** 8
 "Decimal yotta unit"
+R = 1000 ** 9
+"Decimal ronna unit"
+Q = 1000 ** 10
+"Decimal quetta unit"
