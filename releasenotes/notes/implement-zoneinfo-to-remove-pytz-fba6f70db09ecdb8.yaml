@@ -1,0 +1,6 @@
+---
+other:
+  - |
+    Implement zoneinfo to allow us to remove pytz's dependency. zoneinfo
+    was introduced by python 3.9, and the series 2023.2 (bobcat) set py39
+    as the minimal supported runtime, so we are able to remove pytz.
