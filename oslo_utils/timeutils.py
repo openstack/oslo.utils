@@ -339,12 +339,6 @@ class StopWatch(object):
     when operations are performed in a thread-safe manner on these objects by
     wrapping those operations with locks.
 
-    It will use the `monotonic`_ pypi library to find an appropriate
-    monotonically increasing time providing function (which typically varies
-    depending on operating system and python version).
-
-    .. _monotonic: https://pypi.org/project/monotonic/
-
     .. versionadded:: 1.4
     """
     _STARTED = 'STARTED'
