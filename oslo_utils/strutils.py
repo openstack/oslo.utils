@@ -37,11 +37,24 @@ UNIT_PREFIX_EXPONENT = {
     'Gi': 3,
     'T': 4,
     'Ti': 4,
+    'P': 5,
+    'Pi': 5,
+    'E': 6,
+    'Ei': 6,
+    'Z': 7,
+    'Zi': 7,
+    'Y': 8,
+    'Yi': 8,
+    'R': 9,
+    'Ri': 9,
+    'Q': 10,
+    'Qi': 10,
 }
 UNIT_SYSTEM_INFO = {
-    'IEC': (1024, re.compile(r'(^[-+]?\d*\.?\d+)([KMGT]i?)?(b|bit|B)$')),
-    'SI': (1000, re.compile(r'(^[-+]?\d*\.?\d+)([kMGT])?(b|bit|B)$')),
-    'mixed': (None, re.compile(r'(^[-+]?\d*\.?\d+)([kKMGT]i?)?(b|bit|B)$')),
+    'IEC': (1024, re.compile(r'(^[-+]?\d*\.?\d+)([KMGTPEZYRQ]i?)?(b|bit|B)$')),
+    'SI': (1000, re.compile(r'(^[-+]?\d*\.?\d+)([kMGTPEZYRQ])?(b|bit|B)$')),
+    'mixed': (None, re.compile(
+        r'(^[-+]?\d*\.?\d+)([kKMGTPEZYRQ]i?)?(b|bit|B)$')),
 }
 
 TRUE_STRINGS = ('1', 't', 'true', 'on', 'y', 'yes')
@@ -182,13 +195,19 @@ def string_to_bytes(text, unit_system='IEC', return_int=False):
 
     The units supported for IEC / mixed::
 
-        Kb(it), Kib(it), Mb(it), Mib(it), Gb(it), Gib(it), Tb(it), Tib(it)
-        KB, KiB, MB, MiB, GB, GiB, TB, TiB
+        Kb(it), Kib(it), Mb(it), Mib(it), Gb(it), Gib(it), Tb(it), Tib(it),
+        Pb(it), Pib(it), Eb(it), Eib(it), Zb(it), Zib(it), Yb(it), Yib(it),
+        Rb(it), Rib(it), Qb(it), Qib(it)
+
+        KB, KiB, MB, MiB, GB, GiB, TB, TiB, PB, PiB, EB, EiB, ZB, ZiB,
+        YB, YiB, RB, RiB, QB, QiB
 
     The units supported for SI ::
 
-        kb(it), Mb(it), Gb(it), Tb(it)
-        kB, MB, GB, TB
+        kb(it), Mb(it), Gb(it), Tb(it), Pb(it), Eb(it), Zb(it), Yb(it),
+        Rb(it), Qb(it)
+
+        kB, MB, GB, TB, PB, EB, ZB, YB, RB, QB
 
     SI units are interpreted as power-of-ten (e.g. 1kb = 1000b).  Note
     that the SI unit system does not support capital letter 'K'
