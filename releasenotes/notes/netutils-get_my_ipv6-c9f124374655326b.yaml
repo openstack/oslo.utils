@@ -1,0 +1,5 @@
+---
+features:
+  - |
+    New method ``netutils.get_my_ipv6()`` returns the IPv6 address
+    of the local machine.
