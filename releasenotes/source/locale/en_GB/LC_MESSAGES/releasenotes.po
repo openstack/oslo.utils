@@ -2,20 +2,24 @@
 # Andi Chandler <andi@gowling.com>, 2018. #zanata
 # Andi Chandler <andi@gowling.com>, 2020. #zanata
 # Andi Chandler <andi@gowling.com>, 2022. #zanata
+# Andi Chandler <andi@gowling.com>, 2023. #zanata
 msgid ""
 msgstr ""
 "Project-Id-Version: oslo.utils\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-09 15:52+0000\n"
+"POT-Creation-Date: 2023-06-27 14:48+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2022-08-14 12:25+0000\n"
+"PO-Revision-Date: 2023-06-21 08:09+0000\n"
 "Last-Translator: Andi Chandler <andi@gowling.com>\n"
 "Language-Team: English (United Kingdom)\n"
 "Language: en_GB\n"
 "X-Generator: Zanata 4.3.3\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
+
+msgid "2023.1 Series Release Notes"
+msgstr "2023.1 Series Release Notes"
 
 msgid "3.13.0"
 msgstr "3.13.0"
@@ -44,8 +48,8 @@ msgstr "3.41.4"
 msgid "3.41.5"
 msgstr "3.41.5"
 
-msgid "3.41.6-3"
-msgstr "3.41.6-3"
+msgid "3.41.6-4"
+msgstr "3.41.6-4"
 
 msgid "3.42.1"
 msgstr "3.42.1"
@@ -56,8 +60,8 @@ msgstr "4.0.0"
 msgid "4.1.0"
 msgstr "4.1.0"
 
-msgid "4.1.2-3"
-msgstr "4.1.2-3"
+msgid "4.1.2-4"
+msgstr "4.1.2-4"
 
 msgid "4.10.0"
 msgstr "4.10.0"
@@ -165,6 +169,13 @@ msgstr ""
 "Previously, only the characters before the quote were masked."
 
 msgid ""
+"Implement zoneinfo to allow us to remove pytz's dependency for Python 3.9 "
+"and 3.10."
+msgstr ""
+"Implement zoneinfo to allow us to remove pytz's dependency for Python 3.9 "
+"and 3.10."
+
+msgid ""
 "In https://bugs.python.org/issue9216, a proposal has been made to allow the "
 "addition of a keyword parameter usedforsecurity, which can be used to "
 "designate non-security context uses.  In this case, md5() operations would "
@@ -201,6 +212,13 @@ msgid ""
 msgstr ""
 "New method ``netutils.get_mac_addr_by_ipv6(ipv6, dialect)`` extracts the MAC "
 "address from IPv6 addresses generated from MACs."
+
+msgid ""
+"New method ``netutils.get_my_ipv6()`` returns the IPv6 address of the local "
+"machine."
+msgstr ""
+"New method ``netutils.get_my_ipv6()`` returns the IPv6 address of the local "
+"machine."
 
 msgid "Newton Series Release Notes"
 msgstr "Newton Series Release Notes"
@@ -309,6 +327,9 @@ msgstr "Xena Series Release Notes"
 
 msgid "Yoga Series Release Notes"
 msgstr "Yoga Series Release Notes"
+
+msgid "Zed Series Release Notes"
+msgstr "Zed Series Release Notes"
 
 msgid ""
 "`bug #1942682 <https://bugs.launchpad.net/oslo.utils/+bug/1942682>`_: Fix "
