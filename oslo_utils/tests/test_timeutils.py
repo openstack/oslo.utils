@@ -66,7 +66,7 @@ class TimeUtilsTest(test_base.BaseTestCase):
 
     @mock.patch('datetime.datetime', wraps=datetime.datetime)
     def _test_is_older_than(self, fn, datetime_mock):
-        datetime_mock.utcnow.return_value = self.skynet_self_aware_time
+        datetime_mock.now.return_value = self.skynet_self_aware_time
         expect_true = timeutils.is_older_than(fn(self.one_minute_before), 59)
         self.assertTrue(expect_true)
         expect_false = timeutils.is_older_than(fn(self.one_minute_before), 60)
@@ -89,7 +89,7 @@ class TimeUtilsTest(test_base.BaseTestCase):
 
     @mock.patch('datetime.datetime', wraps=datetime.datetime)
     def _test_is_newer_than(self, fn, datetime_mock):
-        datetime_mock.utcnow.return_value = self.skynet_self_aware_time
+        datetime_mock.now.return_value = self.skynet_self_aware_time
         expect_true = timeutils.is_newer_than(fn(self.one_minute_after),
                                               59)
         self.assertTrue(expect_true)
@@ -202,7 +202,7 @@ class TimeUtilsTest(test_base.BaseTestCase):
         self.assertTrue(timeutils.is_soon(expires, 600))
 
         with mock.patch('datetime.datetime') as datetime_mock:
-            datetime_mock.utcnow.return_value = self.skynet_self_aware_time
+            datetime_mock.now.return_value = self.skynet_self_aware_time
             expires = timeutils.utcnow()
             self.assertTrue(timeutils.is_soon(expires, 0))
 

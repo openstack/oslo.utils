@@ -137,7 +137,7 @@ def utcnow(with_timezone=False):
             return utcnow.override_time
     if with_timezone:
         return datetime.datetime.now(tz=iso8601.iso8601.UTC)
-    return datetime.datetime.utcnow()
+    return datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
 
 
 utcnow.override_time = None
@@ -153,7 +153,9 @@ def set_time_override(override_time=None):
     :param override_time: datetime instance or list thereof. If not
                           given, defaults to the current UTC time.
     """
-    utcnow.override_time = override_time or datetime.datetime.utcnow()
+    utcnow.override_time = (
+        override_time or
+        datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None))
 
 
 def advance_time_delta(timedelta):
