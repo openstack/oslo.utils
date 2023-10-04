@@ -76,7 +76,7 @@ _SANITIZE_KEYS = ['adminpass', 'admin_pass', 'password', 'admin_password',
                   'designaterndckey', 'cephadminkey', 'heatauthencryptionkey',
                   'cephclientkey', 'keystonecredential',
                   'barbicansimplecryptokek', 'cephrgwkey', 'swifthashsuffix',
-                  'migrationsshkey', 'cephmdskey', 'cephmonkey']
+                  'migrationsshkey', 'cephmdskey', 'cephmonkey', 'chapsecret']
 
 # NOTE(ldbragst): Let's build a list of regex objects using the list of
 # _SANITIZE_KEYS we already have. This way, we only have to add the new key
