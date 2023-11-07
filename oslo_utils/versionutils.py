@@ -20,6 +20,7 @@ Helpers for comparing version strings.
 """
 
 import functools
+import re
 
 import packaging.version
 
@@ -87,4 +88,5 @@ def convert_version_to_tuple(version_str):
 
     .. versionadded:: 2.0
     """
+    version_str = re.sub(r'(\d+)(a|alpha|b|beta|rc)\d+$', '\\1', version_str)
     return tuple(int(part) for part in version_str.split('.'))
