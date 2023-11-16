@@ -15,7 +15,6 @@
 #    under the License.
 
 import functools
-import sys
 
 from oslotest import base as test_base
 
@@ -151,16 +150,7 @@ class CallbackEqualityTest(test_base.BaseTestCase):
         c = A()
 
         self.assertFalse(reflection.is_same_callback(b.b, c.b))
-        # NOTE(gmann): python3.8 onwards, comparision of bound methods is
-        # changed and 'strict' arg has no meaning.
-        # Ref bug: https://bugs.launchpad.net/oslo.utils/+bug/1841072
-        if sys.version_info < (3, 8):
-            self.assertTrue(reflection.is_same_callback(b.b, c.b,
-                            strict=False))
-        else:
-            self.assertFalse(reflection.is_same_callback(b.b, c.b,
-                             strict=False))
-            self.assertTrue(reflection.is_same_callback(b.b, b.b))
+        self.assertTrue(reflection.is_same_callback(b.b, b.b))
 
 
 class BoundMethodTest(test_base.BaseTestCase):
