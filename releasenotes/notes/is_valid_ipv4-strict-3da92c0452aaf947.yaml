@@ -1,0 +1,6 @@
+---
+upgrade:
+  - |
+    The ``netutils.is_valid_ipv4`` method now enables the strict check by
+    default. To preserve the previous behavior, set the ``strict`` argument to
+    ``False``.
