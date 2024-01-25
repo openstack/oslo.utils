@@ -138,7 +138,7 @@ def raise_with_cause(exc_cls, message, *args, **kwargs):
         finally:
             # Leave no references around (especially with regards to
             # tracebacks and any variables that it retains internally).
-            del(exc_type, exc, exc_tb)
+            del (exc_type, exc, exc_tb)
     raise exc_cls(message, *args, **kwargs) from kwargs.get('cause')
 
 
