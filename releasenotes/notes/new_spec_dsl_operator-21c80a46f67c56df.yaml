@@ -1,0 +1,17 @@
+---
+features:
+  - |
+    Introducing a new spec DSL operator called ``<range-in>`` that allows users
+    to match a numeric value against a range of numbers that are delimited with
+    lower and upper limits. The new operator is a binary operator that accepts
+    4 arguments.
+
+    - The first one and the last one are brackets. ``[`` and ``]`` defines
+      inclusive limits while ``(`` and ``)`` defines exclusive limits.
+
+    - The second one is the lower limit while the third one is the upper
+      limit.
+
+    Example: "<range-in> [ 10.4 20 )" will match a value against an range
+    such as the lower limit of the range is 10.4 and the upper limit is 20.
+    Note that 10.4 is included while 20 is excluded.

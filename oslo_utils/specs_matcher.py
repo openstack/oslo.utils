@@ -27,6 +27,38 @@ def _all_in(x, *y):
     return all(val in x for val in y)
 
 
+def _range_in(x, *y):
+    x = ast.literal_eval(x)
+    if len(y) != 4:
+        raise TypeError("<range-in> operator has to be followed by 2 "
+                        "space separated numeric value surrounded by "
+                        "brackets \"range_in [ 10 20 ] \"")
+    num_x = float(x)
+    num_y = float(y[1])
+    num_z = float(y[2])
+    if num_y > num_z:
+        raise TypeError("<range-in> operator's first argument has to be "
+                        "smaller or equal to the second argument EG"
+                        "\"range_in  ( 10 20 ] \"")
+
+    if y[0] == '[':
+        lower = num_x >= num_y
+    elif y[0] == '(':
+        lower = num_x > num_y
+    else:
+        raise TypeError("The first element should be an opening bracket "
+                        "(\"(\" or \"[\")")
+
+    if y[3] == ']':
+        upper = num_x <= num_z
+    elif y[3] == ')':
+        upper = num_x < num_z
+    else:
+        raise TypeError("The last element should be a closing bracket "
+                        "(\")\" or \"]\")")
+    return lower and upper
+
+
 op_methods = {
     # This one is special/odd,
     # TODO(harlowja): fix it so that it's not greater than or
@@ -51,6 +83,7 @@ op_methods = {
     '<all-in>': _all_in,
     '<in>': lambda x, y: y in x,
     '<or>': lambda x, *y: any(x == a for a in y),
+    '<range-in>': _range_in,
 }
 
 
@@ -79,9 +112,12 @@ String operations:
   * ``s>= :`` Greater than or equal
 
 Other operations:
-  * ``<all-in> :`` All items 'in' value
-  * ``<in>     :`` Item 'in' value, like a substring in a string.
-  * ``<or>     :`` Logical 'or'
+  * ``<all-in>  :`` All items 'in' value
+  * ``<in>      :`` Item 'in' value, like a substring in a string.
+  * ``<or>      :`` Logical 'or'
+  * ``<range-in>:`` Range tester with customizable boundary conditions, tests
+                    whether value is in the range, boundary condition could be
+                    inclusve \'[\' or exclusive \'(\'.
 
 If no operator is specified the default is ``s==`` (string equality comparison)
 
@@ -91,6 +127,9 @@ Example operations:
  * ``"s== 2.1.0"`` Is the string value equal to ``2.1.0``
  * ``"<in> gcc"`` Is the string ``gcc`` contained in the value string
  * ``"<all-in> aes mmx"`` Are both ``aes`` and ``mmx`` in the value
+ * ``"<range-in> [ 10 20 ]"`` float(value) >= 10 and float(value) <= 20
+ * ``"<range-in> ( 10 20 ]"`` float(value) > 10 and float(value) <= 20
+ * ``"<range-in> ( 10 20 )"`` float(value) > 10 and float(value) < 20
 
 :returns: A pyparsing.MatchFirst object. See
           https://pythonhosted.org/pyparsing/ for details on pyparsing.
@@ -113,18 +152,21 @@ Example operations:
 
     all_in_nary_op = pyparsing.Literal("<all-in>")
     or_ = pyparsing.Literal("<or>")
+    range_in_binary_op = pyparsing.Literal("<range-in>")
 
     # An atom is anything not an keyword followed by anything but whitespace
-    atom = ~(unary_ops | all_in_nary_op | or_) + pyparsing.Regex(r"\S+")
+    atom = ~(unary_ops | all_in_nary_op | or_ | range_in_binary_op) + \
+        pyparsing.Regex(r"\S+")
 
     unary = unary_ops + atom
+    range_op = range_in_binary_op + atom + atom + atom + atom
     nary = all_in_nary_op + pyparsing.OneOrMore(atom)
     disjunction = pyparsing.OneOrMore(or_ + atom)
 
     # Even-numbered tokens will be '<or>', so we drop them
     disjunction.setParseAction(lambda _s, _l, t: ["<or>"] + t[1::2])
 
-    expr = disjunction | nary | unary | atom
+    expr = disjunction | nary | range_op | unary | atom
     return expr
 
 

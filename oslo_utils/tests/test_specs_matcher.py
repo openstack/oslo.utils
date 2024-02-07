@@ -435,3 +435,195 @@ class SpecsMatcherTestCase(test_base.BaseTestCase):
             specs_matcher.match,
             value="^&*($",
             req='<all-in> aes')
+
+    def test_specs_fails_not_enough_args_with_op_rangein(self):
+        self.assertRaises(
+            TypeError,
+            specs_matcher.match,
+            value="23",
+            req='<range-in> [ 10 ]')
+
+    def test_specs_fails_no_brackets_with_op_rangein(self):
+        self.assertRaises(
+            TypeError,
+            specs_matcher.match,
+            value="23",
+            req='<range-in> 10 20')
+
+    def test_specs_fails_no_opening_bracket_with_op_rangein(self):
+        self.assertRaises(
+            TypeError,
+            specs_matcher.match,
+            value="23",
+            req='<range-in> 10 20 ]')
+
+    def test_specs_fails_no_closing_bracket_with_op_rangein(self):
+        self.assertRaises(
+            TypeError,
+            specs_matcher.match,
+            value="23",
+            req='<range-in> [ 10 20')
+
+    def test_specs_fails_invalid_brackets_with_op_rangein(self):
+        self.assertRaises(
+            TypeError,
+            specs_matcher.match,
+            value="23",
+            req='<range-in> { 10 20 }')
+
+    def test_specs_fails_not_opening_brackets_with_op_rangein(self):
+        self.assertRaises(
+            TypeError,
+            specs_matcher.match,
+            value="23",
+            req='<range-in> ) 10 20 )')
+
+    def test_specs_fails_not_closing_brackets_with_op_rangein(self):
+        self.assertRaises(
+            TypeError,
+            specs_matcher.match,
+            value="23",
+            req='<range-in> ( 10 20 (')
+
+    def test_specs_fails_reverse_brackets_with_op_rangein(self):
+        self.assertRaises(
+            TypeError,
+            specs_matcher.match,
+            value="23",
+            req='<range-in> ) 10 20 (')
+
+    def test_specs_fails_too_many_args_with_op_rangein(self):
+        self.assertRaises(
+            TypeError,
+            specs_matcher.match,
+            value="23",
+            req='<range-in> [ 10 20 30 ]')
+
+    def test_specs_fails_bad_limits_with_op_rangein(self):
+        self.assertRaises(
+            TypeError,
+            specs_matcher.match,
+            value="23",
+            req='<range-in> [ 20 10 ]')
+
+    def test_specs_fails_match_beyond_scope_with_op_rangein_le(self):
+        self._do_specs_matcher_test(
+            matches=False,
+            value="23",
+            req='<range-in> [ 10 20 ]')
+
+    def test_specs_fails_match_beyond_scope_with_op_rangein_lt(self):
+        self._do_specs_matcher_test(
+            matches=False,
+            value="23",
+            req='<range-in> [ 10 20 )')
+
+    def test_specs_fails_match_under_scope_with_op_rangein_ge(self):
+        self._do_specs_matcher_test(
+            matches=False,
+            value="5",
+            req='<range-in> [ 10 20 ]')
+
+    def test_specs_fails_match_under_scope_with_op_rangein_gt(self):
+        self._do_specs_matcher_test(
+            matches=False,
+            value="5",
+            req='<range-in> ( 10 20 ]')
+
+    def test_specs_fails_match_float_beyond_scope_with_op_rangein_le(self):
+        self._do_specs_matcher_test(
+            matches=False,
+            value="20.3",
+            req='<range-in> [ 10.1 20.2 ]')
+
+    def test_specs_fails_match_float_beyond_scope_with_op_rangein_lt(self):
+        self._do_specs_matcher_test(
+            matches=False,
+            value="20.3",
+            req='<range-in> [ 10.1 20.2 )')
+
+    def test_specs_fails_match_float_under_scope_with_op_rangein_ge(self):
+        self._do_specs_matcher_test(
+            matches=False,
+            value="5.0",
+            req='<range-in> [ 5.1 20.2 ]')
+
+    def test_specs_fails_match_float_under_scope_with_op_rangein_gt(self):
+        self._do_specs_matcher_test(
+            matches=False,
+            value="5.0",
+            req='<range-in> ( 5.1 20.2 ]')
+
+    def test_specs_matches_int_lower_int_range_with_op_rangein_ge(self):
+        self._do_specs_matcher_test(
+            matches=True,
+            value="10",
+            req='<range-in> [ 10 20 ]')
+
+    def test_specs_fails_matchesint_lower_int_range_with_op_rangein_gt(self):
+        self._do_specs_matcher_test(
+            matches=False,
+            value="10",
+            req='<range-in> ( 10 20 ]')
+
+    def test_specs_matches_float_lower_float_range_with_op_rangein_ge(self):
+        self._do_specs_matcher_test(
+            matches=True,
+            value="10.1",
+            req='<range-in> [ 10.1 20 ]')
+
+    def test_specs_fails_matche_float_lower_float_range_with_op_rangein_gt(
+            self):
+        self._do_specs_matcher_test(
+            matches=False,
+            value="10.1",
+            req='<range-in> ( 10.1 20 ]')
+
+    def test_specs_matches_int_with_int_range_with_op_rangein(self):
+        self._do_specs_matcher_test(
+            matches=True,
+            value="15",
+            req='<range-in> [ 10 20 ]')
+
+    def test_specs_matches_float_with_int_limit_with_op_rangein(self):
+        self._do_specs_matcher_test(
+            matches=True,
+            value="15.5",
+            req='<range-in> [ 10 20 ]')
+
+    def test_specs_matches_int_upper_int_range_with_op_rangein(self):
+        self._do_specs_matcher_test(
+            matches=True,
+            value="20",
+            req='<range-in> [ 10 20 ]')
+
+    def test_specs_fails_matche_int_upper_int_range_with_op_rangein_lt(self):
+        self._do_specs_matcher_test(
+            matches=False,
+            value="20",
+            req='<range-in> [ 10 20 )')
+
+    def test_specs_matches_float_upper_mixed_range_with_op_rangein(self):
+        self._do_specs_matcher_test(
+            matches=True,
+            value="20.5",
+            req='<range-in> [ 10 20.5 ]')
+
+    def test_specs_fails_matche_float_upper_mixed_range_with_op_rangein_lt(
+            self):
+        self._do_specs_matcher_test(
+            matches=False,
+            value="20.5",
+            req='<range-in> [ 10 20.5 )')
+
+    def test_specs_matches_float_with_float_limit_with_op_rangein(self):
+        self._do_specs_matcher_test(
+            matches=True,
+            value="12.5",
+            req='<range-in> [ 10.1 20.1 ]')
+
+    def test_specs_matches_only_one_with_op_rangein(self):
+        self._do_specs_matcher_test(
+            matches=True,
+            value="10.1",
+            req='<range-in> [ 10.1 10.1 ]')
