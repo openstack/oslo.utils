@@ -24,6 +24,7 @@ import socket
 from urllib import parse
 
 import netaddr
+from netaddr.core import INET_ATON
 from netaddr.core import INET_PTON
 import netifaces
 
@@ -100,7 +101,7 @@ def is_valid_ipv4(address, strict=None):
        (``a.b.c.d``, ``a.b.c``, ``a.b``, ``a``).
     """
     if strict is not None:
-        flag = INET_PTON if strict else 0
+        flag = INET_PTON if strict else INET_ATON
         try:
             return netaddr.valid_ipv4(address, flags=flag)
         except netaddr.AddrFormatError:
@@ -111,7 +112,7 @@ def is_valid_ipv4(address, strict=None):
         if netaddr.valid_ipv4(address, flags=INET_PTON):
             return True
         else:
-            if netaddr.valid_ipv4(address):
+            if netaddr.valid_ipv4(address, flags=INET_ATON):
                 LOG.warning(
                     'Converting in non strict mode is deprecated. '
                     'You should pass strict=False if you want to '
