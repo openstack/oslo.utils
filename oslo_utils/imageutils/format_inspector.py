@@ -218,6 +218,8 @@ class FileInspector(abc.ABC):
     def eat_chunk(self, chunk):
         """Call this to present chunks of the file to the inspector."""
         pre_regions = set(self._capture_regions.keys())
+        pre_complete = {k for k, v in self._capture_regions.items()
+                        if v.complete}
 
         # Increment our position-in-file counter
         self._total_count += len(chunk)
@@ -234,6 +236,12 @@ class FileInspector(abc.ABC):
         new_regions = set(self._capture_regions.keys()) - pre_regions
         if new_regions:
             self._capture(chunk, only=new_regions)
+
+        post_complete = {k for k, v in self._capture_regions.items()
+                         if v.complete}
+        # Call the handler for any regions that are newly complete
+        for region in post_complete - pre_complete:
+            self.region_complete(region)
 
     def post_process(self):
         """Post-read hook to process what has been read so far.
@@ -259,6 +267,14 @@ class FileInspector(abc.ABC):
     def has_region(self, name):
         """Returns True if named region has been defined."""
         return name in self._capture_regions
+
+    def region_complete(self, region_name):
+        """Called when a region becomes complete.
+
+        Subclasses may implement this if they need to do one-time processing
+        of a region's data.
+        """
+        pass
 
     def add_safety_check(self, check):
         if not isinstance(check, SafetyCheck):
@@ -396,6 +412,7 @@ class QcowInspector(FileInspector):
     I_FEATURES_MAX_BIT = 4
 
     def _initialize(self):
+        self.qemu_header_info = {}
         self.new_region('header', CaptureRegion(0, 512))
         self.add_safety_check(
             SafetyCheck('backing_file', self.check_backing_file))
@@ -404,26 +421,22 @@ class QcowInspector(FileInspector):
         self.add_safety_check(
             SafetyCheck('unknown_features', self.check_unknown_features))
 
-    def _qcow_header_data(self):
-        magic, version, bf_offset, bf_sz, cluster_bits, size = (
-            struct.unpack('>4sIQIIQ', self.region('header').data[:32]))
-        return magic, size
+    def region_complete(self, region):
+        self.qemu_header_info = dict(zip(
+            ('magic', 'version', 'bf_offset', 'bf_sz', 'cluster_bits', 'size'),
+            struct.unpack('>4sIQIIQ', self.region('header').data[:32])))
+        if not self.format_match:
+            self.qemu_header_info = {}
 
     @property
     def virtual_size(self):
-        if not self.region('header').complete:
-            return 0
-        if not self.format_match:
-            return 0
-        magic, size = self._qcow_header_data()
-        return size
+        return self.qemu_header_info.get('size', 0)
 
     @property
     def format_match(self):
         if not self.region('header').complete:
             return False
-        magic, size = self._qcow_header_data()
-        return magic == b'QFI\xFB'
+        return self.qemu_header_info.get('magic') == b'QFI\xFB'
 
     def check_backing_file(self):
         bf_offset_bytes = self.region('header').data[
@@ -775,6 +788,7 @@ class VMDKInspector(FileInspector):
     GD_AT_END = 0xffffffffffffffff
 
     def _initialize(self):
+        self.desc_text = None
         self.new_region('header', CaptureRegion(0, 512))
         self.add_safety_check(
             SafetyCheck('descriptor', self.check_descriptor))
@@ -814,32 +828,53 @@ class VMDKInspector(FileInspector):
             self.new_region('descriptor', CaptureRegion(
                 desc_offset, desc_size))
 
+    def region_complete(self, region_name):
+        if region_name == 'descriptor':
+            self._parse_descriptor()
+
+    def _parse_descriptor(self):
+        try:
+            # Descriptor is null-padded to 512 bytes. Find the first one and
+            # use it as the end of the text string.
+            desc_data = self.region('descriptor').data
+            pad_idx = desc_data.index(b'\x00')
+            desc_data = desc_data[:pad_idx]
+            # Descriptor is actually case-insensitive ASCII text
+            desc_text = desc_data.decode('ascii').lower()
+        except UnicodeDecodeError:
+            LOG.error('VMDK descriptor failed to decode as ASCII')
+            return
+
+        try:
+            type_idx = desc_text.index('createtype="') + len('createtype="')
+            type_end = desc_text.find('"', type_idx)
+        except ValueError:
+            # This means we did not find the createType= header, which is
+            # fatal, so we should refuse this.
+            vmdktype = 'formatnotfound'
+        else:
+            # Make sure we don't grab and log a huge chunk of data in a
+            # maliciously-formatted descriptor region
+            if type_end - type_idx < 64:
+                vmdktype = desc_text[type_idx:type_end]
+            else:
+                vmdktype = 'formatnotfound'
+
+        self.desc_text = desc_text
+        self.vmdktype = vmdktype
+
     @property
     def format_match(self):
         return self.region('header').data.startswith(b'KDMV')
 
     @property
     def virtual_size(self):
-        if not self.has_region('descriptor'):
+        if not self.desc_text:
             # Not enough data yet
             return 0
 
-        descriptor_rgn = self.region('descriptor')
-        if not descriptor_rgn.complete:
-            # Not enough data yet
-            return 0
-
-        descriptor = descriptor_rgn.data
-        type_idx = descriptor.index(b'createType="') + len(b'createType="')
-        type_end = descriptor.find(b'"', type_idx)
-        # Make sure we don't grab and log a huge chunk of data in a
-        # maliciously-formatted descriptor region
-        if type_end - type_idx < 64:
-            vmdktype = descriptor[type_idx:type_end]
-        else:
-            vmdktype = b'formatnotfound'
-        if vmdktype not in (b'monolithicSparse', b'streamOptimized'):
-            LOG.warning('Unsupported VMDK format %s', vmdktype)
+        if self.vmdktype not in ('monolithicsparse', 'streamoptimized'):
+            LOG.warning('Unsupported VMDK format %r', self.vmdktype)
             return 0
 
         # If we have the descriptor, we definitely have the header
@@ -849,27 +884,21 @@ class VMDKInspector(FileInspector):
         return sectors * 512
 
     def check_descriptor(self):
-        if (not self.has_region('descriptor') or
-                not self.region('descriptor').complete):
+        if not self.desc_text:
             raise SafetyViolation(_('No descriptor found'))
-
-        try:
-            # Descriptor is padded to 512 bytes
-            desc_data = self.region('descriptor').data.rstrip(b'\x00')
-            # Descriptor is actually case-insensitive ASCII text
-            desc_text = desc_data.decode('ascii').lower()
-        except UnicodeDecodeError:
-            LOG.error('VMDK descriptor failed to decode as ASCII')
-            raise SafetyViolation(_('Invalid VMDK descriptor data'))
 
         extent_access = ('rw', 'rdonly', 'noaccess')
         header_fields = []
         extents = []
         ddb = []
 
+        if self.vmdktype not in ('monolithicsparse', 'streamoptimized'):
+            LOG.warning('Unsupported VMDK format %r', self.vmdktype)
+            raise SafetyViolation('Unsupported subformat')
+
         # NOTE(danms): Cautiously parse the VMDK descriptor. Each line must
         # be something we understand, otherwise we refuse it.
-        for line in [x.strip() for x in desc_text.split('\n')]:
+        for line in [x.strip() for x in self.desc_text.split('\n')]:
             if line.startswith('#') or not line:
                 # Blank or comment lines are ignored
                 continue
