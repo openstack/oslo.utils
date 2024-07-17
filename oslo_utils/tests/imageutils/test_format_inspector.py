@@ -515,6 +515,10 @@ class TestFormatInspectors(test_base.BaseTestCase):
             with mock.patch.object(fmt, 'region', return_value=fake_rgn):
                 self.assertEqual(0, fmt.virtual_size)
 
+    def test_unique_names(self):
+        for key, inspector_cls in format_inspector.ALL_FORMATS.items():
+            self.assertEqual(key, inspector_cls.NAME)
+
 
 class TestFormatInspectorInfra(test_base.BaseTestCase):
     def _test_capture_region_bs(self, bs):

@@ -21,6 +21,7 @@ required, and in a streaming-friendly manner to collect metadata about
 complex-format images.
 """
 
+import abc
 import struct
 
 import logging
@@ -99,7 +100,7 @@ class TraceDisabled(object):
     error = debug
 
 
-class FileInspector(object):
+class FileInspector(abc.ABC):
     """A stream-based disk image inspector.
 
     This base class works on raw images and is subclassed for more
@@ -108,6 +109,9 @@ class FileInspector(object):
     as much data as necessary to determine required attributes of
     the file.
     """
+
+    # This should match what qemu-img thinks this format is
+    NAME = ''
 
     def __init__(self, tracing=False):
         self._total_count = 0
@@ -121,6 +125,11 @@ class FileInspector(object):
         else:
             self._log = TraceDisabled()
         self._capture_regions = {}
+        self._initialize()
+
+    @abc.abstractmethod
+    def _initialize(self):
+        """Set up any capture regions before we start processing data"""
 
     def _capture(self, chunk, only=None):
         for name, region in self._capture_regions.items():
@@ -175,9 +184,9 @@ class FileInspector(object):
         return name in self._capture_regions
 
     @property
+    @abc.abstractmethod
     def format_match(self):
         """Returns True if the file appears to be the expected format."""
-        return True
 
     @property
     def virtual_size(self):
@@ -199,7 +208,7 @@ class FileInspector(object):
 
     def __str__(self):
         """The string name of this file format."""
-        return 'raw'
+        return self.NAME
 
     @property
     def context_info(self):
@@ -232,12 +241,28 @@ class FileInspector(object):
             raise ImageFormatError('File is not in requested format')
         return inspector
 
+    @abc.abstractmethod
     def safety_check(self):
         """Perform some checks to determine if this file is safe.
 
         Returns True if safe, False otherwise. It may raise ImageFormatError
         if safety cannot be guaranteed because of parsing or other errors.
         """
+
+
+class RawFileInspector(FileInspector):
+    NAME = 'raw'
+
+    def _initialize(self):
+        """Raw files have nothing to capture"""
+
+    @property
+    def format_match(self):
+        # By definition, raw files are unformatted and thus we always match
+        return True
+
+    def safety_check(self):
+        """Raw files are not safety-check'able"""
         return True
 
 
@@ -260,7 +285,7 @@ class QcowInspector(FileInspector):
     This should only require about 32 bytes of the beginning of the file
     to determine the virtual size, and 104 bytes to perform the safety check.
     """
-
+    NAME = 'qcow2'
     BF_OFFSET = 0x08
     BF_OFFSET_LEN = 8
     I_FEATURES = 0x48
@@ -268,8 +293,7 @@ class QcowInspector(FileInspector):
     I_FEATURES_DATAFILE_BIT = 3
     I_FEATURES_MAX_BIT = 4
 
-    def __init__(self, *a, **k):
-        super(QcowInspector, self).__init__(*a, **k)
+    def _initialize(self):
         self.new_region('header', CaptureRegion(0, 512))
 
     def _qcow_header_data(self):
@@ -360,9 +384,6 @@ class QcowInspector(FileInspector):
         bit = 1 << (self.I_FEATURES_DATAFILE_BIT - 1 % 8)
         return bool(i_features[byte] & bit)
 
-    def __str__(self):
-        return 'qcow2'
-
     def safety_check(self):
         return (not self.has_backing_file and
                 not self.has_data_file and
@@ -370,8 +391,9 @@ class QcowInspector(FileInspector):
 
 
 class QEDInspector(FileInspector):
-    def __init__(self, tracing=False):
-        super().__init__(tracing)
+    NAME = 'qed'
+
+    def _initialize(self):
         self.new_region('header', CaptureRegion(0, 512))
 
     @property
@@ -401,10 +423,13 @@ class VHDInspector(FileInspector):
     This should only require about 512 bytes of the beginning of the file
     to determine the virtual size.
     """
+    NAME = 'vhd'
 
-    def __init__(self, *a, **k):
-        super(VHDInspector, self).__init__(*a, **k)
+    def _initialize(self):
         self.new_region('header', CaptureRegion(0, 512))
+
+    def safety_check(self):
+        return True
 
     @property
     def format_match(self):
@@ -419,9 +444,6 @@ class VHDInspector(FileInspector):
             return 0
 
         return struct.unpack('>Q', self.region('header').data[40:48])[0]
-
-    def __str__(self):
-        return 'vhd'
 
 
 # The VHDX format consists of a complex dynamic little-endian
@@ -490,12 +512,12 @@ class VHDXInspector(FileInspector):
     actual VDS uint64.
 
     """
+    NAME = 'vhdx'
     METAREGION = '8B7CA206-4790-4B9A-B8FE-575F050F886E'
     VIRTUAL_DISK_SIZE = '2FA54224-CD1B-4876-B211-5DBED83BF4B8'
     VHDX_METADATA_TABLE_MAX_SIZE = 32 * 2048  # From qemu
 
-    def __init__(self, *a, **k):
-        super(VHDXInspector, self).__init__(*a, **k)
+    def _initialize(self):
         self.new_region('ident', CaptureRegion(0, 32))
         self.new_region('header', CaptureRegion(192 * 1024, 64 * 1024))
 
@@ -630,8 +652,8 @@ class VHDXInspector(FileInspector):
         size, = struct.unpack('<Q', self.region('vds').data)
         return size
 
-    def __str__(self):
-        return 'vhdx'
+    def safety_check(self):
+        return True
 
 
 # The VMDK format comes in a large number of variations, but the
@@ -667,14 +689,14 @@ class VMDKInspector(FileInspector):
     layout of the disk.
     """
 
+    NAME = 'vmdk'
     # The beginning and max size of the descriptor is also hardcoded in Qemu
     # at 0x200 and 1MB - 1
     DESC_OFFSET = 0x200
     DESC_MAX_SIZE = (1 << 20) - 1
     GD_AT_END = 0xffffffffffffffff
 
-    def __init__(self, *a, **k):
-        super(VMDKInspector, self).__init__(*a, **k)
+    def _initialize(self):
         self.new_region('header', CaptureRegion(0, 512))
 
     def post_process(self):
@@ -799,9 +821,6 @@ class VMDKInspector(FileInspector):
 
         return True
 
-    def __str__(self):
-        return 'vmdk'
-
 
 # The VirtualBox VDI format consists of a 512-byte little-endian
 # header, some of which we care about:
@@ -817,9 +836,9 @@ class VDIInspector(FileInspector):
 
     This only needs to store the first 512 bytes of the image.
     """
+    NAME = 'vdi'
 
-    def __init__(self, *a, **k):
-        super(VDIInspector, self).__init__(*a, **k)
+    def _initialize(self):
         self.new_region('header', CaptureRegion(0, 512))
 
     @property
@@ -840,8 +859,8 @@ class VDIInspector(FileInspector):
         size, = struct.unpack('<Q', self.region('header').data[0x170:0x178])
         return size
 
-    def __str__(self):
-        return 'vdi'
+    def safety_check(self):
+        return True
 
 
 class ISOInspector(FileInspector):
@@ -872,9 +891,9 @@ class ISOInspector(FileInspector):
     located at the beginning of the image, which contains the volume size.
 
     """
+    NAME = 'iso'
 
-    def __init__(self, *a, **k):
-        super(ISOInspector, self).__init__(*a, **k)
+    def _initialize(self):
         self.new_region('system_area', CaptureRegion(0, 32 * units.Ki))
         self.new_region('header', CaptureRegion(32 * units.Ki, 2 * units.Ki))
 
@@ -924,8 +943,8 @@ class ISOInspector(FileInspector):
         # the virtual size is the volume space size * logical block size
         return volume_space_size * logical_block_size
 
-    def __str__(self):
-        return 'iso'
+    def safety_check(self):
+        return True
 
 
 class InfoWrapper(object):
@@ -974,7 +993,7 @@ class InfoWrapper(object):
 
 
 ALL_FORMATS = {
-    'raw': FileInspector,
+    'raw': RawFileInspector,
     'qcow2': QcowInspector,
     'vhd': VHDInspector,
     'vhdx': VHDXInspector,
