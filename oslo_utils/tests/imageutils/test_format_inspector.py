@@ -21,6 +21,7 @@ import subprocess
 import tempfile
 from unittest import mock
 
+import ddt
 from oslo_utils import units
 
 from oslo_utils.imageutils import format_inspector
@@ -41,6 +42,7 @@ def get_size_from_qemu_img(filename):
     raise Exception('Could not find virtual size with qemu-img')
 
 
+@ddt.ddt
 class TestFormatInspectors(test_base.BaseTestCase):
     def setUp(self):
         super(TestFormatInspectors, self).setUp()
@@ -201,7 +203,7 @@ class TestFormatInspectors(test_base.BaseTestCase):
         return fmt
 
     def _test_format_at_image_size(self, format_name, image_size,
-                                   subformat=None):
+                                   subformat=None, safety_check=False):
         """Test the format inspector for the given format at the
         given image size.
 
@@ -238,22 +240,25 @@ class TestFormatInspectors(test_base.BaseTestCase):
             self.assertLess(memory, 512 * units.Ki,
                             'Format used more than 512KiB of memory: %s' % (
                                 fmt.context_info))
+            if safety_check:
+                fmt.safety_check()
 
     def _test_format(self, format_name, subformat=None):
         # Try a few different image sizes, including some odd and very small
         # sizes
         for image_size in (512, 513, 2057, 7):
             self._test_format_at_image_size(format_name, image_size * units.Mi,
-                                            subformat=subformat)
+                                            subformat=subformat,
+                                            safety_check=True)
 
-    def test_qcow2(self):
-        self._test_format('qcow2')
+    @ddt.data('qcow2', 'vhd', 'vhdx', 'vmdk')
+    def test_format(self, format):
+        self._test_format(format)
 
-    def test_iso_9660(self):
-        self._test_format('iso', subformat='9660')
-
-    def test_iso_udf(self):
-        self._test_format('iso', subformat='udf')
+    @ddt.unpack
+    @ddt.data(('iso', 'iso9660'), ('iso', 'udf'), ('vmdk', 'streamOptimized'))
+    def test_subformat(self, format, subformat):
+        self._test_format(format, subformat=subformat)
 
     def _generate_bad_iso(self):
         # we want to emulate a malicious user who uploads a an
@@ -308,18 +313,6 @@ class TestFormatInspectors(test_base.BaseTestCase):
             format_inspector.detect_file_format, fn)
         self.assertIn('Multiple formats detected', str(e))
 
-    def test_vhd(self):
-        self._test_format('vhd')
-
-    def test_vhdx(self):
-        self._test_format('vhdx')
-
-    def test_vmdk(self):
-        self._test_format('vmdk')
-
-    def test_vmdk_stream_optimized(self):
-        self._test_format('vmdk', 'streamOptimized')
-
     def test_from_file_reads_minimum(self):
         img = self._create_img('qcow2', 10 * units.Mi)
         file_size = os.stat(img).st_size
@@ -333,7 +326,8 @@ class TestFormatInspectors(test_base.BaseTestCase):
         img = self._create_img('qed', 10 * units.Mi)
         fmt = format_inspector.get_inspector('qed').from_file(img)
         self.assertTrue(fmt.format_match)
-        self.assertFalse(fmt.safety_check())
+        self.assertRaises(format_inspector.SafetyCheckFailed,
+                          fmt.safety_check)
 
     def _test_vmdk_bad_descriptor_offset(self, subformat=None):
         format_name = 'vmdk'
@@ -418,20 +412,24 @@ class TestFormatInspectors(test_base.BaseTestCase):
         # A qcow with no backing or data file is safe
         fn = self._create_img('qcow2', 5 * units.Mi, None)
         inspector = format_inspector.QcowInspector.from_file(fn)
-        self.assertTrue(inspector.safety_check())
+        inspector.safety_check()
 
         # A backing file makes it unsafe
         fn = self._create_img('qcow2', 5 * units.Mi, None,
                               backing_file=backing_fn)
         inspector = format_inspector.QcowInspector.from_file(fn)
-        self.assertFalse(inspector.safety_check())
+        self.assertRaisesRegex(format_inspector.SafetyCheckFailed,
+                               '.*backing_file.*',
+                               inspector.safety_check)
 
         # A data-file makes it unsafe
         fn = self._create_img('qcow2', 5 * units.Mi,
                               options={'data_file': data_fn,
                                        'data_file_raw': 'on'})
         inspector = format_inspector.QcowInspector.from_file(fn)
-        self.assertFalse(inspector.safety_check())
+        self.assertRaisesRegex(format_inspector.SafetyCheckFailed,
+                               '.*data_file.*',
+                               inspector.safety_check)
 
         # Trying to load a non-QCOW file is an error
         self.assertRaises(format_inspector.ImageFormatError,
@@ -445,23 +443,27 @@ class TestFormatInspectors(test_base.BaseTestCase):
         inspector.region('header').data = data
 
         # All zeros, no feature flags - all good
-        self.assertFalse(inspector.has_unknown_features)
+        inspector.check_unknown_features()
 
         # A feature flag set in the first byte (highest-order) is not
         # something we know about, so fail.
         data[0x48] = 0x01
-        self.assertTrue(inspector.has_unknown_features)
+        self.assertRaisesRegex(format_inspector.SafetyViolation,
+                               'Unknown QCOW2 features found',
+                               inspector.check_unknown_features),
 
         # The first bit in the last byte (lowest-order) is known (the dirty
         # bit) so that should pass
         data[0x48] = 0x00
         data[0x4F] = 0x01
-        self.assertFalse(inspector.has_unknown_features)
+        inspector.check_unknown_features()
 
         # Currently (as of 2024), the high-order feature flag bit in the low-
         # order byte is not assigned, so make sure we reject it.
         data[0x4F] = 0x80
-        self.assertTrue(inspector.has_unknown_features)
+        self.assertRaisesRegex(format_inspector.SafetyViolation,
+                               'Unknown QCOW2 features found',
+                               inspector.check_unknown_features),
 
     def test_vdi(self):
         self._test_format('vdi')
@@ -623,6 +625,59 @@ class TestFormatInspectorInfra(test_base.BaseTestCase):
         self.assertEqual(format_inspector.QcowInspector,
                          format_inspector.get_inspector('qcow2'))
         self.assertIsNone(format_inspector.get_inspector('foo'))
+
+    def test_safety_check_records_result(self):
+        def fake_check():
+            raise format_inspector.SafetyViolation('myresult')
+
+        check = format_inspector.SafetyCheck('foo', fake_check,
+                                             description='a fake check')
+        self.assertRaisesRegex(format_inspector.SafetyViolation,
+                               'myresult',
+                               check)
+
+    def test_safety_check_records_failure(self):
+        # This check will fail with ValueError
+        check = format_inspector.SafetyCheck('foo', lambda: int('a'),
+                                             description='a fake check')
+        self.assertRaisesRegex(format_inspector.SafetyViolation,
+                               'Unexpected error',
+                               check)
+
+    def test_safety_check_constants(self):
+        null_check = format_inspector.SafetyCheck.null()
+        self.assertIsInstance(null_check, format_inspector.SafetyCheck)
+        self.assertIsNone(null_check())
+
+        banned_check = format_inspector.SafetyCheck.banned()
+        self.assertIsInstance(banned_check, format_inspector.SafetyCheck)
+        self.assertRaisesRegex(format_inspector.SafetyViolation,
+                               'not allowed',
+                               banned_check)
+
+    def test_safety_check_error_conditions(self):
+        inspector = format_inspector.QcowInspector()
+        self.assertRaisesRegex(format_inspector.ImageFormatError,
+                               'Incomplete file.*',
+                               inspector.safety_check)
+        inspector.eat_chunk(b'\x00' * 512)
+        self.assertRaisesRegex(format_inspector.ImageFormatError,
+                               'content does not match',
+                               inspector.safety_check)
+
+        self.assertRaises(RuntimeError, inspector.add_safety_check, 'foo')
+
+    def test_safety_checks_required(self):
+        class BadSafetyCheck(format_inspector.FileInspector):
+            def _initialize(self):
+                # No safety checks!
+                return
+
+            @property
+            def format_match(self):
+                return True
+        self.assertRaisesRegex(RuntimeError, 'at least one safety',
+                               BadSafetyCheck)
 
 
 class TestFormatInspectorsTargeted(test_base.BaseTestCase):
