@@ -93,6 +93,36 @@ class CaptureRegion(object):
             self.data = self.data[:self.length]
 
 
+class EndCaptureRegion(CaptureRegion):
+    """Represents a region that captures the last N bytes of a stream.
+
+    This can only capture the last N bytes of a stream and not an arbitrary
+    region referenced from the end of the file since in most cases we do not
+    know how much data we will read.
+
+    :param offset: Byte offset from the end of the stream to capture (which
+                   will also be the region length)
+    """
+    def __init__(self, offset):
+        super().__init__(offset, offset)
+        # We don't want to indicate completeness until we have the data we
+        # want *and* have reached EOF
+        self._complete = False
+
+    def capture(self, chunk, current_position):
+        self.data += chunk
+        self.data = self.data[0 - self.length:]
+        self.offset = current_position - len(self.data)
+
+    @property
+    def complete(self):
+        return super().complete and self._complete
+
+    def finish(self):
+        """Indicate that the entire stream has been read."""
+        self._complete = True
+
+
 class SafetyCheck:
     """Represents a named safety check on an inspector"""
 
@@ -202,6 +232,7 @@ class FileInspector(abc.ABC):
             self._log = TraceDisabled()
         self._capture_regions = {}
         self._safety_checks = {}
+        self._finished = False
         self._initialize()
         if not self._safety_checks:
             # Make sure we actively declare some safety check, even if it
@@ -216,11 +247,25 @@ class FileInspector(abc.ABC):
         This should add the initial set of capture regions and safety checks.
         """
 
+    def finish(self):
+        """Indicate that the entire stream has been read.
+
+        This should be called when the entire stream has been completely read,
+        which will mark any EndCaptureRegion objects as complete.
+        """
+        self._finished = True
+        for region in self._capture_regions.values():
+            if isinstance(region, EndCaptureRegion):
+                region.finish()
+
     def _capture(self, chunk, only=None):
+        if self._finished:
+            raise RuntimeError('Inspector has been marked finished, '
+                               'no more data processing allowed')
         for name, region in self._capture_regions.items():
             if only and name not in only:
                 continue
-            if not region.complete:
+            if isinstance(region, EndCaptureRegion) or not region.complete:
                 region.capture(chunk, self._total_count)
 
     def eat_chunk(self, chunk):
@@ -361,6 +406,7 @@ class FileInspector(abc.ABC):
                 if inspector.complete:
                     # No need to eat any more data
                     break
+        inspector.finish()
         if not inspector.complete or not inspector.format_match:
             raise ImageFormatError('File is not in requested format')
         return inspector
@@ -779,10 +825,13 @@ class VHDXInspector(FileInspector):
 #     0 0x00  4-byte magic string 'KDMV'
 #     4 0x04  Version (uint32_t)
 #     8 0x08  Flags (uint32_t, unused by us)
-#    16 0x10  Number of 512 byte sectors in the disk (uint64_t)
-#    24 0x18  Granularity (uint64_t, unused by us)
-#    32 0x20  Descriptor offset in 512-byte sectors (uint64_t)
-#    40 0x28  Descriptor size in 512-byte sectors (uint64_t)
+#    12 0x0C  Number of 512 byte sectors in the disk (uint64_t)
+#    20 0x14  Granularity (uint64_t, unused by us)
+#    28 0x1C  Descriptor offset in 512-byte sectors (uint64_t)
+#    36 0x24  Descriptor size in 512-byte sectors (uint64_t)
+#    44 0x2C  Number of GTEs per GT (uint32_t)
+#    48 0x30  Redundant level 0 metadata offset (uint64_t)
+#    56 0x38  Pointer to level 0 of metadata (uint32_t)
 #
 # After we have the header, we need to find the descriptor region,
 # which starts at the sector identified in the "descriptor offset"
@@ -812,6 +861,8 @@ class VMDKInspector(FileInspector):
     # This is the minimum amount of data we need to read to recognize and
     # process a "Hosted Sparse Extent" header
     MIN_SPARSE_HEADER = 64
+    MARKER_EOS = 0
+    MARKER_FOOTER = 3
 
     def _initialize(self):
         self.desc_text = None
@@ -830,6 +881,13 @@ class VMDKInspector(FileInspector):
         self.add_safety_check(
             SafetyCheck('descriptor', self.check_descriptor))
 
+    def _parse_sparse_header(self, region, offset=0):
+        (sig, ver, _flags, _sectors, _grain, desc_sec, desc_num,
+            _numGTEsperGT, _rgdOffset, gdOffset) = struct.unpack(
+            '<4sIIQQQQIQQ',
+            self.region(region).data[offset:offset + self.MIN_SPARSE_HEADER])
+        return sig, ver, desc_sec, desc_num, gdOffset
+
     def post_process(self):
         # If we have just completed the header region, we need to calculate
         # the location and length of the descriptor, which should immediately
@@ -839,10 +897,8 @@ class VMDKInspector(FileInspector):
         if not self.has_region('header') or not self.region('header').complete:
             return
 
-        (sig, ver, _flags, _sectors, _grain, desc_sec, desc_num,
-            _numGTEsperGT, _rgdOffset, gdOffset) = struct.unpack(
-            '<4sIIQQQQIQQ',
-            self.region('header').data[:self.MIN_SPARSE_HEADER])
+        sig, ver, desc_sec, desc_num, gdOffset = (
+            self._parse_sparse_header('header'))
 
         try:
             is_text = True
@@ -867,10 +923,11 @@ class VMDKInspector(FileInspector):
         if ver not in (1, 2, 3):
             raise ImageFormatError('Unsupported format version %i' % ver)
 
-        if gdOffset == self.GD_AT_END:
+        if gdOffset == self.GD_AT_END and not self.has_region('footer'):
             # This means we have a footer, which takes precedence over the
             # header, which we cannot support since we stream.
-            raise ImageFormatError('Unsupported VMDK footer')
+            self.new_region('footer', EndCaptureRegion(1536))
+            self.add_safety_check(SafetyCheck('footer', self.check_footer))
 
         # Since we parse both desc_sec and desc_num (the location of the
         # VMDK's descriptor, expressed in 512 bytes sectors) we enforce a
@@ -995,6 +1052,36 @@ class VMDKInspector(FileInspector):
         if not extents:
             LOG.error('VMDK file specified no extents')
             raise SafetyViolation(_('No extents found'))
+
+    def check_footer(self):
+        h_sig, h_ver, h_desc_sec, h_desc_num, h_goff = (
+            self._parse_sparse_header('header'))
+        f_sig, f_ver, f_desc_sec, f_desc_num, f_goff = (
+            self._parse_sparse_header('footer', 512))
+
+        if h_sig != f_sig:
+            raise SafetyViolation(
+                _('Header and footer signature do not match'))
+        if h_ver != f_ver:
+            raise SafetyViolation(_('Header and footer versions do not match'))
+        if h_desc_sec != f_desc_sec or h_desc_num != f_desc_num:
+            raise SafetyViolation(
+                _('Footer specifies a different descriptor than header'))
+        if f_goff == self.GD_AT_END:
+            raise SafetyViolation(_('Footer indicates another footer'))
+
+        pad = b'\x00' * 496
+        val, size, typ, zero = struct.unpack(
+            '<QII496s',
+            self.region('footer').data[:512])
+        if size != 0 or typ != self.MARKER_FOOTER or zero != pad:
+            raise SafetyViolation(_('Footer marker is invalid'))
+
+        val, size, typ, zero = struct.unpack(
+            '<QII496s',
+            self.region('footer').data[-512:])
+        if val != 0 or size != 0 or typ != self.MARKER_EOS or zero != pad:
+            raise SafetyViolation(_('End-of-stream marker is invalid'))
 
 
 # The VirtualBox VDI format consists of a 512-byte little-endian
@@ -1149,6 +1236,7 @@ class InfoWrapper(object):
         try:
             chunk = next(self._source)
         except StopIteration:
+            self._format.finish()
             raise
         self._process_chunk(chunk)
         return chunk
@@ -1161,6 +1249,7 @@ class InfoWrapper(object):
     def close(self):
         if hasattr(self._source, 'close'):
             self._source.close()
+        self._format.finish()
 
 
 ALL_FORMATS = {
@@ -1199,7 +1288,7 @@ def detect_file_format(filename):
     inspectors = {k: v() for k, v in ALL_FORMATS.items()}
     detections = []
     with open(filename, 'rb') as f:
-        for chunk in chunked_reader(f):
+        for chunk in chunked_reader(f, 4096):
             for format, inspector in list(inspectors.items()):
                 try:
                     inspector.eat_chunk(chunk)
@@ -1216,6 +1305,12 @@ def detect_file_format(filename):
                 # If all the inspectors are sure they are not a match, avoid
                 # reading to the end of the file to settle on 'raw'.
                 break
+
+    for format, inspector in list(inspectors.items()):
+        inspector.finish()
+        if inspector.format_match and inspector.complete and format != 'raw':
+            detections.append(inspector)
+            inspectors.pop(format)
 
     if len(detections) > 1:
         all_formats = [str(inspector) for inspector in detections]

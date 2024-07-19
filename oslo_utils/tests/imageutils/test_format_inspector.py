@@ -242,6 +242,10 @@ class TestFormatInspectors(test_base.BaseTestCase):
                                 fmt.context_info))
             if safety_check:
                 fmt.safety_check()
+                # If the safety check is supposed to pass, we can also make
+                # sure our detection works
+                det = format_inspector.detect_file_format(img)
+                self.assertEqual(det.__class__, fmt.__class__)
 
     def _test_format(self, format_name, subformat=None):
         # Try a few different image sizes, including some odd and very small
@@ -526,6 +530,130 @@ class TestFormatInspectors(test_base.BaseTestCase):
             with mock.patch.object(fmt, 'region', return_value=fake_rgn):
                 self.assertEqual(0, fmt.virtual_size)
 
+    def test_vmdk_with_footer(self):
+        img_fn = self._create_img('vmdk', 10 * units.Mi,
+                                  subformat='streamOptimized')
+
+        # Make the file signal that there is a footer, add a footer, but with
+        # invalid data
+        with open(img_fn, 'rb+') as f:
+            # Write the "expect a footer" sentinel into the header
+            f.seek(56)
+            f.write(
+                struct.pack('<Q', format_inspector.VMDKInspector.GD_AT_END))
+            # Add room for the footer marker, footer, and EOS marker, but
+            # filled with zeroes (which is invalid)
+            f.seek(0, 2)
+            f.write(b'\x00' * 512 * 3)
+        fmt = format_inspector.VMDKInspector.from_file(img_fn)
+        self.assertRaisesRegex(format_inspector.SafetyCheckFailed,
+                               'footer',
+                               fmt.safety_check)
+
+        # Make the footer and footer/EOS markers legit
+        header = bytearray(fmt.region('header').data)
+        # This is gdOffset, which must not be GD_AT_END in the footer
+        header[56:57] = b'\x00'
+        with open(img_fn, 'rb+') as f:
+            # This is the footer marker (type=3)
+            f.seek(-512 * 3 + 12, 2)
+            f.write(b'\x03\x00\x00\x00')
+            # Second-to-last sector is the footer, which must be a copy of the
+            # header but with gdOffset set to something other than the flag.
+            f.seek(-512 * 2, 2)
+            f.write(header)
+
+        # With everything set to legit values, we should pass the check now
+        fmt = format_inspector.VMDKInspector.from_file(img_fn)
+        fmt.safety_check()
+
+        # Make sure we properly detect this type of VMDK
+        det = format_inspector.detect_file_format(img_fn)
+        self.assertEqual(format_inspector.VMDKInspector, det.__class__)
+
+    def test_vmdk_footer_checks(self):
+        def make_header(sig=b'KDMV', ver=1, d_sec=1, d_off=0x200, gdo=None):
+            return struct.pack('<4sIIQQQQIQQ', sig, ver, 0, 0, 0, d_sec, d_off,
+                               0, 0,
+                               gdo or format_inspector.VMDKInspector.GD_AT_END)
+
+        def make_footer(fm_typ=3, fm_sz=0, fm_pad=b'\x00',
+                        eos_typ=0, eos_sz=0, eos_pad=b'\x00',
+                        **header):
+            region = bytearray(b'\x00' * 512 * 3)
+            region[512:1024] = make_header(**header)
+            region[8] = fm_sz
+            region[12] = fm_typ
+            region[16:512] = fm_pad * 496
+
+            region[1024 + 8] = eos_sz
+            region[1024 + 12] = eos_typ
+            region[1024 + 16:] = eos_pad * 496
+            return region
+
+        fmt = format_inspector.VMDKInspector()
+        fmt.new_region('footer', format_inspector.EndCaptureRegion(512 * 3))
+        fmt.region('header').data = make_header()
+
+        # Signature must match header
+        fmt.region('footer').data = make_footer(sig=b'leak')
+        self.assertRaisesRegex(format_inspector.SafetyViolation,
+                               'signature', fmt.check_footer)
+
+        # Version must match header
+        fmt.region('footer').data = make_footer(ver=2)
+        self.assertRaisesRegex(format_inspector.SafetyViolation,
+                               'version', fmt.check_footer)
+
+        # Descriptor cannot be longer
+        fmt.region('footer').data = make_footer(d_sec=2)
+        self.assertRaisesRegex(format_inspector.SafetyViolation,
+                               'descriptor', fmt.check_footer)
+
+        # Descriptor cannot be relocated
+        fmt.region('footer').data = make_footer(d_off=0x300)
+        self.assertRaisesRegex(format_inspector.SafetyViolation,
+                               'descriptor', fmt.check_footer)
+
+        # Footer must not have GD_AT_END implying another footer
+        fmt.region('footer').data = make_footer()
+        self.assertRaisesRegex(format_inspector.SafetyViolation,
+                               'another footer', fmt.check_footer)
+
+        # Footer marker type must be correct
+        fmt.region('footer').data = make_footer(gdo=123, fm_typ=7)
+        self.assertRaisesRegex(format_inspector.SafetyViolation,
+                               'marker', fmt.check_footer)
+
+        # Footer marker must indicate size=0
+        fmt.region('footer').data = make_footer(gdo=123, fm_sz=1)
+        self.assertRaisesRegex(format_inspector.SafetyViolation,
+                               'marker', fmt.check_footer)
+
+        # Footer marker must be zero-padded
+        fmt.region('footer').data = make_footer(gdo=123, fm_pad=b'\x01')
+        self.assertRaisesRegex(format_inspector.SafetyViolation,
+                               'marker', fmt.check_footer)
+
+        # EOS marker type must be correct
+        fmt.region('footer').data = make_footer(gdo=123, eos_typ=7)
+        self.assertRaisesRegex(format_inspector.SafetyViolation,
+                               'marker', fmt.check_footer)
+
+        # EOS marker must indicate size=0
+        fmt.region('footer').data = make_footer(gdo=123, eos_sz=1)
+        self.assertRaisesRegex(format_inspector.SafetyViolation,
+                               'marker', fmt.check_footer)
+
+        # EOS marker must be zero-padded
+        fmt.region('footer').data = make_footer(gdo=123, eos_pad=b'\x01')
+        self.assertRaisesRegex(format_inspector.SafetyViolation,
+                               'marker', fmt.check_footer)
+
+        # Everything in place should pass
+        fmt.region('footer').data = make_footer(gdo=123)
+        fmt.check_footer()
+
     def test_vmdk_safety_checks(self):
         descriptor_lines = [
             '# a comment',
@@ -600,15 +728,6 @@ class TestFormatInspectors(test_base.BaseTestCase):
                                'Unsupported format version',
                                fmt.eat_chunk, chunk)
 
-        # Good signature and version but unsupported ending footer
-        fmt = format_inspector.VMDKInspector()
-        chunk = bytearray(b'\x00' * 512)
-        chunk[0:5] = b'KDMV\x01'
-        chunk[56:64] = b'\xff' * 8
-        self.assertRaisesRegex(format_inspector.ImageFormatError,
-                               'Unsupported VMDK footer',
-                               fmt.eat_chunk, chunk)
-
         # Good signature and version, no footer, invalid descriptor location
         fmt = format_inspector.VMDKInspector()
         chunk = bytearray(b'\x00' * 512)
@@ -630,6 +749,8 @@ class TestFormatInspectorInfra(test_base.BaseTestCase):
             format_inspector.CaptureRegion(3, 9),
             format_inspector.CaptureRegion(0, 256),
             format_inspector.CaptureRegion(32, 8),
+            format_inspector.EndCaptureRegion(32),
+            format_inspector.EndCaptureRegion(5),
         ]
 
         for region in regions:
@@ -643,13 +764,29 @@ class TestFormatInspectorInfra(test_base.BaseTestCase):
             for region in regions:
                 region.capture(chunk, pos)
 
+        # The end regions should not be complete until we signal EOF
+        self.assertFalse(regions[3].complete)
+        self.assertFalse(regions[4].complete)
+
+        for region in regions:
+            try:
+                region.finish()
+            except AttributeError:
+                pass
+
         self.assertEqual(data[3:12], regions[0].data)
         self.assertEqual(data[0:256], regions[1].data)
         self.assertEqual(data[32:40], regions[2].data)
+        self.assertEqual(data[-32:], regions[3].data)
+        self.assertEqual(data[-5:], regions[4].data)
 
         # The small regions should be complete
         self.assertTrue(regions[0].complete)
         self.assertTrue(regions[2].complete)
+
+        # The end regions should be complete
+        self.assertTrue(regions[3].complete)
+        self.assertTrue(regions[4].complete)
 
         # This region extended past the available data, so not complete
         self.assertFalse(regions[1].complete)
@@ -778,6 +915,12 @@ class TestFormatInspectorInfra(test_base.BaseTestCase):
                 return True
         self.assertRaisesRegex(RuntimeError, 'at least one safety',
                                BadSafetyCheck)
+
+    def test_finish_is_final(self):
+        fmt = format_inspector.RawFileInspector()
+        fmt.eat_chunk(b'\x00')
+        fmt.finish()
+        self.assertRaises(RuntimeError, fmt.eat_chunk, b'\x00')
 
 
 class TestFormatInspectorsTargeted(test_base.BaseTestCase):
