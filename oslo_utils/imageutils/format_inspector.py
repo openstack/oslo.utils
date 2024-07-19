@@ -50,17 +50,25 @@ class CaptureRegion(object):
 
     :param offset: Byte offset into the file starting the region
     :param length: The length of the region
+    :param min_length: Consider this region complete if it has captured at
+                       least this much data. This should generally NOT be used
+                       but may be required for certain formats with highly
+                       variable data structures.
     """
 
-    def __init__(self, offset, length):
+    def __init__(self, offset, length, min_length=None):
         self.offset = offset
         self.length = length
         self.data = b''
+        self.min_length = min_length
 
     @property
     def complete(self):
         """Returns True when we have captured the desired data."""
-        return self.length == len(self.data)
+        if self.min_length is not None:
+            return self.min_length <= len(self.data)
+        else:
+            return self.length == len(self.data)
 
     def capture(self, chunk, current_position):
         """Process a chunk of data.
@@ -217,9 +225,9 @@ class FileInspector(abc.ABC):
 
     def eat_chunk(self, chunk):
         """Call this to present chunks of the file to the inspector."""
-        pre_regions = set(self._capture_regions.keys())
-        pre_complete = {k for k, v in self._capture_regions.items()
-                        if v.complete}
+        pre_regions = set(self._capture_regions.values())
+        pre_complete = {region for region in self._capture_regions.values()
+                        if region.complete}
 
         # Increment our position-in-file counter
         self._total_count += len(chunk)
@@ -233,15 +241,16 @@ class FileInspector(abc.ABC):
 
         # Check to see if the post-read processing added new regions
         # which may require the current chunk.
-        new_regions = set(self._capture_regions.keys()) - pre_regions
+        new_regions = set(self._capture_regions.values()) - pre_regions
         if new_regions:
-            self._capture(chunk, only=new_regions)
+            self._capture(chunk, only=[self.region_name(r)
+                                       for r in new_regions])
 
-        post_complete = {k for k, v in self._capture_regions.items()
-                         if v.complete}
+        post_complete = {region for region in self._capture_regions.values()
+                         if region.complete}
         # Call the handler for any regions that are newly complete
         for region in post_complete - pre_complete:
-            self.region_complete(region)
+            self.region_complete(self.region_name(region))
 
     def post_process(self):
         """Post-read hook to process what has been read so far.
@@ -257,6 +266,13 @@ class FileInspector(abc.ABC):
         """Get a CaptureRegion by name."""
         return self._capture_regions[name]
 
+    def region_name(self, region):
+        """Return the region name for a region object."""
+        for name in self._capture_regions:
+            if self._capture_regions[name] is region:
+                return name
+        raise ValueError('No such region')
+
     def new_region(self, name, region):
         """Add a new CaptureRegion by name."""
         if self.has_region(name):
@@ -267,6 +283,13 @@ class FileInspector(abc.ABC):
     def has_region(self, name):
         """Returns True if named region has been defined."""
         return name in self._capture_regions
+
+    def delete_region(self, name):
+        """Remove a capture region by name.
+
+        This will raise KeyError if the region does not exist.
+        """
+        del self._capture_regions[name]
 
     def region_complete(self, region_name):
         """Called when a region becomes complete.
@@ -786,25 +809,59 @@ class VMDKInspector(FileInspector):
     DESC_OFFSET = 0x200
     DESC_MAX_SIZE = (1 << 20) - 1
     GD_AT_END = 0xffffffffffffffff
+    # This is the minimum amount of data we need to read to recognize and
+    # process a "Hosted Sparse Extent" header
+    MIN_SPARSE_HEADER = 64
 
     def _initialize(self):
         self.desc_text = None
-        self.new_region('header', CaptureRegion(0, 512))
+        # This is the header for "Hosted Sparse Extent" type files. It may
+        # or may not be used, depending on what kind of VMDK we are about to
+        # read.
+        self.new_region('header',
+                        CaptureRegion(0, 512,
+                                      min_length=self.MIN_SPARSE_HEADER))
+        # The descriptor starts from the beginning in the some of the older
+        # formats, but we do not know which one we are reading yet. This
+        # will be deleted and re-created if we are reading one of the formats
+        # that embeds it later.
+        self.new_region('descriptor',
+                        CaptureRegion(0, self.DESC_MAX_SIZE, min_length=4))
         self.add_safety_check(
             SafetyCheck('descriptor', self.check_descriptor))
 
     def post_process(self):
         # If we have just completed the header region, we need to calculate
         # the location and length of the descriptor, which should immediately
-        # follow and may have been partially-read in this read.
-        if not self.region('header').complete:
+        # follow and may have been partially-read in this read. If the header
+        # was previously read and that region was deleted, we have nothing
+        # to do here.
+        if not self.has_region('header') or not self.region('header').complete:
             return
 
         (sig, ver, _flags, _sectors, _grain, desc_sec, desc_num,
-         _numGTEsperGT, _rgdOffset, gdOffset) = struct.unpack(
-            '<4sIIQQQQIQQ', self.region('header').data[:64])
+            _numGTEsperGT, _rgdOffset, gdOffset) = struct.unpack(
+            '<4sIIQQQQIQQ',
+            self.region('header').data[:self.MIN_SPARSE_HEADER])
+
+        try:
+            is_text = True
+            for char in self.region('header').data.decode('ascii'):
+                if not char.isprintable() and not char.isspace():
+                    is_text = False
+                    break
+        except UnicodeDecodeError:
+            is_text = False
 
         if sig != b'KDMV':
+            if is_text:
+                # We assume that if everything we have read so far is ASCII
+                # text and the header doesn't have the sparse signature,
+                # this must (or may be) a text-only VMDK descriptor file,
+                # which still needs to be parsed and checked since qemu will
+                # support it.
+                self.delete_region('header')
+                return
             raise ImageFormatError('Signature KDMV not found: %r' % sig)
 
         if ver not in (1, 2, 3):
@@ -824,9 +881,13 @@ class VMDKInspector(FileInspector):
         if desc_offset != self.DESC_OFFSET:
             raise ImageFormatError("Wrong descriptor location")
 
-        if not self.has_region('descriptor'):
-            self.new_region('descriptor', CaptureRegion(
-                desc_offset, desc_size))
+        # If we parsed a valid sparse header and we still have the original
+        # descriptor region at BOF, recreate it with the actual offset of the
+        # embedded one.
+        if self.region('descriptor').offset == 0:
+            self.delete_region('descriptor')
+            self.new_region('descriptor',
+                            CaptureRegion(desc_offset, desc_size))
 
     def region_complete(self, region_name):
         if region_name == 'descriptor':
@@ -834,11 +895,15 @@ class VMDKInspector(FileInspector):
 
     def _parse_descriptor(self):
         try:
-            # Descriptor is null-padded to 512 bytes. Find the first one and
-            # use it as the end of the text string.
+            # The sparse descriptor is null-padded to 512 bytes. Find the
+            # first one and use it as the end of the text string.
             desc_data = self.region('descriptor').data
             pad_idx = desc_data.index(b'\x00')
             desc_data = desc_data[:pad_idx]
+        except ValueError:
+            # Not a sparse descriptor, proceed to decode as test
+            pass
+        try:
             # Descriptor is actually case-insensitive ASCII text
             desc_text = desc_data.decode('ascii').lower()
         except UnicodeDecodeError:
@@ -865,7 +930,10 @@ class VMDKInspector(FileInspector):
 
     @property
     def format_match(self):
-        return self.region('header').data.startswith(b'KDMV')
+        if self.has_region('header'):
+            return self.region('header').data.startswith(b'KDMV')
+        else:
+            return self.vmdktype != 'formatnotfound'
 
     @property
     def virtual_size(self):

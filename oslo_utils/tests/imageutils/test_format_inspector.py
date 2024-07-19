@@ -329,6 +329,15 @@ class TestFormatInspectors(test_base.BaseTestCase):
         self.assertRaises(format_inspector.SafetyCheckFailed,
                           fmt.safety_check)
 
+    def test_vmdk_non_sparse_unsafe(self):
+        img = self._create_img('vmdk', 10 * units.Mi,
+                               subformat='monolithicFlat')
+        fmt = format_inspector.detect_file_format(img)
+        self.assertEqual('vmdk', fmt.NAME)
+        e = self.assertRaises(format_inspector.SafetyCheckFailed,
+                              fmt.safety_check)
+        self.assertIn('Unsupported subformat', str(e.failures['descriptor']))
+
     def _test_vmdk_bad_descriptor_offset(self, subformat=None):
         format_name = 'vmdk'
         image_size = 10 * units.Mi
@@ -531,8 +540,6 @@ class TestFormatInspectors(test_base.BaseTestCase):
         def setup_check():
             fmt = format_inspector.VMDKInspector()
             fmt.region('header').data = b'KDMV' * 128
-            fmt.new_region('descriptor',
-                           format_inspector.CaptureRegion(0, 512))
             data = ('\n'.join(descriptor_lines)).encode()
             data += b'\x00' * (512 - len(data))
             fmt.region('descriptor').data = data
