@@ -31,7 +31,7 @@ from oslo_utils import units
 LOG = logging.getLogger(__name__)
 
 
-def chunked_reader(fileobj, chunk_size=512):
+def _chunked_reader(fileobj, chunk_size=512):
     while True:
         chunk = fileobj.read(chunk_size)
         if not chunk:
@@ -182,17 +182,6 @@ class ImageFormatError(Exception):
     pass
 
 
-class TraceDisabled(object):
-    """A logger-like thing that swallows tracing when we do not want it."""
-
-    def debug(self, *a, **k):
-        pass
-
-    info = debug
-    warning = debug
-    error = debug
-
-
 class SafetyViolation(Exception):
     """Indicates a failure of a single safety violation."""
     pass
@@ -226,10 +215,7 @@ class FileInspector(abc.ABC):
         # but should never really be enabled at that level at runtime. To
         # retain all that work and assist in future debug, we have a separate
         # debug flag that can be passed from a manual tool to turn it on.
-        if tracing:
-            self._log = logging.getLogger(str(self))
-        else:
-            self._log = TraceDisabled()
+        self._tracing = tracing
         self._capture_regions = {}
         self._safety_checks = {}
         self._finished = False
@@ -239,6 +225,10 @@ class FileInspector(abc.ABC):
             # is a no-op.
             raise RuntimeError(
                 'All inspectors must define at least one safety check')
+
+    def _trace(self, *args, **kwargs):
+        if self._tracing:
+            LOG.debug(*args, **kwargs)
 
     @abc.abstractmethod
     def _initialize(self):
@@ -401,7 +391,7 @@ class FileInspector(abc.ABC):
         """
         inspector = cls()
         with open(filename, 'rb') as f:
-            for chunk in chunked_reader(f):
+            for chunk in _chunked_reader(f):
                 inspector.eat_chunk(chunk)
                 if inspector.complete:
                     # No need to eat any more data
@@ -731,14 +721,14 @@ class VHDXInspector(FileInspector):
 
         # Process the regions until we find the metadata one; grab the
         # offset and return
-        self._log.debug('Region entry first is %x', region_entry_first)
-        self._log.debug('Region entries %i', count)
+        self._trace('Region entry first is %x', region_entry_first)
+        self._trace('Region entries %i', count)
         meta_offset = 0
         for i in range(0, count):
             entry_start = region_entry_first + (i * 32)
             entry_end = entry_start + 32
             entry = self.region('header').data[entry_start:entry_end]
-            self._log.debug('Entry offset is %x', entry_start)
+            self._trace('Entry offset is %x', entry_start)
 
             # GUID is the first 16 bytes
             guid = self._guid(entry[:16])
@@ -746,8 +736,8 @@ class VHDXInspector(FileInspector):
                 # This entry is the metadata region entry
                 meta_offset, meta_len, meta_req = struct.unpack(
                     '<QII', entry[16:])
-                self._log.debug('Meta entry %i specifies offset: %x',
-                                i, meta_offset)
+                self._trace('Meta entry %i specifies offset: %x',
+                            i, meta_offset)
                 # NOTE(danms): The meta_len in the region descriptor is the
                 # entire size of the metadata table and data. This can be
                 # very large, so we should only capture the size required
@@ -756,7 +746,7 @@ class VHDXInspector(FileInspector):
                 meta_len = 2048 * 32
                 return CaptureRegion(meta_offset, meta_len)
 
-        self._log.warning('Did not find metadata region')
+        self._trace('Did not find metadata region')
         return None
 
     def _find_meta_entry(self, desired_guid):
@@ -795,14 +785,14 @@ class VHDXInspector(FileInspector):
                 item_length = min(item_length,
                                   self.VHDX_METADATA_TABLE_MAX_SIZE)
                 self.region('metadata').length = len(meta_buffer)
-                self._log.debug('Found entry at offset %x', item_offset)
+                self._trace('Found entry at offset %x', item_offset)
                 # Metadata item offset is from the beginning of the metadata
                 # region, not the file.
                 return CaptureRegion(
                     self.region('metadata').offset + item_offset,
                     item_length)
 
-        self._log.warning('Did not find guid %s', desired_guid)
+        self._trace('Did not find guid %s', desired_guid)
         return None
 
     @property
@@ -1288,7 +1278,7 @@ def detect_file_format(filename):
     inspectors = {k: v() for k, v in ALL_FORMATS.items()}
     detections = []
     with open(filename, 'rb') as f:
-        for chunk in chunked_reader(f, 4096):
+        for chunk in _chunked_reader(f, 4096):
             for format, inspector in list(inspectors.items()):
                 try:
                     inspector.eat_chunk(chunk)
