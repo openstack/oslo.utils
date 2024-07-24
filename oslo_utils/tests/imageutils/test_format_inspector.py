@@ -455,7 +455,12 @@ class TestFormatInspectors(test_base.BaseTestCase):
         inspector = format_inspector.QcowInspector()
         inspector.region('header').data = data
 
-        # All zeros, no feature flags - all good
+        def set_version(ver):
+            data[0x07] = ver
+            inspector.region_complete('header')
+
+        # All zeros, known version, no feature flags - all good
+        set_version(3)
         inspector.check_unknown_features()
 
         # A feature flag set in the first byte (highest-order) is not
@@ -477,6 +482,50 @@ class TestFormatInspectors(test_base.BaseTestCase):
         self.assertRaisesRegex(format_inspector.SafetyViolation,
                                'Unknown QCOW2 features found',
                                inspector.check_unknown_features),
+
+        # Version 1 should be rejected outright
+        set_version(1)
+        self.assertRaisesRegex(format_inspector.SafetyViolation,
+                               'Unsupported qcow2 version',
+                               inspector.check_unknown_features)
+
+        # Version 4 should be rejected outright
+        set_version(4)
+        self.assertRaisesRegex(format_inspector.SafetyViolation,
+                               'Unsupported qcow2 version',
+                               inspector.check_unknown_features)
+
+        # Version 2 had no feature flagging, so with the above flags still
+        # set, we should not process that data as feature flags and pass here.
+        set_version(2)
+        inspector.check_unknown_features()
+
+    def test_qcow2_future_flags(self):
+
+        class Qcow2Future(format_inspector.QcowInspector):
+            """A hypothetical future where qcow2 has 12 extra features."""
+            I_FEATURES_MAX_BIT = 12
+
+        data = bytearray(512)
+        data[0:4] = b'QFI\xFB'
+        inspector = Qcow2Future()
+        inspector.region('header').data = data
+        data[0x07] = 3
+        inspector.region_complete('header')
+
+        # Bit 8 is allowed
+        data[0x4F] = 0x80
+        inspector.check_unknown_features()
+
+        # Bit 9 is allowed
+        data[0x4E] = 0x01
+        inspector.check_unknown_features()
+
+        # Bit 16 is not allowed
+        data[0x4E] = 0x81
+        self.assertRaisesRegex(format_inspector.SafetyViolation,
+                               'Unknown QCOW2 features found',
+                               inspector.check_unknown_features)
 
     def test_vdi(self):
         self._test_format('vdi')
