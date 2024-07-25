@@ -103,6 +103,33 @@ class TestFormatInspectors(test_base.BaseTestCase):
         self._created_files.append(out_fn)
         return out_fn
 
+    def _create_gpt(self, image_size, subformat='gpt'):
+        data = bytearray(b'\x00' * 512 * 10)
+        # The last two bytes of the first sector is the little-endian signature
+        # value 0xAA55
+        data[510:512] = b'\x55\xAA'
+
+        # This is one EFI Protective MBR partition in the first PTE slot,
+        # which is 16 bytes starting at offset 446.
+        data[446:446 + 16] = struct.pack('<BBBBBBBBII',
+                                         0x00,  # boot
+                                         0x00,  # start C
+                                         0x02,  # start H
+                                         0x00,  # start S
+                                         0xEE,  # OS type
+                                         0x00,  # end C
+                                         0x00,  # end H
+                                         0x00,  # end S
+                                         0x01,  # start LBA
+                                         0x00,  # size LBA
+                                         )
+        fn = tempfile.mktemp(prefix='%s-gpt-%s' % (TEST_IMAGE_PREFIX,
+                                                   subformat))
+        with open(fn, 'wb') as f:
+            f.write(data)
+        self._created_files.append(fn)
+        return fn
+
     def _create_img(
             self, fmt, size, subformat=None, options=None,
             backing_file=None):
@@ -117,6 +144,8 @@ class TestFormatInspectors(test_base.BaseTestCase):
 
         if fmt == 'iso':
             return self._create_iso(size, subformat)
+        if fmt == 'gpt':
+            return self._create_gpt(size, subformat)
 
         if fmt == 'vhd':
             # QEMU calls the vhd format vpc
@@ -255,7 +284,7 @@ class TestFormatInspectors(test_base.BaseTestCase):
                                             subformat=subformat,
                                             safety_check=True)
 
-    @ddt.data('qcow2', 'vhd', 'vhdx', 'vmdk')
+    @ddt.data('qcow2', 'vhd', 'vhdx', 'vmdk', 'gpt')
     def test_format(self, format):
         self._test_format(format)
 
@@ -784,6 +813,72 @@ class TestFormatInspectors(test_base.BaseTestCase):
         self.assertRaisesRegex(format_inspector.ImageFormatError,
                                'Wrong descriptor location',
                                fmt.eat_chunk, chunk)
+
+    def test_gpt_mbr_check(self):
+        data = bytearray(b'\x00' * 512 * 2)
+        data[510:512] = b'\x55\xAA'
+        fmt = format_inspector.GPTInspector()
+
+        def mkpte(n=0, boot=0, ostype=0xEE, starth=2, startlba=1):
+            data[446 + n * 16:446 + n * 16 + 16] = struct.pack(
+                '<BBBBBBBBII',
+                boot,  # boot
+                0x00,  # start C
+                starth,  # start H
+                0x00,  # start S
+                ostype,  # OS type
+                0x00,  # end C
+                0x00,  # end H
+                0x00,  # end S
+                startlba,  # start LBA
+                0x00,  # size LBA
+                )
+            fmt.region('mbr').data = data
+            fmt.region_complete('mbr')
+
+        # Make sure we pass with EFI partition and correct values
+        mkpte()
+        fmt.check_mbr_partitions()
+
+        # Make sure we fail if the boot flag is not one of the valid values
+        mkpte(boot=0xA)
+        self.assertRaisesRegex(format_inspector.SafetyViolation,
+                               'invalid boot flag',
+                               fmt.check_mbr_partitions)
+
+        # Make sure we fail if no partitions are defined. This is probably
+        # not a safety problem, but may mean that we mis-identified the image.
+        mkpte(ostype=0)
+        self.assertRaisesRegex(format_inspector.SafetyViolation,
+                               'no partitions defined',
+                               fmt.check_mbr_partitions)
+
+        # EFI Protective MBRs are not allowed to have any other partitions
+        # defined other than the GPT-protecting one.
+        mkpte()
+        mkpte(n=1)
+        self.assertRaisesRegex(format_inspector.SafetyViolation,
+                               'invalid extra partitions',
+                               fmt.check_mbr_partitions)
+
+        # Make sure that we tolerate any start CHS value for non-EFI types,
+        # but refuse outside the required values for EFI.
+        mkpte(n=1, ostype=2)
+        mkpte(ostype=0x8E, starth=1)
+        fmt.check_mbr_partitions()
+        mkpte(starth=1)
+        self.assertRaisesRegex(format_inspector.SafetyViolation,
+                               'invalid start CHS',
+                               fmt.check_mbr_partitions)
+
+        # Make sure that we tolerate any start LBA value for non-EFI types,
+        # but refuse outside the required values for EFI.
+        mkpte(ostype=0x8E, startlba=2)
+        fmt.check_mbr_partitions()
+        mkpte(startlba=2)
+        self.assertRaisesRegex(format_inspector.SafetyViolation,
+                               'invalid start LBA',
+                               fmt.check_mbr_partitions)
 
     def test_unique_names(self):
         for key, inspector_cls in format_inspector.ALL_FORMATS.items():

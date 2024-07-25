@@ -1206,6 +1206,56 @@ class ISOInspector(FileInspector):
         return volume_space_size * logical_block_size
 
 
+# GPT is a superset of legacy MBR and we can detect the two with the same
+# inspector. There may be more we can safety check for GPT, but detecting
+# both formats is simpler.
+# https://uefi.org/specs/UEFI/2.10/05_GUID_Partition_Table_Format.html
+class GPTInspector(FileInspector):
+    NAME = 'gpt'
+    MBR_SIGNATURE = 0xAA55
+    MBR_PTE_START = 446
+
+    def _initialize(self):
+        self.new_region('mbr', CaptureRegion(0, 512))
+        self.new_region('gpt', CaptureRegion(512, 512))
+        # If we detect that this is a GPT, we may want to capture the backup
+        # and assert that it is equivalent.
+        # TODO(danms): Maybe add this region and associated checks:
+        # self.new_region('gpt_backup', EndCaptureRegion(512))
+        self.add_safety_check(SafetyCheck('mbr', self.check_mbr_partitions))
+
+    @property
+    def format_match(self):
+        if not self.region('mbr').complete:
+            return False
+        mbr_sig, = struct.unpack('<H', self.region('mbr').data[510:512])
+        return mbr_sig == self.MBR_SIGNATURE
+
+    def check_mbr_partitions(self):
+        valid_partitions = []
+        found_gpt = False
+        for i in range(4):
+            pte_start = self.MBR_PTE_START + (16 * i)
+            pte = self.region('mbr').data[pte_start:pte_start + 16]
+            (boot, starth, starts, startt, ostype,
+             endh, ehds, endt, startlba, sizelba) = struct.unpack(
+                '<B3BB3BII', pte)
+            if boot not in (0x00, 0x80):
+                raise SafetyViolation('MBR PTE %i has invalid boot flag' % i)
+            if ostype != 0:
+                valid_partitions.append(i)
+            if ostype == 0xEE:
+                found_gpt = True
+                if (starth, starts, startt) != (0x00, 0x02, 0x00):
+                    raise SafetyViolation('GPT MBR has invalid start CHS')
+                if startlba != 0x00000001:
+                    raise SafetyViolation('GPT MBR has invalid start LBA')
+        if found_gpt and valid_partitions != [0]:
+            raise SafetyViolation('GPT MBR defines invalid extra partitions')
+        if not valid_partitions:
+            raise SafetyViolation('GPT MBR has no partitions defined')
+
+
 class InfoWrapper(object):
     """A file-like object that wraps another and updates a format inspector.
 
@@ -1262,6 +1312,7 @@ ALL_FORMATS = {
     'vdi': VDIInspector,
     'qed': QEDInspector,
     'iso': ISOInspector,
+    'gpt': GPTInspector,
 }
 
 
