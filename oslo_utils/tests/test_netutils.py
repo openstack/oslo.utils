@@ -212,6 +212,16 @@ class NetworkUtilsTest(test_base.BaseTestCase):
 
         self.assertFalse(netutils.is_valid_ipv6(''))
 
+    def test_get_noscope_ipv6(self):
+        self.assertEqual('2001:db8::ff00:42:8329',
+                         netutils.get_noscope_ipv6('2001:db8::ff00:42:8329%1'))
+        self.assertEqual('ff02::5678',
+                         netutils.get_noscope_ipv6('ff02::5678%eth0'))
+        self.assertEqual('fe80::1', netutils.get_noscope_ipv6('fe80::1%eth0'))
+        self.assertEqual('::1', netutils.get_noscope_ipv6('::1%eth0'))
+        self.assertEqual('::1', netutils.get_noscope_ipv6('::1'))
+        self.assertRaises(ValueError, netutils.get_noscope_ipv6, '::132:::')
+
     def test_escape_ipv6(self):
         self.assertEqual('[1234::1234]', netutils.escape_ipv6('1234::1234'))
         self.assertEqual('127.0.0.1', netutils.escape_ipv6('127.0.0.1'))
