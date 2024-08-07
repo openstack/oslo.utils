@@ -517,6 +517,92 @@ class TestFormatInspectors(test_base.BaseTestCase):
             with mock.patch.object(fmt, 'region', return_value=fake_rgn):
                 self.assertEqual(0, fmt.virtual_size)
 
+    def test_vmdk_safety_checks(self):
+        descriptor_lines = [
+            '# a comment',
+            'createType monolithicFlat',
+            '',
+            ' ',
+            'someUnknownThing=foo',
+            'ddb whatever',
+            'rw 0 somefile.vmdk',
+        ]
+
+        def setup_check():
+            fmt = format_inspector.VMDKInspector()
+            fmt.region('header').data = b'KDMV' * 128
+            fmt.new_region('descriptor',
+                           format_inspector.CaptureRegion(0, 512))
+            data = ('\n'.join(descriptor_lines)).encode()
+            data += b'\x00' * (512 - len(data))
+            fmt.region('descriptor').data = data
+            return fmt
+
+        # This should fail because the createType header is broken
+        fmt = setup_check()
+        self.assertRaisesRegex(format_inspector.SafetyCheckFailed,
+                               'descriptor',
+                               fmt.safety_check)
+
+        # Fix createType and make sure we pass now
+        descriptor_lines[1] = 'createType=monolithicSparse'
+        fmt = setup_check()
+        fmt.safety_check()
+
+        # Add an extent in an invalid mode which we will not recognize and fail
+        descriptor_lines.append('wronly 2048 somefile2.vmdk')
+        fmt = setup_check()
+        e = self.assertRaises(format_inspector.SafetyCheckFailed,
+                              fmt.safety_check)
+        self.assertIn('descriptor data', str(e.failures['descriptor']))
+
+        # Add an extent with a valid mode but an invalid character
+        descriptor_lines[-1] = 'rw 2048 /etc/hosts'
+        fmt = setup_check()
+        e = self.assertRaises(format_inspector.SafetyCheckFailed,
+                              fmt.safety_check)
+        self.assertIn('extent filenames', str(e.failures['descriptor']))
+
+        # Make sure we fail if there are no extents
+        descriptor_lines.pop()
+        descriptor_lines.pop()
+        fmt = setup_check()
+        e = self.assertRaises(format_inspector.SafetyCheckFailed,
+                              fmt.safety_check)
+        self.assertIn('No extents found', str(e.failures['descriptor']))
+
+    def test_vmdk_format_checks(self):
+        # Invalid signature
+        fmt = format_inspector.VMDKInspector()
+        chunk = (b'\x00' * 512)
+        self.assertRaisesRegex(format_inspector.ImageFormatError,
+                               'Signature',
+                               fmt.eat_chunk, chunk)
+
+        # Good signature but unknown version
+        fmt = format_inspector.VMDKInspector()
+        chunk = b'KDMV\x00' + (b'\x00' * 512)
+        self.assertRaisesRegex(format_inspector.ImageFormatError,
+                               'Unsupported format version',
+                               fmt.eat_chunk, chunk)
+
+        # Good signature and version but unsupported ending footer
+        fmt = format_inspector.VMDKInspector()
+        chunk = bytearray(b'\x00' * 512)
+        chunk[0:5] = b'KDMV\x01'
+        chunk[56:64] = b'\xff' * 8
+        self.assertRaisesRegex(format_inspector.ImageFormatError,
+                               'Unsupported VMDK footer',
+                               fmt.eat_chunk, chunk)
+
+        # Good signature and version, no footer, invalid descriptor location
+        fmt = format_inspector.VMDKInspector()
+        chunk = bytearray(b'\x00' * 512)
+        chunk[0:5] = b'KDMV\x01'
+        self.assertRaisesRegex(format_inspector.ImageFormatError,
+                               'Wrong descriptor location',
+                               fmt.eat_chunk, chunk)
+
     def test_unique_names(self):
         for key, inspector_cls in format_inspector.ALL_FORMATS.items():
             self.assertEqual(key, inspector_cls.NAME)
