@@ -1,0 +1,22 @@
+---
+features:
+  - |
+    The format_inspector module has been imported from the projects that were
+    using it. They had effectively maintained in-tree forks of the original
+    code from glance. This code has been imported (from Nova) into oslo.utils
+    under imageutils for common use. A refactoring of how the safety check
+    works was done to facilitate the ability to surface fine-grained
+    information about individual checks, as needed by some projects, as well
+    as a few other generalizing aspects, which are detailed in the following.
+  - |
+    A gpt/mbr format inspector was added, which should reduce the number of
+    disk images that are detected as "raw". This furthers the goal of trying
+    to avoid using "raw" for both "anything we don't recognize" and "exact
+    image of a physical disk".
+  - |
+    The glance-centric InfoWrapper from the imported code has been replaced
+    with InspectWrapper, which natively runs multiple (default: all) inspector
+    classes in parallel. This is identical to what detect_file_format() did,
+    but in a stream-friendly way, and detect_file_format() now uses this
+    internally. Users of the glance-based code moving to the oslo
+    implemenation should switch to using the InspectWrapper going forward.
