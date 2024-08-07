@@ -457,10 +457,13 @@ class RawFileInspector(FileInspector):
 #
 # https://gitlab.com/qemu-project/qemu/-/blob/master/docs/interop/qcow2.txt
 class QcowInspector(FileInspector):
-    """QEMU QCOW2 Format
+    """QEMU QCOW Format
 
     This should only require about 32 bytes of the beginning of the file
     to determine the virtual size, and 104 bytes to perform the safety check.
+
+    This recognizes the (very) old v1 format but will raise a SafetyViolation
+    for it, as it should definitely not be in production use at this point.
     """
     NAME = 'qcow2'
     BF_OFFSET = 0x08
@@ -506,6 +509,14 @@ class QcowInspector(FileInspector):
             raise SafetyViolation('Image has a backing file')
 
     def check_unknown_features(self):
+        ver = self.qemu_header_info.get('version')
+        if ver == 2:
+            # Version 2 did not have the feature flag array, so no need to
+            # check it here.
+            return
+        elif ver != 3:
+            raise SafetyViolation('Unsupported qcow2 version')
+
         i_features = self.region('header').data[
             self.I_FEATURES:self.I_FEATURES + self.I_FEATURES_LEN]
 
@@ -518,7 +529,7 @@ class QcowInspector(FileInspector):
             if byte_num == max_byte:
                 # If we're in the max-allowed byte, allow any bits less than
                 # the maximum-known feature flag bit to be set
-                allow_mask = ((1 << self.I_FEATURES_MAX_BIT) - 1)
+                allow_mask = ((1 << (self.I_FEATURES_MAX_BIT % 8)) - 1)
             elif byte_num > max_byte:
                 # If we're above the byte with the maximum known feature flag
                 # bit, then we expect all zeroes
