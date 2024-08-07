@@ -15,7 +15,6 @@
 
 import io
 import os
-import re
 import struct
 import subprocess
 import tempfile
@@ -25,21 +24,19 @@ import ddt
 from oslo_utils import units
 
 from oslo_utils.imageutils import format_inspector
+from oslo_utils.imageutils import QemuImgInfo
 from oslotest import base as test_base
 
 
 TEST_IMAGE_PREFIX = 'oslo-unittest-formatinspector-'
 
 
-def get_size_from_qemu_img(filename):
-    output = subprocess.check_output('qemu-img info "%s"' % filename,
-                                     shell=True)
-    for line in output.split(b'\n'):
-        m = re.search(b'^virtual size: .* .([0-9]+) bytes', line.strip())
-        if m:
-            return int(m.group(1))
-
-    raise Exception('Could not find virtual size with qemu-img')
+def get_size_format_from_qemu_img(filename):
+    output = subprocess.check_output(
+        'qemu-img info --output=json "%s"' % filename,
+        shell=True)
+    info = QemuImgInfo(output, format='json')
+    return info.virtual_size, info.file_format
 
 
 @ddt.ddt
@@ -217,11 +214,8 @@ class TestFormatInspectors(test_base.BaseTestCase):
         return fn
 
     def _test_format_at_block_size(self, format_name, img, block_size):
-        fmt = format_inspector.get_inspector(format_name)()
-        self.assertIsNotNone(fmt,
-                             'Did not get format inspector for %s' % (
-                                 format_name))
-        wrapper = format_inspector.InfoWrapper(open(img, 'rb'), fmt)
+        wrapper = format_inspector.InspectWrapper(open(img, 'rb'),
+                                                  format_name)
 
         while True:
             chunk = wrapper.read(block_size)
@@ -229,7 +223,8 @@ class TestFormatInspectors(test_base.BaseTestCase):
                 break
 
         wrapper.close()
-        return fmt
+        self.assertIsNotNone(wrapper.format, 'Failed to detect format')
+        return wrapper.format
 
     def _test_format_at_image_size(self, format_name, image_size,
                                    subformat=None, safety_check=False):
@@ -244,7 +239,7 @@ class TestFormatInspectors(test_base.BaseTestCase):
 
         # Some formats have internal alignment restrictions making this not
         # always exactly like image_size, so get the real value for comparison
-        virtual_size = get_size_from_qemu_img(img)
+        virtual_size, _ = get_size_format_from_qemu_img(img)
 
         # Read the format in various sizes, some of which will read whole
         # sections in a single read, others will be completely unaligned, etc.
@@ -326,25 +321,18 @@ class TestFormatInspectors(test_base.BaseTestCase):
         return qcow, iso, fn
 
     def test_bad_iso_qcow2(self):
-
+        # Test that an iso with a qcow2 header in the system area will be
+        # rejected because it matches more than one format (iso and qcow2).
+        # This is an important case because qemu-img does not support iso,
+        # and can be fooled into thinking one is a qcow2 by putting the header
+        # for one in ISO9660's "system area", which is technically a valid
+        # thing to do.
         _, _, fn = self._generate_bad_iso()
 
-        iso_check = self._test_format_at_block_size('iso', fn, 4 * units.Ki)
-        qcow_check = self._test_format_at_block_size('qcow2', fn, 4 * units.Ki)
-        # this system area of the ISO file is not considered part of the format
-        # the qcow2 header is in the system area of the ISO file
-        # so the ISO file is still valid
-        self.assertTrue(iso_check.format_match)
-        # the qcow2 header is in the system area of the ISO file
-        # but that will be parsed by the qcow2 format inspector
-        # and it will match
-        self.assertTrue(qcow_check.format_match)
-        # if we call format_inspector.detect_file_format it should detect
-        # and raise an exception because both match internally.
-        e = self.assertRaises(
-            format_inspector.ImageFormatError,
-            format_inspector.detect_file_format, fn)
-        self.assertIn('Multiple formats detected', str(e))
+        self.assertRaisesRegex(format_inspector.ImageFormatError,
+                               'Multiple formats detected',
+                               self._test_format_at_block_size,
+                               'iso', fn, 4 * units.Ki)
 
     def test_from_file_reads_minimum(self):
         img = self._create_img('qcow2', 10 * units.Mi)
@@ -387,14 +375,10 @@ class TestFormatInspectors(test_base.BaseTestCase):
         # Read the format in various sizes, some of which will read whole
         # sections in a single read, others will be completely unaligned, etc.
         for block_size in (64 * units.Ki, 512, 17, 1 * units.Mi):
-            fmt = self._test_format_at_block_size(format_name, img, block_size)
-            self.assertTrue(fmt.format_match,
-                            'Failed to match %s at size %i block %i' % (
-                                format_name, image_size, block_size))
-            self.assertEqual(0, fmt.virtual_size,
-                             ('Calculated a virtual size for a corrupt %s at '
-                              'size %i block %i') % (format_name, image_size,
-                                                     block_size))
+            self.assertRaisesRegex(format_inspector.ImageFormatError,
+                                   'Wrong descriptor location',
+                                   self._test_format_at_block_size,
+                                   'vmdk', img, block_size)
 
     def test_vmdk_bad_descriptor_offset(self):
         self._test_vmdk_bad_descriptor_offset()
@@ -559,46 +543,46 @@ class TestFormatInspectors(test_base.BaseTestCase):
     def test_vdi(self):
         self._test_format('vdi')
 
-    def _test_format_with_invalid_data(self, format_name):
-        fmt = format_inspector.get_inspector(format_name)()
-        wrapper = format_inspector.InfoWrapper(open(__file__, 'rb'), fmt)
+    def test_invalid_data(self):
+        wrapper = format_inspector.InspectWrapper(open(__file__, 'rb'))
         while True:
             chunk = wrapper.read(32)
             if not chunk:
                 break
 
         wrapper.close()
-        self.assertFalse(fmt.format_match)
-        self.assertEqual(0, fmt.virtual_size)
-        memory = sum(fmt.context_info.values())
-        self.assertLess(memory, 512 * units.Ki,
-                        'Format used more than 512KiB of memory: %s' % (
-                            fmt.context_info))
+        # Make sure this was not detected as any other format
+        self.assertEqual('raw', str(wrapper.format))
 
-    def test_qcow2_invalid(self):
-        self._test_format_with_invalid_data('qcow2')
+        # Make sure that all of the other inspectors do not match and did not
+        # use too much memory
+        for fmt in wrapper._inspectors:
+            if str(fmt) == 'raw':
+                continue
+            self.assertFalse(fmt.format_match)
+            memory = sum(fmt.context_info.values())
+            self.assertLess(memory, 512 * units.Ki,
+                            'Format used more than 512KiB of memory: %s' % (
+                                fmt.context_info))
 
-    def test_vhd_invalid(self):
-        self._test_format_with_invalid_data('vhd')
+    def test_invalid_data_without_raw(self):
+        wrapper = format_inspector.InspectWrapper(
+            open(__file__, 'rb'),
+            allowed_formats=['qcow2', 'vmdk'])
+        while True:
+            chunk = wrapper.read(32)
+            if not chunk:
+                break
 
-    def test_vhdx_invalid(self):
-        self._test_format_with_invalid_data('vhdx')
-
-    def test_vmdk_invalid(self):
-        self._test_format_with_invalid_data('vmdk')
-
-    def test_vdi_invalid(self):
-        self._test_format_with_invalid_data('vdi')
+        wrapper.close()
+        # Make sure this was not detected as any other format
+        self.assertRaises(format_inspector.ImageFormatError,
+                          lambda: wrapper.format)
 
     def test_vmdk_invalid_type(self):
-        fmt = format_inspector.get_inspector('vmdk')()
-        wrapper = format_inspector.InfoWrapper(open(__file__, 'rb'), fmt)
-        while True:
-            chunk = wrapper.read(32)
-            if not chunk:
-                break
-
-        wrapper.close()
+        fmt = format_inspector.VMDKInspector()
+        with open(__file__, 'rb') as f:
+            fmt.eat_chunk(f.read())
 
         fake_rgn = mock.MagicMock()
         fake_rgn.complete = True
@@ -941,8 +925,7 @@ class TestFormatInspectorInfra(test_base.BaseTestCase):
 
     def _get_wrapper(self, data):
         source = io.BytesIO(data)
-        fake_fmt = mock.create_autospec(format_inspector.get_inspector('raw'))
-        return format_inspector.InfoWrapper(source, fake_fmt)
+        return format_inspector.InspectWrapper(source)
 
     def test_info_wrapper_file_like(self):
         data = b''.join(chr(x).encode() for x in range(ord('A'), ord('z')))
@@ -967,9 +950,10 @@ class TestFormatInspectorInfra(test_base.BaseTestCase):
 
         self.assertEqual(data, read_data)
 
-    def test_info_wrapper_file_like_eats_error(self):
+    @mock.patch.object(format_inspector.VMDKInspector, 'eat_chunk')
+    def test_info_wrapper_file_like_eats_error(self, mock_eat):
         wrapper = self._get_wrapper(b'123456')
-        wrapper._format.eat_chunk.side_effect = Exception('fail')
+        mock_eat.side_effect = Exception('fail')
 
         data = b''
         while True:
@@ -983,13 +967,12 @@ class TestFormatInspectorInfra(test_base.BaseTestCase):
 
         # Make sure we only called this once and never again after
         # the error was raised
-        wrapper._format.eat_chunk.assert_called_once_with(b'123')
+        mock_eat.assert_called_once_with(b'123')
 
-    def test_info_wrapper_iter_like_eats_error(self):
-        fake_fmt = mock.create_autospec(format_inspector.get_inspector('raw'))
-        wrapper = format_inspector.InfoWrapper(iter([b'123', b'456']),
-                                               fake_fmt)
-        fake_fmt.eat_chunk.side_effect = Exception('fail')
+    @mock.patch.object(format_inspector.VMDKInspector, 'eat_chunk')
+    def test_wrapper_iter_like_eats_error(self, mock_eat):
+        wrapper = format_inspector.InspectWrapper(iter([b'123', b'456']))
+        mock_eat.side_effect = Exception('fail')
 
         data = b''
         for chunk in wrapper:
@@ -1000,7 +983,7 @@ class TestFormatInspectorInfra(test_base.BaseTestCase):
 
         # Make sure we only called this once and never again after
         # the error was raised
-        fake_fmt.eat_chunk.assert_called_once_with(b'123')
+        mock_eat.assert_called_once_with(b'123')
 
     def test_get_inspector(self):
         self.assertEqual(format_inspector.QcowInspector,

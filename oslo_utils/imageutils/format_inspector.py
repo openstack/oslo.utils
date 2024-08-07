@@ -1256,38 +1256,57 @@ class GPTInspector(FileInspector):
             raise SafetyViolation('GPT MBR has no partitions defined')
 
 
-class InfoWrapper(object):
-    """A file-like object that wraps another and updates a format inspector.
+class InspectWrapper:
+    """A file-like object that wraps another and detects the format.
 
-    This passes chunks to the format inspector while reading. If the inspector
-    fails, it logs the error and stops calling it, but continues proxying data
-    from the source to its user.
+    This passes chunks to a group of format inspectors (default: all)
+    while reading. After the stream is finished (or enough has been read to
+    make a confident decision), the format attribute will provide the
+    inspector object that matched.
+
+    :param source: The file-like input stream to wrap
+    :param expected_format: The format name anticipated to match, if any.
+                            If set to a format name, reading of the stream will
+                            be interrupted if the matching inspector raises
+                            an error (indicting a mismatch or any other
+                            problem). This allows the caller to abort before
+                            all data is processed.
+    :param allowed_formats: A list of format names that limits the inspector
+                            objects that will be used. This may be a security
+                            hole if used improperly, but may be used to limit
+                            the detected formats to some smaller scope.
     """
-
-    def __init__(self, source, fmt):
+    def __init__(self, source, expected_format=None, allowed_formats=None):
         self._source = source
-        self._format = fmt
-        self._error = False
+        self._expected_format = expected_format
+        self._errored_inspectors = set()
+        self._inspectors = {v() for k, v in ALL_FORMATS.items()
+                            if not allowed_formats or k in allowed_formats}
+        self._finished = False
 
     def __iter__(self):
         return self
 
     def _process_chunk(self, chunk):
-        if not self._error:
+        for inspector in [i for i in self._inspectors
+                          if i not in self._errored_inspectors]:
             try:
-                self._format.eat_chunk(chunk)
+                inspector.eat_chunk(chunk)
             except Exception as e:
+                if inspector.NAME == self._expected_format:
+                    # If our desired inspector has failed, we cannot continue
+                    raise
                 # Absolutely do not allow the format inspector to break
-                # our streaming of the image. If we failed, just stop
-                # trying, log and keep going.
-                LOG.error('Format inspector failed, aborting: %s', e)
-                self._error = True
+                # our streaming of the image for non-expected formats. If we
+                # failed, just stop trying, log and keep going.
+                LOG.debug('Format inspector failed, aborting: %s', e)
+                self._errored_inspectors.add(inspector)
 
     def __next__(self):
         try:
             chunk = next(self._source)
         except StopIteration:
-            self._format.finish()
+            self._finish()
             raise
         self._process_chunk(chunk)
         return chunk
@@ -1297,10 +1316,54 @@ class InfoWrapper(object):
         self._process_chunk(chunk)
         return chunk
 
+    def _finish(self):
+        for inspector in self._inspectors:
+            inspector.finish()
+        self._finished = True
+
     def close(self):
         if hasattr(self._source, 'close'):
             self._source.close()
-        self._format.finish()
+        self._finish()
+
+    @property
+    def format(self):
+        """The format determined from the content.
+
+        If this is None, a decision has not been reached. Otherwise,
+        it is a FileInspector that matches (which may be RawFileInspector
+        if no other formats matched and enough of the stream has been read
+        to make that determination). If more than one format matched, then
+        ImageFormatError is raised. If the allowed_formats was constrained
+        and raw was not included, then this will raise ImageFormatError to
+        indicate that no suitable match was found.
+        """
+        non_raw = set([i for i in self._inspectors if i.NAME != 'raw'])
+        complete = all([i.complete for i in non_raw])
+        matches = [i for i in non_raw if i.format_match]
+        if not complete and not self._finished:
+            # We do not know what our format is if we're still in progress
+            # of reading the stream and have incomplete inspectors. However,
+            # if EOF has been signaled, then we can assume the incomplete ones
+            # are not matches.
+            return None
+        if len(matches) > 1:
+            # Multiple format matches mean that not only can we not return a
+            # decision here, but also means that there may be something
+            # nefarious going on (i.e. hiding one header in another).
+            raise ImageFormatError('Multiple formats detected: %s' % ','.join(
+                str(i) for i in matches))
+        if not matches:
+            try:
+                # If nothing *specific* matched, we return the raw format to
+                # indicate that we do not recognize this content at all.
+                return [x for x in self._inspectors if str(x) == 'raw'][0]
+            except IndexError:
+                raise ImageFormatError(
+                    'Content does not match any allowed format')
+
+        # The expected outcome of this is a single match of something specific
+        return matches[0]
 
 
 ALL_FORMATS = {
@@ -1337,36 +1400,12 @@ def detect_file_format(filename):
     :returns: A FormatInspector instance matching the file.
     :raises: ImageFormatError if multiple formats are detected.
     """
-    inspectors = {k: v() for k, v in ALL_FORMATS.items()}
-    detections = []
     with open(filename, 'rb') as f:
-        for chunk in _chunked_reader(f, 4096):
-            for format, inspector in list(inspectors.items()):
-                try:
-                    inspector.eat_chunk(chunk)
-                except ImageFormatError:
-                    # No match, so stop considering this format
-                    inspectors.pop(format)
-                    continue
-                if (inspector.format_match and inspector.complete and
-                        format != 'raw'):
-                    # record all match (other than raw)
-                    detections.append(inspector)
-                    inspectors.pop(format)
-            if all(i.complete for i in inspectors.values()):
-                # If all the inspectors are sure they are not a match, avoid
-                # reading to the end of the file to settle on 'raw'.
-                break
-
-    for format, inspector in list(inspectors.items()):
-        inspector.finish()
-        if inspector.format_match and inspector.complete and format != 'raw':
-            detections.append(inspector)
-            inspectors.pop(format)
-
-    if len(detections) > 1:
-        all_formats = [str(inspector) for inspector in detections]
-        raise ImageFormatError(
-            'Multiple formats detected: %s' % ', '.join(all_formats))
-
-    return inspectors['raw'] if not detections else detections[0]
+        wrapper = InspectWrapper(f)
+        try:
+            for _chunk in _chunked_reader(wrapper, 4096):
+                if wrapper.format:
+                    return wrapper.format
+        finally:
+            wrapper.close()
+        return wrapper.format
