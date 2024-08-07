@@ -536,16 +536,23 @@ class TestFormatInspectors(test_base.BaseTestCase):
             data = ('\n'.join(descriptor_lines)).encode()
             data += b'\x00' * (512 - len(data))
             fmt.region('descriptor').data = data
+            fmt.region_complete('descriptor')
             return fmt
 
         # This should fail because the createType header is broken
         fmt = setup_check()
-        self.assertRaisesRegex(format_inspector.SafetyCheckFailed,
-                               'descriptor',
-                               fmt.safety_check)
+        e = self.assertRaises(format_inspector.SafetyCheckFailed,
+                              fmt.safety_check)
+        self.assertIn('Unsupported subformat', str(e.failures['descriptor']))
+
+        # This should fail because the createType is not safe
+        descriptor_lines[1] = 'createType="monolithicFlat"'
+        e = self.assertRaises(format_inspector.SafetyCheckFailed,
+                              fmt.safety_check)
+        self.assertIn('Unsupported subformat', str(e.failures['descriptor']))
 
         # Fix createType and make sure we pass now
-        descriptor_lines[1] = 'createType=monolithicSparse'
+        descriptor_lines[1] = 'createType="monolithicSparse"'
         fmt = setup_check()
         fmt.safety_check()
 
