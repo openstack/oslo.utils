@@ -17,6 +17,7 @@
 Network-related utilities and helper functions.
 """
 
+import ipaddress
 import logging
 import os
 import re
@@ -146,6 +147,30 @@ def is_valid_ipv6(address):
         return netaddr.valid_ipv6(address, netaddr.core.INET_PTON)
     except netaddr.AddrFormatError:
         return False
+
+
+def get_noscope_ipv6(address):
+    """Take an IPv6 address and trim scope out if present.
+
+    :param address: Value to change
+    :type address: string
+    :returns: string
+
+    .. versionadded: 7.3.0:
+    """
+    # TODO(egarciar): Scope was added for IPv6Address on Python 3.9. Same for
+    # the removesuffix str method. Remove try/except when minimum required
+    # version for Python is 3.9
+    try:
+        _ipv6 = ipaddress.IPv6Address(address)
+        if _ipv6.scope_id:
+            address = address.removesuffix('%' + _ipv6.scope_id)
+        return address
+    except (ipaddress.AddressValueError, AttributeError):
+        if is_valid_ipv6(address):
+            parts = address.rsplit("%", 1)
+            return parts[0]
+        raise
 
 
 def is_valid_cidr(address):

@@ -1,0 +1,7 @@
+---
+features:
+  - |
+    `Bug #2073894 <https://bugs.launchpad.net/oslo.utils/+bug/2073894>`_:
+    Added the netutils.get_noscope_ipv6() function in order to fix errors
+    related to IPv6 address formatting that can happen when using an IPv6
+    defined with scope.
