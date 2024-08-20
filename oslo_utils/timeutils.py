@@ -22,15 +22,10 @@ import datetime
 import functools
 import logging
 import time
+import zoneinfo
 
 import iso8601
 
-try:
-    import zoneinfo
-except ImportError:
-    # zoneinfo is available in Python >= 3.9
-    import pytz
-    zoneinfo = None
 
 from oslo_utils import reflection
 
@@ -233,13 +228,8 @@ def unmarshall_time(tyme):
     if tzname:
         # Need to handle either iso8601 or python UTC format
         tzname = 'UTC' if tzname == 'UTC+00:00' else tzname
-
-        if zoneinfo:
-            tzinfo = zoneinfo.ZoneInfo(tzname)
-            dt = dt.replace(tzinfo=tzinfo)
-        else:
-            tzinfo = pytz.timezone(tzname)
-            dt = tzinfo.localize(dt)
+        tzinfo = zoneinfo.ZoneInfo(tzname)
+        dt = dt.replace(tzinfo=tzinfo)
 
     return dt
 
