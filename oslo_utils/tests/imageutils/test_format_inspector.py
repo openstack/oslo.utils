@@ -127,6 +127,14 @@ class TestFormatInspectors(test_base.BaseTestCase):
         self._created_files.append(fn)
         return fn
 
+    def _create_luks(self, image_size, subformat):
+        fn = tempfile.mktemp(suffix='.luks')
+        cmd = ['qemu-img', 'create', '-f', 'luks',
+               '--object', 'secret,id=sec0,data=secret-passphrase',
+               '-o', 'key-secret=sec0', fn, '%i' % image_size]
+        subprocess.check_output(' '.join(cmd), shell=True)
+        return fn
+
     def _create_img(
             self, fmt, size, subformat=None, options=None,
             backing_file=None):
@@ -143,6 +151,8 @@ class TestFormatInspectors(test_base.BaseTestCase):
             return self._create_iso(size, subformat)
         if fmt == 'gpt':
             return self._create_gpt(size, subformat)
+        if fmt == 'luks':
+            return self._create_luks(size, subformat)
 
         if fmt == 'vhd':
             # QEMU calls the vhd format vpc
@@ -216,11 +226,22 @@ class TestFormatInspectors(test_base.BaseTestCase):
     def _test_format_at_block_size(self, format_name, img, block_size):
         wrapper = format_inspector.InspectWrapper(open(img, 'rb'),
                                                   format_name)
-
+        current_block_size = block_size
         while True:
-            chunk = wrapper.read(block_size)
+            chunk = wrapper.read(current_block_size)
             if not chunk:
                 break
+            # If we've already settled on a format, the block size no longer
+            # really matters for correctness since we won't be capturing and
+            # parsing anything else. Bump up the block size so we will eat
+            # the rest of the file more efficiently. This matters for formats
+            # that are non-sparse and for which the virtual_size calculation
+            # relies on the actual size of the file (i.e. raw, gpt, luks, etc)
+            try:
+                if current_block_size == block_size and wrapper.format:
+                    current_block_size = 64 * units.Ki
+            except Exception:
+                pass
 
         wrapper.close()
         self.assertIsNotNone(wrapper.format, 'Failed to detect format')
@@ -279,7 +300,7 @@ class TestFormatInspectors(test_base.BaseTestCase):
                                             subformat=subformat,
                                             safety_check=True)
 
-    @ddt.data('qcow2', 'vhd', 'vhdx', 'vmdk', 'gpt')
+    @ddt.data('qcow2', 'vhd', 'vhdx', 'vmdk', 'gpt', 'luks')
     def test_format(self, format):
         self._test_format(format)
 

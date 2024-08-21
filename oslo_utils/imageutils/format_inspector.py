@@ -1256,6 +1256,45 @@ class GPTInspector(FileInspector):
             raise SafetyViolation('GPT MBR has no partitions defined')
 
 
+# The LUKSv1 format consists of a header with some metadata and key
+# information followed by a bulk non-sparse data payload which is the
+# encyrpted disk image.
+# https://gitlab.com/cryptsetup/cryptsetup/-/wikis/LUKS-standard/on-disk-format.pdf
+# LUKSv2 is a different but similar spec, which is not yet covered here (or
+# in qemu).
+class LUKSInspector(FileInspector):
+    NAME = 'luks'
+
+    def _initialize(self):
+        self.new_region('header', CaptureRegion(0, 592))
+        self.add_safety_check(SafetyCheck('version', self.check_version))
+
+    @property
+    def format_match(self):
+        return self.region('header').data[:6] == b'LUKS\xBA\xBE'
+
+    @property
+    def header_items(self):
+        fields = struct.unpack('>6sh32s32s32sI',
+                               self.region('header').data[:108])
+        names = ['magic', 'version', 'cipher_alg', 'cipher_mode', 'hash',
+                 'payload_offset']
+        return dict(zip(names, fields))
+
+    def check_version(self):
+        header = self.header_items
+        if header['version'] != 1:
+            raise SafetyViolation(
+                'LUKS version %i is not supported' % header['version'])
+
+    @property
+    def virtual_size(self):
+        # NOTE(danms): This will not be correct until/unless the whole stream
+        # has been read, since all we have is (effectively the size of the
+        # header. This is similar to how RawFileInspector works.
+        return super().virtual_size - self.header_items['payload_offset'] * 512
+
+
 class InspectWrapper:
     """A file-like object that wraps another and detects the format.
 
@@ -1376,6 +1415,7 @@ ALL_FORMATS = {
     'qed': QEDInspector,
     'iso': ISOInspector,
     'gpt': GPTInspector,
+    'luks': LUKSInspector,
 }
 
 
