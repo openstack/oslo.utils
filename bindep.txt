@@ -5,3 +5,7 @@ locales [platform:debian]
 python3-all-dev [platform:ubuntu !platform:ubuntu-precise]
 python3-dev [platform:dpkg]
 python3-devel [platform:rpm]
+
+qemu-img [platform:redhat test]
+qemu-tools [platform:suse test]
+qemu-utils [platform:dpkg test]
