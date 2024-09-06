@@ -1214,6 +1214,7 @@ class GPTInspector(FileInspector):
     NAME = 'gpt'
     MBR_SIGNATURE = 0xAA55
     MBR_PTE_START = 446
+    MEDIA_TYPE_FDISK = 0xF8
 
     def _initialize(self):
         self.new_region('mbr', CaptureRegion(0, 512))
@@ -1224,12 +1225,28 @@ class GPTInspector(FileInspector):
         # self.new_region('gpt_backup', EndCaptureRegion(512))
         self.add_safety_check(SafetyCheck('mbr', self.check_mbr_partitions))
 
+    def _check_for_fat(self):
+        # A FAT filesystem looks like an MBR, but actually starts with a VBR,
+        # which has the same signature as an MBR, but with more specifics in
+        # the BPB (BIOS Parameter Block).
+        boot_sector = self.region('mbr').data
+        # num_fats is almost always 2 (never more or less) for any filesystem
+        # not super tiny (think 1980s ramdisk)
+        num_fats = boot_sector[0x10]
+        # Media descriptor will basically always be "a fixed disk" for any of
+        # our purposes, not a floppy disk
+        media_desc = boot_sector[0x15]
+        return (num_fats == 2 and media_desc == self.MEDIA_TYPE_FDISK)
+
     @property
     def format_match(self):
         if not self.region('mbr').complete:
             return False
+        # Check to see if this looks like a VBR from a FAT filesystem so we
+        # can exclude it
+        is_fat = self._check_for_fat()
         mbr_sig, = struct.unpack('<H', self.region('mbr').data[510:512])
-        return mbr_sig == self.MBR_SIGNATURE
+        return mbr_sig == self.MBR_SIGNATURE and not is_fat
 
     def check_mbr_partitions(self):
         valid_partitions = []
