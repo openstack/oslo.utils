@@ -970,8 +970,11 @@ class TestFormatInspectorInfra(test_base.BaseTestCase):
         mock_eat.assert_called_once_with(b'123')
 
     @mock.patch.object(format_inspector.VMDKInspector, 'eat_chunk')
-    def test_wrapper_iter_like_eats_error(self, mock_eat):
-        wrapper = format_inspector.InspectWrapper(iter([b'123', b'456']))
+    @mock.patch.object(format_inspector.LOG, 'debug')
+    def test_wrapper_iter_like_eats_error(self, mock_log, mock_eat,
+                                          expected=None):
+        wrapper = format_inspector.InspectWrapper(iter([b'123', b'456']),
+                                                  expected_format=expected)
         mock_eat.side_effect = Exception('fail')
 
         data = b''
@@ -984,6 +987,16 @@ class TestFormatInspectorInfra(test_base.BaseTestCase):
         # Make sure we only called this once and never again after
         # the error was raised
         mock_eat.assert_called_once_with(b'123')
+        if expected:
+            self.assertFalse(mock_log.called)
+        else:
+            self.assertTrue(mock_log.called)
+
+    def test_wrapper_iter_like_eats_error_expected_quiet(self):
+        # Test with an expected format, but not the one we're going to
+        # intentionally fail to make sure that we do not log failures
+        # for non-expected formats.
+        self.test_wrapper_iter_like_eats_error(expected='vhd')
 
     def test_get_inspector(self):
         self.assertEqual(format_inspector.QcowInspector,

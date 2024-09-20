@@ -1316,7 +1316,13 @@ class InspectWrapper:
                 # Absolutely do not allow the format inspector to break
                 # our streaming of the image for non-expected formats. If we
                 # failed, just stop trying, log and keep going.
-                LOG.debug('Format inspector failed, aborting: %s', e)
+                if not self._expected_format:
+                    # If we are expecting to parse a specific format, we do
+                    # not need to log scary messages about the other formats
+                    # failing to parse the data as expected.
+                    LOG.debug('Format inspector for %s does not match, '
+                              'excluding from consideration (%s)',
+                              inspector.NAME, e)
                 self._errored_inspectors.add(inspector)
 
     def __next__(self):
