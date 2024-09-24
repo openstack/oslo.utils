@@ -1218,7 +1218,10 @@ class GPTInspector(FileInspector):
 
     def _initialize(self):
         self.new_region('mbr', CaptureRegion(0, 512))
-        self.new_region('gpt', CaptureRegion(512, 512))
+        # TODO(danms): If we start inspecting the contents of the GPT
+        # structures themselves, we need to realize that they are block-aligned
+        # and not necessarily right after the PMBR at 512 bytes.
+        # self.new_region('gpt', CaptureRegion(512, 512))
         # If we detect that this is a GPT, we may want to capture the backup
         # and assert that it is equivalent.
         # TODO(danms): Maybe add this region and associated checks:
