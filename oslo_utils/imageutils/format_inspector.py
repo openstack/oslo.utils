@@ -1327,6 +1327,16 @@ class InspectWrapper:
                               'excluding from consideration (%s)',
                               inspector.NAME, e)
                 self._errored_inspectors.add(inspector)
+            else:
+                # If we are expecting a format, have read enough data to
+                # satisfy that format's inspector, and no match is detected,
+                # abort the stream immediately to save having to read the
+                # entire thing before we signal the mismatch.
+                if (inspector.NAME == self._expected_format and
+                        inspector.complete and not inspector.format_match):
+                    raise ImageFormatError(
+                        'Content does not match expected format %r' % (
+                            inspector.NAME))
 
     def __next__(self):
         try:

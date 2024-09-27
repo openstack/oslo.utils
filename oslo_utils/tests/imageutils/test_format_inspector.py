@@ -998,6 +998,18 @@ class TestFormatInspectorInfra(test_base.BaseTestCase):
         # for non-expected formats.
         self.test_wrapper_iter_like_eats_error(expected='vhd')
 
+    def test_wrapper_aborts_early(self):
+        # Run the InspectWrapper with non-qcow2 data, expecting qcow2, first
+        # read past the header should raise the error and abort us early.
+        data = io.BytesIO(b'\x00' * units.Mi)
+        wrapper = format_inspector.InspectWrapper(data,
+                                                  expected_format='qcow2')
+        self.assertRaises(format_inspector.ImageFormatError,
+                          wrapper.read, 2048)
+        # We should only have read 2048 bytes from the 1MiB of source data if
+        # we aborted early.
+        self.assertEqual(2048, data.tell())
+
     def test_get_inspector(self):
         self.assertEqual(format_inspector.QcowInspector,
                          format_inspector.get_inspector('qcow2'))
