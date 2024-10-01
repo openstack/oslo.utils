@@ -21,6 +21,8 @@ Secret utilities.
 import hashlib
 import hmac
 
+import debtcollector.removals
+
 
 def _constant_time_compare(first, second):
     """Return True if both string or binary inputs are equal, otherwise False.
@@ -46,22 +48,14 @@ try:
 except AttributeError:
     constant_time_compare = _constant_time_compare
 
-try:
-    _ = hashlib.md5(usedforsecurity=False)  # nosec
 
-    def md5(string=b'', usedforsecurity=True):
-        """Return an md5 hashlib object using usedforsecurity parameter
+@debtcollector.removals.remove(message='Use hashlib.md5 instead',
+                               category=PendingDeprecationWarning)
+def md5(string=b'', usedforsecurity=True):
+    """Return an md5 hashlib object using usedforsecurity parameter
 
-        For python distributions that support the usedforsecurity keyword
-        parameter, this passes the parameter through as expected.
-        See https://bugs.python.org/issue9216
-        """
-        return hashlib.md5(string, usedforsecurity=usedforsecurity)  # nosec
-except TypeError:
-    def md5(string=b'', usedforsecurity=True):
-        """Return an md5 hashlib object without usedforsecurity parameter
-
-        For python distributions that do not yet support this keyword
-        parameter, we drop the parameter
-        """
-        return hashlib.md5(string)  # nosec
+    For python distributions that support the usedforsecurity keyword
+    parameter, this passes the parameter through as expected.
+    See https://bugs.python.org/issue9216
+    """
+    return hashlib.md5(string, usedforsecurity=usedforsecurity)  # nosec

@@ -1,0 +1,6 @@
+---
+deprecations:
+  - |
+    The ``md5`` method from ``oslo_utils.secretutils`` module has been
+    deprecated because ``hashlib.md5`` can be used instead in all supported
+    python versions.
