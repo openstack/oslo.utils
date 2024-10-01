@@ -1,0 +1,6 @@
+---
+deprecations:
+  - |
+    The ``oslo_utils.secretutils.constant_time_compare`` function has been
+    deprecated. Use the ``compare_digest`` function from the built-in ``hmac``
+    module.
