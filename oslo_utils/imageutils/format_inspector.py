@@ -1327,6 +1327,40 @@ class InspectWrapper:
         self._finish()
 
     @property
+    def formats(self):
+        """The formats (potentially multiple) determined from the content.
+
+        This is just like format, but returns a list of formats that matched,
+        which may be more than one if appropriate. This should generally not
+        be used as it is safer to allow one and only one format. However, there
+        are situations where multiple formats could be detected legitimately
+        (i.e. bootable ISOs) where we need to expose the case where we have
+        found more than one. If no specific matches are made, this will return
+        a list with just the Raw inspector, but will never include Raw in
+        combination with others.
+
+        This will be None if a decision has not been reached.
+        """
+        non_raw = set([i for i in self._inspectors if i.NAME != 'raw'])
+        complete = all([i.complete for i in non_raw])
+        matches = [i for i in non_raw if i.format_match]
+        if not complete and not self._finished:
+            # We do not know what our format is if we're still in progress
+            # of reading the stream and have incomplete inspectors. However,
+            # if EOF has been signaled, then we can assume the incomplete ones
+            # are not matches.
+            return None
+        if not matches:
+            try:
+                # If nothing *specific* matched, we return the raw format to
+                # indicate that we do not recognize this content at all.
+                return [x for x in self._inspectors if str(x) == 'raw']
+            except IndexError:
+                raise ImageFormatError(
+                    'Content does not match any allowed format')
+        return matches
+
+    @property
     def format(self):
         """The format determined from the content.
 
@@ -1338,32 +1372,23 @@ class InspectWrapper:
         and raw was not included, then this will raise ImageFormatError to
         indicate that no suitable match was found.
         """
-        non_raw = set([i for i in self._inspectors if i.NAME != 'raw'])
-        complete = all([i.complete for i in non_raw])
-        matches = [i for i in non_raw if i.format_match]
-        if not complete and not self._finished:
-            # We do not know what our format is if we're still in progress
-            # of reading the stream and have incomplete inspectors. However,
-            # if EOF has been signaled, then we can assume the incomplete ones
-            # are not matches.
-            return None
-        if len(matches) > 1:
+        matches = self.formats
+        if matches is None:
+            return matches
+        elif len(matches) > 1:
             # Multiple format matches mean that not only can we not return a
             # decision here, but also means that there may be something
             # nefarious going on (i.e. hiding one header in another).
             raise ImageFormatError('Multiple formats detected: %s' % ','.join(
                 str(i) for i in matches))
-        if not matches:
+        else:
             try:
-                # If nothing *specific* matched, we return the raw format to
-                # indicate that we do not recognize this content at all.
-                return [x for x in self._inspectors if str(x) == 'raw'][0]
+                # The expected outcome of this is a single match of something
+                # specific
+                return matches[0]
             except IndexError:
                 raise ImageFormatError(
                     'Content does not match any allowed format')
-
-        # The expected outcome of this is a single match of something specific
-        return matches[0]
 
 
 ALL_FORMATS = {

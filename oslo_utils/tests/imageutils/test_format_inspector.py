@@ -334,6 +334,24 @@ class TestFormatInspectors(test_base.BaseTestCase):
                                self._test_format_at_block_size,
                                'iso', fn, 4 * units.Ki)
 
+    def test_bad_iso_qcow2_multiple_matches(self):
+        # Test that we can access multiple detected formats if we specifically
+        # ask for them.
+        _, _, fn = self._generate_bad_iso()
+        with open(fn, 'rb') as f:
+            wrapper = format_inspector.InspectWrapper(f)
+            # Eat the whole file
+            while wrapper.read(1024):
+                pass
+
+        # Make sure we fail the single-format test
+        self.assertRaises(format_inspector.ImageFormatError,
+                          getattr, wrapper, 'format')
+
+        # Make sure the multiple detected formats are exposed
+        self.assertEqual(['iso', 'qcow2'],
+                         sorted(x.NAME for x in wrapper.formats))
+
     def test_from_file_reads_minimum(self):
         img = self._create_img('qcow2', 10 * units.Mi)
         file_size = os.stat(img).st_size
