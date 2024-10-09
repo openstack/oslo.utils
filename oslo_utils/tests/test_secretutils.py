@@ -77,3 +77,12 @@ class SecretUtilsTest(testscenarios.TestWithScenarios,
             TypeError, secretutils.md5, None, usedforsecurity=True)
         self.assertRaises(
             TypeError, secretutils.md5, None, usedforsecurity=False)
+
+    def test_password_crypt(self):
+        self.assertEqual(
+            '$5$mysalt$fcnMdhaFpUmeWtGOgVuImueZGL1v0Q1kUVbV2NbFOX4',
+            secretutils.crypt_password('mytopsecret', '$5$mysalt$'))
+        self.assertEqual(
+            '$6$mysalt$jTEJ24XtvcWmav/sTQb1tYqmk1kBQD/sxcMIxEPUcie'
+            'J8L9AuCTWxYlxGz.XtIQYWspWkUXQz9zPIFTSKubP6.',
+            secretutils.crypt_password('mytopsecret', '$6$mysalt$'))
