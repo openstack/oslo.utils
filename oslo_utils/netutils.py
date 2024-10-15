@@ -101,6 +101,9 @@ def is_valid_ipv4(address, strict=None):
        (``a.b.c.d``) as opposed to address format
        (``a.b.c.d``, ``a.b.c``, ``a.b``, ``a``).
     """
+    if not address:
+        return False
+
     if strict is not None:
         flag = INET_PTON if strict else INET_ATON
         try:
@@ -228,6 +231,9 @@ def get_ipv6_addr_by_EUI64(prefix, mac):
 
     .. versionadded:: 1.4
     """
+    if not isinstance(prefix, str):
+        msg = _("Prefix must be a string")
+        raise TypeError(msg)
     # Check if the prefix is an IPv4 address
     if is_valid_ipv4(prefix):
         msg = _("Unable to generate IP address by EUI64 for IPv4 prefix")
