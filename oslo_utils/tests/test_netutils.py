@@ -287,16 +287,19 @@ class NetworkUtilsTest(test_base.BaseTestCase):
             self.assertFalse(netutils.is_valid_port(input_str))
 
     def test_get_my_ipv4(self):
+        mock_sock = mock.Mock()
+        mock_sock.getsockname.return_value = ['1.2.3.4', '']
         sock_attrs = {
-            'return_value.getsockname.return_value': ['1.2.3.4', '']}
+            'return_value.__enter__.return_value': mock_sock}
         with mock.patch('socket.socket', **sock_attrs):
             addr = netutils.get_my_ipv4()
         self.assertEqual(addr, '1.2.3.4')
 
     def test_get_my_ipv6(self):
+        mock_sock = mock.Mock()
+        mock_sock.getsockname.return_value = ['2001:db8::2', '', '', '']
         sock_attrs = {
-            'return_value.getsockname.return_value': ['2001:db8::2', '',
-                                                      '', '']}
+            'return_value.__enter__.return_value': mock_sock}
         with mock.patch('socket.socket', **sock_attrs):
             addr = netutils.get_my_ipv6()
         self.assertEqual(addr, '2001:db8::2')

@@ -406,11 +406,9 @@ def get_my_ipv4():
        Return ``'127.0.0.1'`` if there is no default interface.
     """
     try:
-        csock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        csock.connect(('192.0.2.0', 80))
-        (addr, port) = csock.getsockname()
-        csock.close()
-        return addr
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as csock:
+            csock.connect(('192.0.2.0', 80))
+            return csock.getsockname()[0]
     except socket.error:
         return _get_my_ipv4_address()
 
@@ -452,11 +450,9 @@ def get_my_ipv6():
        Return ``'::1'`` if there is no default interface.
     """
     try:
-        csock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
-        csock.connect(('2001:db8::1', 80))
-        (addr, _, _, _) = csock.getsockname()
-        csock.close()
-        return addr
+        with socket.socket(socket.AF_INET6, socket.SOCK_DGRAM) as csock:
+            csock.connect(('2001:db8::1', 80))
+            return csock.getsockname()[0]
     except socket.error:
         return _get_my_ipv6_address()
 
