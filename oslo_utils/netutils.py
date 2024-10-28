@@ -27,7 +27,7 @@ from urllib import parse
 import netaddr
 from netaddr.core import INET_ATON
 from netaddr.core import INET_PTON
-import netifaces
+import psutil
 
 from oslo_utils._i18n import _
 
@@ -423,16 +423,23 @@ def _get_my_ipv4_address():
     """Figure out the best ipv4
     """
     LOCALHOST = '127.0.0.1'
-    gtw = netifaces.gateways()
-    try:
-        interface = gtw['default'][netifaces.AF_INET][1]
-    except (KeyError, IndexError):
-        LOG.info('Could not determine default network interface, '
-                 'using 127.0.0.1 for IPv4 address')
-        return LOCALHOST
+    interface = None
+
+    with open('/proc/net/route') as routes:
+        for route in routes:
+            route_attrs = route.strip().split('\t')
+            if route_attrs[1] == '00000000':
+                interface = route_attrs[0]
+                break
+        else:
+            LOG.info('Could not determine default network interface, '
+                     'using %s for IPv4 address', LOCALHOST)
+            return LOCALHOST
 
     try:
-        return netifaces.ifaddresses(interface)[netifaces.AF_INET][0]['addr']
+        addrs = psutil.net_if_addrs()[interface]
+        v4addrs = [addr for addr in addrs if addr.family == socket.AF_INET]
+        return v4addrs[0].address
     except (KeyError, IndexError):
         LOG.info('Could not determine IPv4 address for interface %s, '
                  'using 127.0.0.1',
@@ -467,16 +474,25 @@ def _get_my_ipv6_address():
     """Figure out the best IPv6 address
     """
     LOCALHOST = '::1'
-    gtw = netifaces.gateways()
-    try:
-        interface = gtw['default'][netifaces.AF_INET6][1]
-    except (KeyError, IndexError):
-        LOG.info('Could not determine default network interface, '
-                 'using %s for IPv6 address', LOCALHOST)
-        return LOCALHOST
+    interface = None
+    ZERO_ADDRESS = '00000000000000000000000000000000'
+
+    with open('/proc/net/ipv6_route') as routes:
+        for route in routes:
+            route_attrs = route.strip().split(' ')
+            if ((route_attrs[0], route_attrs[1]) == (ZERO_ADDRESS, '00') and
+                    (route_attrs[2], route_attrs[3]) == (ZERO_ADDRESS, '00')):
+                interface = route_attrs[-1]
+                break
+        else:
+            LOG.info('Could not determine default network interface, '
+                     'using %s for IPv6 address', LOCALHOST)
+            return LOCALHOST
 
     try:
-        return netifaces.ifaddresses(interface)[netifaces.AF_INET6][0]['addr']
+        addrs = psutil.net_if_addrs()[interface]
+        v6addrs = [addr for addr in addrs if addr.family == socket.AF_INET6]
+        return v6addrs[0].address
     except (KeyError, IndexError):
         LOG.info('Could not determine IPv6 address for interface '
                  '%(interface)s, using %(address)s',

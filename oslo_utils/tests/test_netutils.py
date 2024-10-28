@@ -13,13 +13,13 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from collections import namedtuple
 import contextlib
 import io
 import socket
 from unittest import mock
 
 import netaddr
-import netifaces
 from oslotest import base as test_base
 
 from oslo_utils import netutils
@@ -358,31 +358,75 @@ class NetworkUtilsTest(test_base.BaseTestCase):
         addr = netutils.get_my_ipv6()
         self.assertEqual(addr, '2001:db8::2')
 
-    @mock.patch('netifaces.gateways')
-    @mock.patch('netifaces.ifaddresses')
-    def test_get_my_ip_address_with_default_route(
-            self, ifaddr, gateways):
-        ifaddr.return_value = {netifaces.AF_INET: [{'addr': '172.18.204.1'}],
-                               netifaces.AF_INET6: [{'addr': '2001:db8::2'}]}
-        self.assertEqual('172.18.204.1', netutils._get_my_ipv4_address())
+    @mock.patch('builtins.open')
+    @mock.patch('psutil.net_if_addrs')
+    def test_get_my_ipv4_address_with_default_route(
+            self, mock_ifaddrs, mock_open):
+        mock_open.return_value = io.StringIO(
+            """Iface	Destination	Gateway 	Flags	RefCnt	Use	Metric	Mask		MTU	Window	IRTT
+eth0	00000000	01cc12ac	0003	0	0	600	00000000	0	0	0
+eth0	00cc12ac	00000000	0001	0	0	600	00FFFFFF	0	0	0
+eth1	00cd12ac	00000000	0001	0	0	600	00FFFFFF	0	0	0""")  # noqa : E501
+
+        addr = namedtuple('addr', ['family', 'address'])
+        mock_ifaddrs.return_value = {
+            'eth0': [
+                addr(family=socket.AF_INET, address='172.18.204.2'),
+                addr(family=socket.AF_INET6, address='2001:db8::2')
+            ],
+            'eth1': [
+                addr(family=socket.AF_INET, address='172.18.205.2'),
+                addr(family=socket.AF_INET6, address='2001:db8::1000::2')
+            ]}
+        self.assertEqual('172.18.204.2', netutils._get_my_ipv4_address())
+        mock_open.assert_called_once_with('/proc/net/route')
+
+    @mock.patch('builtins.open')
+    @mock.patch('psutil.net_if_addrs')
+    def test_get_my_ipv6_address_with_default_route(
+            self, mock_ifaddrs, mock_open):
+        mock_open.return_value = io.StringIO(
+            """00000000000000000000000000000000 00 00000000000000000000000000000000 00 20010db8000000000000000000000001 00000000 00000000 00000000 08000000 eth0
+20010db8000000000000000000000000 31 00000000000000000000000000000000 00 00000000000000000000000000000000 00000000 00000000 00000000 08000000 eth0
+20010db8100000000000000000000000 31 00000000000000000000000000000000 00 00000000000000000000000000000000 00000000 00000000 00000000 08000000 eth1""")  # noqa: E501
+
+        addr = namedtuple('addr', ['family', 'address'])
+        mock_ifaddrs.return_value = {
+            'eth0': [
+                addr(family=socket.AF_INET, address='172.18.204.2'),
+                addr(family=socket.AF_INET6, address='2001:db8::2')
+            ],
+            'eth1': [
+                addr(family=socket.AF_INET, address='172.18.205.2'),
+                addr(family=socket.AF_INET6, address='2001:db8::1000::2')
+            ]}
         self.assertEqual('2001:db8::2', netutils._get_my_ipv6_address())
+        mock_open.assert_called_once_with('/proc/net/ipv6_route')
 
-    @mock.patch('netifaces.gateways')
-    @mock.patch('netifaces.ifaddresses')
-    def test_get_my_ip_address_without_default_route(
-            self, ifaddr, gateways):
-        ifaddr.return_value = {}
-        self.assertEqual('127.0.0.1', netutils._get_my_ipv4_address())
-        self.assertEqual('::1', netutils._get_my_ipv6_address())
+    @mock.patch('builtins.open')
+    @mock.patch('psutil.net_if_addrs')
+    def test_get_my_ipv4_address_without_default_route(
+            self, mock_ifaddrs, mock_open):
+        mock_open.return_value = io.StringIO(
+            """Iface	Destination	Gateway 	Flags	RefCnt	Use	Metric	Mask		MTU	Window	IRTT
+eth0	00cc12ac	00000000	0001	0	0	600	00FFFFFF	0	0	0
+eth1	00cd12ac	00000000	0001	0	0	600	00FFFFFF	0	0	0""")  # noqa : E501
 
-    @mock.patch('netifaces.gateways')
-    @mock.patch('netifaces.ifaddresses')
-    def test_get_my_ipv4_address_without_default_interface(
-            self, ifaddr, gateways):
-        gateways.return_value = {}
         self.assertEqual('127.0.0.1', netutils._get_my_ipv4_address())
+        mock_open.assert_called_once_with('/proc/net/route')
+        mock_ifaddrs.assert_not_called()
+
+    @mock.patch('builtins.open')
+    @mock.patch('psutil.net_if_addrs')
+    def test_get_my_ipv6_address_without_default_route(
+            self, mock_ifaddrs, mock_open):
+        mock_open.return_value = io.StringIO(
+            """20010db8000000000000000000000000 31 00000000000000000000000000000000 00 00000000000000000000000000000000 00000000 00000000 00000000 08000000 eth0
+20010db8100000000000000000000000 31 00000000000000000000000000000000 00 00000000000000000000000000000000 00000000 00000000 00000000 08000000 eth1""")  # noqa: E501
+
         self.assertEqual('::1', netutils._get_my_ipv6_address())
-        self.assertFalse(ifaddr.called)
+        mock_open.assert_called_once_with('/proc/net/ipv6_route')
+        mock_ifaddrs.assert_not_called()
 
 
 class IPv6byEUI64TestCase(test_base.BaseTestCase):
