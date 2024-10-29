@@ -1,0 +1,6 @@
+---
+features:
+  - |
+    The new ``VersionPredicate`` class has been added to the ``versionutils``
+    module, which parses version predicate and check if the given version meets
+    the described requirements.

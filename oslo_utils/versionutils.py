@@ -20,6 +20,7 @@ Helpers for comparing version strings.
 """
 
 import functools
+import operator
 import re
 
 import packaging.version
@@ -90,3 +91,35 @@ def convert_version_to_tuple(version_str):
     """
     version_str = re.sub(r'(\d+)(a|alpha|b|beta|rc)\d+$', '\\1', version_str)
     return tuple(int(part) for part in version_str.split('.'))
+
+
+class VersionPredicate:
+    """Parse version predicate and check version requirements
+
+    This is based on the implementation of distutils.VersionPredicate
+
+    .. versionadded:: 7.4
+    """
+    _PREDICATE_MATCH = re.compile(r"^\s*(<=|>=|<|>|!=|==)\s*([^\s]+)\s*$")
+    _COMP_MAP = {
+        "<": operator.lt, "<=": operator.le, "==": operator.eq,
+        ">": operator.gt, ">=": operator.ge, "!=": operator.ne
+    }
+
+    def __init__(self, predicate_str):
+        self.pred = [self._parse_predicate(pred) for pred
+                     in predicate_str.split(',')]
+
+    def _parse_predicate(self, pred):
+        res = self._PREDICATE_MATCH.match(pred)
+        if not res:
+            raise ValueError("bad package restriction syntax: %s" % pred)
+        cond, ver_str = res.groups()
+        return (cond, packaging.version.Version(ver_str))
+
+    def satisfied_by(self, version_str):
+        version = packaging.version.Version(version_str)
+        for cond, ver in self.pred:
+            if not self._COMP_MAP[cond](version, ver):
+                return False
+        return True

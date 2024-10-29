@@ -93,3 +93,51 @@ class IsCompatibleTestCase(test_base.BaseTestCase):
                          versionutils.convert_version_to_tuple('6.7.0beta1'))
         self.assertEqual((6, 7, 0),
                          versionutils.convert_version_to_tuple('6.7.0rc1'))
+
+
+class VersionPredicateTest(test_base.BaseTestCase):
+    def test_version_predicate_valid(self):
+        pred = versionutils.VersionPredicate('<2.0.0')
+        self.assertTrue(pred.satisfied_by('1.10.0'))
+        self.assertFalse(pred.satisfied_by('2.0.0'))
+
+        pred = versionutils.VersionPredicate('<=2.0.0')
+        self.assertTrue(pred.satisfied_by('2.0.0'))
+        self.assertFalse(pred.satisfied_by('2.1.0'))
+
+        pred = versionutils.VersionPredicate('>2.0.0')
+        self.assertFalse(pred.satisfied_by('1.10.0'))
+        self.assertTrue(pred.satisfied_by('2.1.0'))
+
+        pred = versionutils.VersionPredicate('>=2.0.0')
+        self.assertFalse(pred.satisfied_by('1.9.0'))
+        self.assertTrue(pred.satisfied_by('2.0.0'))
+
+        pred = versionutils.VersionPredicate('== 2.0.0')
+        self.assertFalse(pred.satisfied_by('1.9.9'))
+        self.assertTrue(pred.satisfied_by('2.0.0'))
+        self.assertFalse(pred.satisfied_by('2.0.1'))
+
+        pred = versionutils.VersionPredicate('!= 2.0.0')
+        self.assertTrue(pred.satisfied_by('1.9.9'))
+        self.assertFalse(pred.satisfied_by('2.0.0'))
+        self.assertTrue(pred.satisfied_by('2.0.1'))
+
+    def test_version_predicate_valid_multi(self):
+        pred = versionutils.VersionPredicate('<3.0.0,>=2.1.0')
+        self.assertTrue(pred.satisfied_by('2.1.0'))
+        self.assertTrue(pred.satisfied_by('2.11.0'))
+        self.assertFalse(pred.satisfied_by('2.0.0'))
+        self.assertFalse(pred.satisfied_by('3.0.0'))
+
+        pred = versionutils.VersionPredicate(' < 2.0.0, >= 1.0.0 ')
+        self.assertTrue(pred.satisfied_by('1.0.0'))
+        self.assertTrue(pred.satisfied_by('1.10.0'))
+        self.assertFalse(pred.satisfied_by('0.9.0'))
+        self.assertFalse(pred.satisfied_by('2.0.0'))
+
+    def test_version_predicate_valid_invalid(self):
+        for invalid_str in ['3.0.0', 'foo', '<> 3.0.0', '>=1.0.0;<2.0.0',
+                            '>abc', '>=1.0.0,', '>=1.0.0,2.0.0']:
+            self.assertRaises(
+                ValueError, versionutils.VersionPredicate, invalid_str)
