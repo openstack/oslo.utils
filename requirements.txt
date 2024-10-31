@@ -1,3 +1,7 @@
+# Requirements lower bounds listed here are our best effort to keep them up to
+# date but we do not test them so no guarantee of having them all correct. If
+# you find any incorrect lower bounds, let us know or propose a fix.
+
 # NOTE(dhellmann): Because oslo.utils is used by the client libraries,
 # we do not want to add a lot of dependencies to it. If you find that
 # adding a new feature to oslo.utils means adding a new dependency,
