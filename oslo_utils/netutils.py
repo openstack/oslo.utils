@@ -84,7 +84,7 @@ def parse_host_port(address, default_port=None):
     return (host, None if port is None else int(port))
 
 
-def is_valid_ipv4(address, strict=None):
+def is_valid_ipv4(address, strict=True):
     """Verify that address represents a valid IPv4 address.
 
     :param address: Value to verify
@@ -104,26 +104,9 @@ def is_valid_ipv4(address, strict=None):
     if not address:
         return False
 
-    if strict is not None:
-        flag = INET_PTON if strict else INET_ATON
-        try:
-            return netaddr.valid_ipv4(address, flags=flag)
-        except netaddr.AddrFormatError:
-            return False
-
-    # non strict mode
+    flag = INET_PTON if strict else INET_ATON
     try:
-        if netaddr.valid_ipv4(address, flags=INET_PTON):
-            return True
-        else:
-            if netaddr.valid_ipv4(address, flags=INET_ATON):
-                LOG.warning(
-                    'Converting in non strict mode is deprecated. '
-                    'You should pass strict=False if you want to '
-                    'preserve legacy behavior')
-                return True
-            else:
-                return False
+        return netaddr.valid_ipv4(address, flags=flag)
     except netaddr.AddrFormatError:
         return False
 
@@ -235,7 +218,7 @@ def get_ipv6_addr_by_EUI64(prefix, mac):
         msg = _("Prefix must be a string")
         raise TypeError(msg)
     # Check if the prefix is an IPv4 address
-    if is_valid_ipv4(prefix):
+    if is_valid_ipv4(prefix, False):
         msg = _("Unable to generate IP address by EUI64 for IPv4 prefix")
         raise ValueError(msg)
     try:
@@ -327,7 +310,7 @@ def is_valid_ip(address):
 
     .. versionadded:: 1.1
     """
-    return is_valid_ipv4(address) or is_valid_ipv6(address)
+    return is_valid_ipv4(address, False) or is_valid_ipv6(address)
 
 
 def is_valid_mac(address):
