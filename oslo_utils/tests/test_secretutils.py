@@ -78,6 +78,15 @@ class SecretUtilsTest(testscenarios.TestWithScenarios,
         self.assertRaises(
             TypeError, secretutils.md5, None, usedforsecurity=False)
 
+    def test_password_mksalt(self):
+        self.assertRaises(ValueError, secretutils.crypt_mksalt, 'MD5')
+        salt = secretutils.crypt_mksalt('SHA-256')
+        self.assertEqual(3 + 16, len(salt))
+        self.assertTrue(salt.startswith('$5$'))
+        salt = secretutils.crypt_mksalt('SHA-512')
+        self.assertEqual(3 + 16, len(salt))
+        self.assertTrue(salt.startswith('$6$'))
+
     def test_password_crypt(self):
         self.assertEqual(
             '$5$mysalt$fcnMdhaFpUmeWtGOgVuImueZGL1v0Q1kUVbV2NbFOX4',
