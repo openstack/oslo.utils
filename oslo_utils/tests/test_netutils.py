@@ -287,6 +287,12 @@ class NetworkUtilsTest(test_base.BaseTestCase):
             addr = netutils.get_my_ipv4()
         self.assertEqual(addr, '1.2.3.4')
 
+    def test_get_my_ipv4_disabled(self):
+        with (mock.patch('socket.socket', side_effect=socket.error()),
+              mock.patch('builtins.open', side_effect=FileNotFoundError())):
+            addr = netutils.get_my_ipv4()
+        self.assertEqual(addr, '127.0.0.1')
+
     def test_get_my_ipv6(self):
         mock_sock = mock.Mock()
         mock_sock.getsockname.return_value = ['2001:db8::2', '', '', '']
