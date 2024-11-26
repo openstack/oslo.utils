@@ -296,6 +296,12 @@ class NetworkUtilsTest(test_base.BaseTestCase):
             addr = netutils.get_my_ipv6()
         self.assertEqual(addr, '2001:db8::2')
 
+    def test_get_my_ipv6_disabled(self):
+        with (mock.patch('socket.socket', side_effect=socket.error()),
+              mock.patch('builtins.open', side_effect=FileNotFoundError())):
+            addr = netutils.get_my_ipv6()
+        self.assertEqual(addr, '::1')
+
     def test_is_int_in_range(self):
         valid_inputs = [(1, -100, 100),
                         ('1', -100, 100),

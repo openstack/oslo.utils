@@ -459,18 +459,24 @@ def _get_my_ipv6_address():
     LOCALHOST = '::1'
     interface = None
     ZERO_ADDRESS = '00000000000000000000000000000000'
+    ZERO_PAIR = (ZERO_ADDRESS, '00')
 
-    with open('/proc/net/ipv6_route') as routes:
-        for route in routes:
-            route_attrs = route.strip().split(' ')
-            if ((route_attrs[0], route_attrs[1]) == (ZERO_ADDRESS, '00') and
-                    (route_attrs[2], route_attrs[3]) == (ZERO_ADDRESS, '00')):
-                interface = route_attrs[-1]
-                break
-        else:
-            LOG.info('Could not determine default network interface, '
-                     'using %s for IPv6 address', LOCALHOST)
-            return LOCALHOST
+    try:
+        with open('/proc/net/ipv6_route') as routes:
+            for route in routes:
+                route_attrs = route.strip().split(' ')
+                if ((route_attrs[0], route_attrs[1]) == ZERO_PAIR and
+                        (route_attrs[2], route_attrs[3]) == ZERO_PAIR):
+                    interface = route_attrs[-1]
+                    break
+            else:
+                LOG.info('Could not determine default network interface, '
+                         'using %s for IPv6 address', LOCALHOST)
+                return LOCALHOST
+    except FileNotFoundError:
+        LOG.info('IPv6 route table not found, '
+                 'using %s for IPv6 address', LOCALHOST)
+        return LOCALHOST
 
     try:
         addrs = psutil.net_if_addrs()[interface]
