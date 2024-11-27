@@ -22,6 +22,8 @@ import ctypes
 import ctypes.util
 import hashlib
 import hmac
+import secrets
+import string as _string
 
 import debtcollector.removals
 
@@ -51,6 +53,27 @@ if ctypes.util.find_library("crypt"):
     _crypt.restype = ctypes.c_char_p
 else:
     _crypt = None
+
+
+def crypt_mksalt(method):
+    """Make salt to encrypt password string
+
+    This is provided as a replacement of crypt.mksalt method because crypt
+    module was removed in Python 3.13.
+
+    .. versionadded:: 7.5
+    """
+    # NOTE(tkajinam): The mksalt method in crypto module used to support MD5
+    # and DES. However these are considered unsafe so we do not support these
+    # to engourage more secure methods.
+    methods = {'SHA-512': '$6$', 'SHA-256': '$5$'}
+    if method not in methods:
+        raise ValueError('Unsupported method: %s' % method)
+
+    salt_set = _string.ascii_letters + _string.digits + './'
+    return ''.join(
+        [methods[method]] +
+        [secrets.choice(salt_set) for c in range(16)])
 
 
 def crypt_password(key, salt):
