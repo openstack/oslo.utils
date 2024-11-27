@@ -61,7 +61,7 @@ def crypt_mksalt(method):
     This is provided as a replacement of crypt.mksalt method because crypt
     module was removed in Python 3.13.
 
-    .. versionadded:: 7.5
+    .. versionadded:: 8.0
     """
     # NOTE(tkajinam): The mksalt method in crypto module used to support MD5
     # and DES. However these are considered unsafe so we do not support these
@@ -82,7 +82,7 @@ def crypt_password(key, salt):
     This is provided as a replacement of crypt.crypt method because crypt
     module was removed in Python 3.13.
 
-    .. versionadded:: 7.5
+    .. versionadded:: 8.0
     """
     if _crypt is None:
         raise RuntimeError('libcrypt is not available')
