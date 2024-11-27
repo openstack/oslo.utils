@@ -408,16 +408,21 @@ def _get_my_ipv4_address():
     LOCALHOST = '127.0.0.1'
     interface = None
 
-    with open('/proc/net/route') as routes:
-        for route in routes:
-            route_attrs = route.strip().split('\t')
-            if route_attrs[1] == '00000000':
-                interface = route_attrs[0]
-                break
-        else:
-            LOG.info('Could not determine default network interface, '
-                     'using %s for IPv4 address', LOCALHOST)
-            return LOCALHOST
+    try:
+        with open('/proc/net/route') as routes:
+            for route in routes:
+                route_attrs = route.strip().split('\t')
+                if route_attrs[1] == '00000000':
+                    interface = route_attrs[0]
+                    break
+            else:
+                LOG.info('Could not determine default network interface, '
+                         'using %s for IPv4 address', LOCALHOST)
+                return LOCALHOST
+    except FileNotFoundError:
+        LOG.info('IPv4 route table not found, '
+                 'using %s for IPv4 address', LOCALHOST)
+        return LOCALHOST
 
     try:
         addrs = psutil.net_if_addrs()[interface]
