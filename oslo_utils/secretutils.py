@@ -18,6 +18,8 @@ Secret utilities.
 .. versionadded:: 3.5
 """
 
+import ctypes
+import ctypes.util
 import hashlib
 import hmac
 
@@ -40,3 +42,25 @@ def md5(string=b'', usedforsecurity=True):
     See https://bugs.python.org/issue9216
     """
     return hashlib.md5(string, usedforsecurity=usedforsecurity)  # nosec
+
+
+if ctypes.util.find_library("crypt"):
+    _libcrypt = ctypes.CDLL(ctypes.util.find_library("crypt"), use_errno=True)
+    _crypt = _libcrypt.crypt
+    _crypt.argtypes = (ctypes.c_char_p, ctypes.c_char_p)
+    _crypt.restype = ctypes.c_char_p
+else:
+    _crypt = None
+
+
+def crypt_password(key, salt):
+    """Encrtpt password string and generate the value in /etc/shadow format
+
+    This is provided as a replacement of crypt.crypt method because crypt
+    module was removed in Python 3.13.
+
+    .. versionadded:: 7.5
+    """
+    if _crypt is None:
+        raise RuntimeError('libcrypt is not available')
+    return _crypt(key.encode('utf-8'), salt.encode('utf-8')).decode('utf-8')

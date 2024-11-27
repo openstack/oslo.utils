@@ -9,3 +9,7 @@ python3-devel [platform:rpm]
 qemu-img [platform:redhat test]
 qemu-tools [platform:suse test]
 qemu-utils [platform:dpkg test]
+
+libxcrypt-compat [platform:redhat crypt]
+libcrypt1 [platform:suse crypt]
+libcrypt1 [platform:dpkg crypt]
