@@ -28,7 +28,7 @@ from oslo_utils import strutils
 # http://dl.sileht.net/public/payload.json.gz
 infile = 'large_json_payload.txt'
 
-with open(infile, 'r') as f:
+with open(infile) as f:
     input_str = f.read()
 print('payload has %d bytes' % len(input_str))
 
@@ -38,9 +38,9 @@ for pattern in strutils._SANITIZE_PATTERNS_2['admin_pass']:
         r"re.sub(pattern, r'\g<1>***\g<2>', payload)",
         """
 import re
-payload = '''%s'''
-pattern = re.compile(r'''%s''')
-""" % (input_str, pattern.pattern))
+payload = '''{}'''
+pattern = re.compile(r'''{}''')
+""".format(input_str, pattern.pattern))
     print(t.timeit(1))
 
 t = timeit.Timer(

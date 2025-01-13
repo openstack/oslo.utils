@@ -36,7 +36,7 @@ class EnsureTree(test_base.BaseTestCase):
     def test_ensure_tree(self):
         tmpdir = tempfile.mkdtemp()
         try:
-            testdir = '%s/foo/bar/baz' % (tmpdir,)
+            testdir = '{}/foo/bar/baz'.format(tmpdir)
             fileutils.ensure_tree(testdir, TEST_PERMISSIONS)
             self.assertTrue(os.path.isdir(testdir))
             self.assertEqual(os.stat(testdir).st_mode,
@@ -124,11 +124,11 @@ class RemovePathOnError(test_base.BaseTestCase):
 
 class WriteToTempfileTestCase(test_base.BaseTestCase):
     def setUp(self):
-        super(WriteToTempfileTestCase, self).setUp()
-        self.content = 'testing123'.encode('ascii')
+        super().setUp()
+        self.content = b'testing123'
 
     def check_file_content(self, path):
-        with open(path, 'r') as fd:
+        with open(path) as fd:
             ans = fd.read()
             self.assertEqual(self.content, ans.encode("latin-1"))
 
@@ -197,11 +197,11 @@ class WriteToTempfileTestCase(test_base.BaseTestCase):
 class TestComputeFileChecksum(test_base.BaseTestCase):
 
     def setUp(self):
-        super(TestComputeFileChecksum, self).setUp()
-        self.content = 'fake_content'.encode('ascii')
+        super().setUp()
+        self.content = b'fake_content'
 
     def check_file_content(self, content, path):
-        with open(path, 'r') as fd:
+        with open(path) as fd:
             ans = fd.read()
             self.assertEqual(content, ans.encode("latin-1"))
 
@@ -269,7 +269,7 @@ class LastBytesTestCase(test_base.BaseTestCase):
     """Test the last_bytes() utility method."""
 
     def setUp(self):
-        super(LastBytesTestCase, self).setUp()
+        super().setUp()
         self.content = b'1234567890'
 
     def test_truncated(self):
@@ -295,7 +295,7 @@ class FileTypeTestCase(test_base.BaseTestCase):
     """Test the is_yaml() and is_json() utility methods."""
 
     def setUp(self):
-        super(FileTypeTestCase, self).setUp()
+        super().setUp()
         data = {
             'name': 'test',
             'website': 'example.com'

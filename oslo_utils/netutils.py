@@ -270,7 +270,7 @@ def is_ipv6_enabled():
     if _IS_IPV6_ENABLED is None:
         disabled_ipv6_path = "/proc/sys/net/ipv6/conf/default/disable_ipv6"
         if os.path.exists(disabled_ipv6_path):
-            with open(disabled_ipv6_path, 'r') as f:
+            with open(disabled_ipv6_path) as f:
                 disabled = f.read().strip()
             _IS_IPV6_ENABLED = disabled == "0"
         else:
@@ -389,7 +389,7 @@ def get_my_ipv4():
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as csock:
             csock.connect(('192.0.2.0', 80))
             return csock.getsockname()[0]
-    except socket.error:
+    except OSError:
         return _get_my_ipv4_address()
 
 
@@ -445,7 +445,7 @@ def get_my_ipv6():
         with socket.socket(socket.AF_INET6, socket.SOCK_DGRAM) as csock:
             csock.connect(('2001:db8::1', 80))
             return csock.getsockname()[0]
-    except socket.error:
+    except OSError:
         return _get_my_ipv6_address()
 
 

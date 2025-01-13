@@ -254,7 +254,7 @@ def is_soon(dt, window):
     return normalize_time(dt) <= soon
 
 
-class Split(object):
+class Split:
     """A *immutable* stopwatch split.
 
     See: http://en.wikipedia.org/wiki/Stopwatch for what this is/represents.
@@ -280,7 +280,7 @@ class Split(object):
 
     def __repr__(self):
         r = reflection.get_class_name(self, fully_qualified=False)
-        r += "(elapsed=%s, length=%s)" % (self._elapsed, self._length)
+        r += "(elapsed={}, length={})".format(self._elapsed, self._length)
         return r
 
 
@@ -331,7 +331,7 @@ def time_it(logger, log_level=logging.DEBUG,
     return decorator
 
 
-class StopWatch(object):
+class StopWatch:
     """A simple timer/stopwatch helper class.
 
     Inspired by: apache-commons-lang java stopwatch.

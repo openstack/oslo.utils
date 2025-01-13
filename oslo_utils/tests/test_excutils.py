@@ -63,7 +63,7 @@ class SaveAndReraiseTest(test_base.BaseTestCase):
 
         def _force_reraise():
             try:
-                raise IOError("I broke")
+                raise OSError("I broke")
             except Exception:
                 with excutils.save_and_reraise_exception() as e:
                     e.reraise = False
@@ -75,7 +75,7 @@ class SaveAndReraiseTest(test_base.BaseTestCase):
 
         def _force_reraise():
             try:
-                raise IOError("I broke")
+                raise OSError("I broke")
             except Exception:
                 excutils.save_and_reraise_exception().capture().force_reraise()
 
@@ -163,7 +163,7 @@ class SaveAndReraiseTest(test_base.BaseTestCase):
 class ForeverRetryUncaughtExceptionsTest(test_base.BaseTestCase):
 
     def setUp(self):
-        super(ForeverRetryUncaughtExceptionsTest, self).setUp()
+        super().setUp()
 
         self._exceptions = []
 
@@ -437,7 +437,7 @@ class ExceptionFilterTest(test_base.BaseTestCase):
         return ignore_exceptions
 
     def _make_filter_method(self, ignore_classes=AssertionError):
-        class ExceptionIgnorer(object):
+        class ExceptionIgnorer:
             def __init__(self, ignore):
                 self.ignore = ignore
 
@@ -449,7 +449,7 @@ class ExceptionFilterTest(test_base.BaseTestCase):
         return ExceptionIgnorer(ignore_classes).ignore_exceptions
 
     def _make_filter_classmethod(self, ignore_classes=AssertionError):
-        class ExceptionIgnorer(object):
+        class ExceptionIgnorer:
             ignore = ignore_classes
 
             @excutils.exception_filter
@@ -461,7 +461,7 @@ class ExceptionFilterTest(test_base.BaseTestCase):
         return ExceptionIgnorer.ignore_exceptions
 
     def _make_filter_staticmethod(self, ignore_classes=AssertionError):
-        class ExceptionIgnorer(object):
+        class ExceptionIgnorer:
             @excutils.exception_filter
             @staticmethod
             def ignore_exceptions(ex):

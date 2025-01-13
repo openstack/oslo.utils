@@ -49,7 +49,7 @@ class CausedByException(Exception):
     .. versionadded:: 2.4
     """
     def __init__(self, message, cause=None):
-        super(CausedByException, self).__init__(message)
+        super().__init__(message)
         self.cause = cause
 
     def __bytes__(self):
@@ -142,7 +142,7 @@ def raise_with_cause(exc_cls, message, *args, **kwargs):
     raise exc_cls(message, *args, **kwargs) from kwargs.get('cause')
 
 
-class save_and_reraise_exception(object):
+class save_and_reraise_exception:
     """Save current exception, run some code and then re-raise.
 
     In some cases the exception context can be cleared, resulting in None
@@ -287,7 +287,7 @@ def forever_retry_uncaught_exceptions(*args, **kwargs):
             return decorator
 
 
-class exception_filter(object):
+class exception_filter:
     """A context manager that prevents some exceptions from being raised.
 
     Use this class as a decorator for a function that returns whether a given

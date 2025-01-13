@@ -24,6 +24,6 @@ def flatten_dict_to_keypairs(d, separator=':'):
         if isinstance(value, dict):
             for subname, subvalue in flatten_dict_to_keypairs(value,
                                                               separator):
-                yield '%s%s%s' % (name, separator, subname), subvalue
+                yield '{}{}{}'.format(name, separator, subname), subvalue
         else:
             yield name, value

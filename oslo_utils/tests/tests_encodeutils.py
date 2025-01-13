@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Copyright 2014 Red Hat, Inc.
 # All Rights Reserved.
 #
@@ -29,19 +27,19 @@ class EncodeUtilsTest(test_base.BaseTestCase):
         safe_decode = encodeutils.safe_decode
         self.assertRaises(TypeError, safe_decode, True)
         self.assertEqual('ni\xf1o',
-                         safe_decode("ni\xc3\xb1o".encode("latin-1"),
+                         safe_decode(b"ni\xc3\xb1o",
                                      incoming="utf-8"))
 
         self.assertEqual("strange",
-                         safe_decode('\x80strange'.encode("latin-1"),
+                         safe_decode(b'\x80strange',
                                      errors='ignore'))
 
-        self.assertEqual('\xc0', safe_decode('\xc0'.encode("latin-1"),
+        self.assertEqual('\xc0', safe_decode(b'\xc0',
                          incoming='iso-8859-1'))
 
         # Forcing incoming to ascii so it falls back to utf-8
         self.assertEqual('ni\xf1o',
-                         safe_decode('ni\xc3\xb1o'.encode("latin-1"),
+                         safe_decode(b'ni\xc3\xb1o',
                                      incoming='ascii'))
 
         self.assertEqual('foo', safe_decode(b'foo'))
@@ -67,8 +65,8 @@ class EncodeUtilsTest(test_base.BaseTestCase):
     def test_safe_encode_force_incoming_utf8_to_ascii(self):
         # Forcing incoming to ascii so it falls back to utf-8
         self.assertEqual(
-            'ni\xc3\xb1o'.encode("latin-1"),
-            encodeutils.safe_encode('ni\xc3\xb1o'.encode("latin-1"),
+            b'ni\xc3\xb1o',
+            encodeutils.safe_encode(b'ni\xc3\xb1o',
                                     incoming='ascii'),
         )
 
@@ -91,7 +89,7 @@ class EncodeUtilsTest(test_base.BaseTestCase):
         result = encodeutils.safe_encode(
             text=text, incoming='utf-8', encoding='iso-8859-1')
         self.assertNotEqual(text, result)
-        self.assertNotEqual("foo\xf1bar".encode("latin-1"), result)
+        self.assertNotEqual(b"foo\xf1bar", result)
 
     def test_to_utf8(self):
         self.assertEqual(encodeutils.to_utf8(b'a\xe9\xff'),        # bytes

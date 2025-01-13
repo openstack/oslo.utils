@@ -39,7 +39,7 @@ def _chunked_reader(fileobj, chunk_size=512):
         yield chunk
 
 
-class CaptureRegion(object):
+class CaptureRegion:
     """Represents a region of a file we want to capture.
 
     A region of a file we want to capture requires a byte offset into
@@ -1416,7 +1416,7 @@ class InspectWrapper:
 
         This will be None if a decision has not been reached.
         """
-        non_raw = set([i for i in self._inspectors if i.NAME != 'raw'])
+        non_raw = {i for i in self._inspectors if i.NAME != 'raw'}
         complete = all([i.complete for i in non_raw])
         matches = [i for i in non_raw if i.format_match]
         if not complete and not self._finished:

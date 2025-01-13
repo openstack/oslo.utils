@@ -513,7 +513,7 @@ def mock_file_content(content):
 class TestIsIPv6Enabled(test_base.BaseTestCase):
 
     def setUp(self):
-        super(TestIsIPv6Enabled, self).setUp()
+        super().setUp()
 
         def reset_detection_flag():
             netutils._IS_IPV6_ENABLED = None

@@ -150,7 +150,7 @@ def last_bytes(path, num):
     with open(path, 'rb') as fp:
         try:
             fp.seek(-num, os.SEEK_END)
-        except IOError as e:
+        except OSError as e:
             # seek() fails with EINVAL when trying to go before the start of
             # the file. It means that num is larger than the file size, so
             # just go to the start.
@@ -173,7 +173,7 @@ def is_json(file_path):
     :returns: bool
 
     """
-    with open(file_path, 'r') as fh:
+    with open(file_path) as fh:
         data = fh.read()
     try:
         json.loads(data)
@@ -195,7 +195,7 @@ def is_yaml(file_path):
     :returns: bool
 
     """
-    with open(file_path, 'r') as fh:
+    with open(file_path) as fh:
         data = fh.read()
         is_yaml = False
         try:

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 #    Copyright (C) 2012-2013 Yahoo! Inc. All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -88,7 +86,7 @@ def get_class_name(obj, fully_qualified=True, truncate_builtins=True):
             if built_in:
                 return obj.__name__
     if fully_qualified and hasattr(obj, '__module__'):
-        return '%s.%s' % (obj.__module__, obj.__name__)
+        return '{}.{}'.format(obj.__module__, obj.__name__)
     else:
         return obj.__name__
 

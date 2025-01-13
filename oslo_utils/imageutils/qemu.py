@@ -34,7 +34,7 @@ from oslo_utils._i18n import _
 from oslo_utils import strutils
 
 
-class QemuImgInfo(object):
+class QemuImgInfo:
     """Parse Qemu image information from command `qemu-img info`'s output.
 
     The instance of :class:`QemuImgInfo` has properties: `image`,
@@ -130,8 +130,9 @@ class QemuImgInfo(object):
         # Allow abbreviated unit such as K to mean KB for compatibility.
         if len(unit_of_measure) == 1 and unit_of_measure != 'B':
             unit_of_measure += 'B'
-        return strutils.string_to_bytes('%s%s' % (magnitude, unit_of_measure),
-                                        return_int=True)
+        return strutils.string_to_bytes(
+            '{}{}'.format(magnitude, unit_of_measure),
+            return_int=True)
 
     def _extract_details(self, root_cmd, root_details, lines_after):
         real_details = root_details

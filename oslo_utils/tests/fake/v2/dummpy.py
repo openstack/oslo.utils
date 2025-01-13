@@ -13,16 +13,16 @@
 #    under the License.
 
 
-class V2FakeDriver(object):
+class V2FakeDriver:
     def __init__(self, first_arg=True):
         self.first_arg = first_arg
 
 
-class V2FakeDriver2(object):
+class V2FakeDriver2:
     def __init__(self, first_arg):
         self.first_arg = first_arg
 
 
-class V2FakeDriver3(object):
+class V2FakeDriver3:
     def __init__(self):
         raise ImportError("ImportError occurs in __init__")

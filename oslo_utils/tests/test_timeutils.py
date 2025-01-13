@@ -34,7 +34,7 @@ def monotonic_iter(start=0, incr=0.05):
 class TimeUtilsTest(test_base.BaseTestCase):
 
     def setUp(self):
-        super(TimeUtilsTest, self).setUp()
+        super().setUp()
         self.skynet_self_aware_time_str = '1997-08-29T06:14:00Z'
         self.skynet_self_aware_time_ms_str = '1997-08-29T06:14:00.000123Z'
         self.skynet_self_aware_time = datetime.datetime(1997, 8, 29, 6, 14, 0)
@@ -361,7 +361,7 @@ class TimeItTest(test_base.BaseTestCase):
 
         @timeutils.time_it(fake_logger)
         def broken_function():
-            raise IOError("Broken")
+            raise OSError("Broken")
 
         self.assertRaises(IOError, broken_function)
         self.assertFalse(fake_logger.log.called)

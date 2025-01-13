@@ -25,12 +25,12 @@ from oslo_utils import eventletutils
 
 class EventletUtilsTest(test_base.BaseTestCase):
     def setUp(self):
-        super(EventletUtilsTest, self).setUp()
+        super().setUp()
         self._old_avail = eventletutils.EVENTLET_AVAILABLE
         eventletutils.EVENTLET_AVAILABLE = True
 
     def tearDown(self):
-        super(EventletUtilsTest, self).tearDown()
+        super().tearDown()
         eventletutils.EVENTLET_AVAILABLE = self._old_avail
 
     @mock.patch("oslo_utils.eventletutils._patcher")

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 #    Copyright (C) 2015 Yahoo! Inc. All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -146,14 +144,14 @@ def is_monkey_patched(module):
     return _patcher.is_monkey_patched(module)
 
 
-class EventletEvent(object):
+class EventletEvent:
     """A class that provides consistent eventlet/threading Event API.
 
     This wraps the eventlet.event.Event class to have the same API as
     the standard threading.Event object.
     """
     def __init__(self, *args, **kwargs):
-        super(EventletEvent, self).__init__()
+        super().__init__()
         self.clear()
 
     def clear(self):

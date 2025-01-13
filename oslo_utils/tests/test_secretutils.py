@@ -31,7 +31,7 @@ class SecretUtilsTest(testscenarios.TestWithScenarios,
         ('unicode', {'converter': lambda text: text}),
     ]
 
-    _test_data = "Openstack forever".encode('utf-8')
+    _test_data = b"Openstack forever"
     _md5_digest = hashlib.md5(_test_data).digest()
 
     def test_md5_with_data(self):

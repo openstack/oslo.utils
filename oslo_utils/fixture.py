@@ -1,4 +1,3 @@
-
 # Copyright 2015 OpenStack Foundation
 # All Rights Reserved.
 #
@@ -37,11 +36,11 @@ class TimeFixture(fixtures.Fixture):
     """
 
     def __init__(self, override_time=None):
-        super(TimeFixture, self).__init__()
+        super().__init__()
         self._override_time = override_time
 
     def setUp(self):
-        super(TimeFixture, self).setUp()
+        super().setUp()
         timeutils.set_time_override(self._override_time)
         self.addCleanup(timeutils.clear_time_override)
 
@@ -54,7 +53,7 @@ class TimeFixture(fixtures.Fixture):
         timeutils.advance_time_seconds(seconds)
 
 
-class _UUIDSentinels(object):
+class _UUIDSentinels:
     """Registry of dynamically created, named, random UUID strings in regular
     (with hyphens) and similar to some keystone IDs (without hyphens) formats.
 

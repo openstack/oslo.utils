@@ -170,7 +170,7 @@ class StrUtilsTest(test_base.BaseTestCase):
         self.assertEqual("ju5tnum8er", to_slug("ju5tnum8er"))
         self.assertEqual("strip-", to_slug(" strip - "))
         self.assertEqual("perche",
-                         to_slug("perch\xc3\xa9".encode("latin-1")))
+                         to_slug(b"perch\xc3\xa9"))
         self.assertEqual("strange",
                          to_slug("\x80strange", errors="ignore"))
 
@@ -250,7 +250,7 @@ class StringToBytesTest(test_base.BaseTestCase):
     def test_string_to_bytes(self):
 
         def _get_quantity(sign, magnitude, unit_suffix):
-            res = float('%s%s' % (sign, magnitude))
+            res = float('{}{}'.format(sign, magnitude))
             if unit_suffix in ['b', 'bit']:
                 res /= 8
             return res
@@ -689,7 +689,7 @@ class MaskPasswordTestCase(test_base.BaseTestCase):
 class TestMapping(collections.abc.Mapping):
     """Test class for non-dict mappings"""
     def __init__(self):
-        super(TestMapping, self).__init__()
+        super().__init__()
         self.data = {'password': 'shhh',
                      'foo': 'bar',
                      }
@@ -707,7 +707,7 @@ class TestMapping(collections.abc.Mapping):
 class NestedMapping(TestMapping):
     """Test class that contains an instance of TestMapping"""
     def __init__(self):
-        super(NestedMapping, self).__init__()
+        super().__init__()
         self.data = {'nested': TestMapping()}
 
 

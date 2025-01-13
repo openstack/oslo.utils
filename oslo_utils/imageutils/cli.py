@@ -77,7 +77,7 @@ def main():
         safe = False
         failure_reasons = []
         for exc in e.failures.items():
-            failure_reasons.append("%s: %s" % (exc[0], exc[1]))
+            failure_reasons.append("{}: {}".format(exc[0], exc[1]))
 
     virtual_size = inspector.virtual_size
     actual_size = inspector.actual_size

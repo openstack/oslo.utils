@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 #    Copyright (C) 2012 Yahoo! Inc. All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -47,7 +45,7 @@ def function_with_kwargs(a, b, **kwargs):
     pass
 
 
-class TestObject(object):
+class TestObject:
     def _hello(self):
         pass
 
@@ -55,7 +53,7 @@ class TestObject(object):
         pass
 
 
-class Class(object):
+class Class:
 
     def method(self, c, d):
         pass
@@ -69,7 +67,7 @@ class Class(object):
         pass
 
 
-class BadClass(object):
+class BadClass:
     def do_something(self):
         pass
 
@@ -77,12 +75,12 @@ class BadClass(object):
         return False
 
 
-class CallableClass(object):
+class CallableClass:
     def __call__(self, i, j):
         pass
 
 
-class ClassWithInit(object):
+class ClassWithInit:
     def __init__(self, k, lll):
         pass
 
@@ -123,7 +121,7 @@ class CallbackEqualityTest(test_base.BaseTestCase):
 
     def test_static_instance_callbacks(self):
 
-        class A(object):
+        class A:
 
             @staticmethod
             def b(a, b, c):
@@ -136,7 +134,7 @@ class CallbackEqualityTest(test_base.BaseTestCase):
 
     def test_different_instance_callbacks(self):
 
-        class A(object):
+        class A:
             def b(self):
                 pass
 
@@ -201,7 +199,7 @@ class GetCallableNameTest(test_base.BaseTestCase):
 class GetCallableNameTestExtended(test_base.BaseTestCase):
     # Tests items in http://legacy.python.org/dev/peps/pep-3155/
 
-    class InnerCallableClass(object):
+    class InnerCallableClass:
         def __call__(self):
             pass
 
@@ -298,7 +296,7 @@ class GetClassNameTest(test_base.BaseTestCase):
         self.assertEqual('.'.join((__name__, 'Class')), name)
 
     def test_qualified_class(self):
-        class QualifiedClass(object):
+        class QualifiedClass:
             pass
 
         name = reflection.get_class_name(QualifiedClass)

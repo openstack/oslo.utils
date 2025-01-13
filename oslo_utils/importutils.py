@@ -57,7 +57,7 @@ def import_object_ns(name_space, import_str, *args, **kwargs):
        Don't capture :exc:`ImportError` when instanciating the object, only
        when importing the object class.
     """
-    import_value = "%s.%s" % (name_space, import_str)
+    import_value = "{}.{}".format(name_space, import_str)
     try:
         cls = import_class(import_value)
     except ImportError:
@@ -91,7 +91,7 @@ def import_versioned_module(module, version, submodule=None):
     # NOTE(gcb) Disallow parameter version include character '.'
     if '.' in '%s' % version:
         raise ValueError("Parameter version shouldn't include character '.'.")
-    module_str = '%s.v%s' % (module, version)
+    module_str = '{}.v{}'.format(module, version)
     if submodule:
         module_str = '.'.join((module_str, submodule))
     return import_module(module_str)

@@ -42,11 +42,11 @@ def get_size_format_from_qemu_img(filename):
 @ddt.ddt
 class TestFormatInspectors(test_base.BaseTestCase):
     def setUp(self):
-        super(TestFormatInspectors, self).setUp()
+        super().setUp()
         self._created_files = []
 
     def tearDown(self):
-        super(TestFormatInspectors, self).tearDown()
+        super().tearDown()
         for fn in self._created_files:
             try:
                 os.remove(fn)
@@ -95,7 +95,7 @@ class TestFormatInspectors(test_base.BaseTestCase):
         # are the same and can cause test failures
         out_fn = "%s.iso" % fn
         subprocess.check_output(
-            '%s -V "TEST" -o %s  %s' % (base_cmd, out_fn, fn),
+            '{} -V "TEST" -o {}  {}'.format(base_cmd, out_fn, fn),
             shell=True)
         self._created_files.append(out_fn)
         return out_fn
@@ -120,8 +120,8 @@ class TestFormatInspectors(test_base.BaseTestCase):
                                          0x01,  # start LBA
                                          0x00,  # size LBA
                                          )
-        fn = tempfile.mktemp(prefix='%s-gpt-%s' % (TEST_IMAGE_PREFIX,
-                                                   subformat))
+        fn = tempfile.mktemp(prefix='{}-gpt-{}'.format(TEST_IMAGE_PREFIX,
+                                                       subformat))
         with open(fn, 'wb') as f:
             f.write(data)
         self._created_files.append(fn)
@@ -180,7 +180,7 @@ class TestFormatInspectors(test_base.BaseTestCase):
             prefix += subformat + '-'
 
         if options:
-            opt += '-o ' + ','.join('%s=%s' % (k, v)
+            opt += '-o ' + ','.join('{}={}'.format(k, v)
                                     for k, v in options.items())
 
         if backing_file is not None:
@@ -218,8 +218,8 @@ class TestFormatInspectors(test_base.BaseTestCase):
 
         # Convert it to VMDK
         subprocess.check_output(
-            'qemu-img convert -f raw -O vmdk -o subformat=%s -S 0 %s %s' % (
-                subformat, raw, fn),
+            'qemu-img convert -f raw -O vmdk -o subformat={} -S 0 {} {}'
+            .format(subformat, raw, fn),
             shell=True)
         return fn
 
@@ -334,10 +334,10 @@ class TestFormatInspectors(test_base.BaseTestCase):
         fn = tempfile.mktemp(prefix=prefix, suffix='.iso')
         self._created_files.append(fn)
         subprocess.check_output(
-            'dd if=%s of=%s bs=32K count=1' % (qcow, fn),
+            'dd if={} of={} bs=32K count=1'.format(qcow, fn),
             shell=True)
         subprocess.check_output(
-            'dd if=%s of=%s bs=32K skip=1 seek=1' % (iso, fn),
+            'dd if={} of={} bs=32K skip=1 seek=1'.format(iso, fn),
             shell=True)
         return qcow, iso, fn
 
