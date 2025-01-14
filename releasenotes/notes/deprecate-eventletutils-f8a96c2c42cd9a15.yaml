@@ -1,0 +1,7 @@
+---
+deprecations:
+  - |
+    Eventlet usages are deprecated and the removal of Eventlet from
+    OpenStack `is planned <https://governance.openstack.org/tc//goals/proposed/remove-eventlet.html>`_, for this reason the ``eventletutils`` module is
+    deprecated. Please start considering removing your internal Eventlet
+    usages and migrating your stack.
