@@ -15,11 +15,7 @@
 
 import sys
 
-
-# NOTE(blk-u): This provides a symbol that can be overridden just for this
-# module during testing. sys.getfilesystemencoding() is called by coverage so
-# mocking it globally caused the coverage job to fail.
-_getfilesystemencoding = sys.getfilesystemencoding
+import debtcollector.removals
 
 
 def safe_decode(text, incoming=None, errors='strict'):
@@ -118,51 +114,13 @@ def to_utf8(text):
                         % type(text).__name__)
 
 
+@debtcollector.removals.remove(message='Use str(exc) instead',
+                               category=DeprecationWarning)
 def exception_to_unicode(exc):
     """Get the message of an exception as a Unicode string.
 
-    On Python 3, the exception message is always a Unicode string. On
-    Python 2, the exception message is a bytes string *most* of the time.
-
-    If the exception message is a bytes strings, try to decode it from UTF-8
-    (superset of ASCII), from the locale encoding, or fallback to decoding it
-    from ISO-8859-1 (which never fails).
+    On Python 3, the exception message is always a Unicode string.
 
     .. versionadded:: 1.6
     """
-    msg = None
-
-    if msg is None:
-        # Don't call directly str(exc), because it fails with
-        # UnicodeEncodeError on Python 2 if exc.__str__() returns a Unicode
-        # string not encodable to the default encoding (ASCII)
-        msg = exc.__str__()
-
-    if isinstance(msg, str):
-        # This should be the default path on Python 3 and an *optional* path
-        # on Python 2 (if for some reason the exception message was already
-        # in unicode instead of the more typical bytes string); so avoid
-        # further converting to unicode in both of these cases.
-        return msg
-
-    try:
-        # Try to decode from UTF-8 (superset of ASCII). The decoder fails
-        # if the string is not a valid UTF-8 string: the UTF-8 codec includes
-        # a validation algorithm to ensure the consistency of the codec.
-        return msg.decode('utf-8')
-    except UnicodeDecodeError:  # nosec
-        pass
-
-    # Try the locale encoding, most error messages are encoded to this encoding
-    # (ex: os.strerror(errno))
-    encoding = _getfilesystemencoding()
-    try:
-        return msg.decode(encoding)
-    except UnicodeDecodeError:  # nosec
-        pass
-
-    # The encoding is not ASCII, not UTF-8, nor the locale encoding. Fallback
-    # to the ISO-8859-1 encoding which never fails. It will produce mojibake
-    # if the message is not encoded to ISO-8859-1, but we don't want a super
-    # complex heuristic to get the encoding of an exception message.
-    return msg.decode('latin1')
+    return str(exc)

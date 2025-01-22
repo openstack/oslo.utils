@@ -1,0 +1,5 @@
+---
+deprecations:
+  - |
+    The ``exception_to_unicode`` function from the ``oslo_utils.encodeutils``
+    module has been deprecated. Use ``str(exc)`` instead.
