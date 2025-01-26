@@ -29,13 +29,13 @@ import debtcollector.removals
 
 
 @debtcollector.removals.remove(message='Use hmac.compare_digest instead',
-                               category=PendingDeprecationWarning)
+                               category=DeprecationWarning)
 def constant_time_compare(*args, **kwargs):
     return hmac.compare_digest(*args, **kwargs)
 
 
 @debtcollector.removals.remove(message='Use hashlib.md5 instead',
-                               category=PendingDeprecationWarning)
+                               category=DeprecationWarning)
 def md5(string=b'', usedforsecurity=True):
     """Return an md5 hashlib object using usedforsecurity parameter
 
