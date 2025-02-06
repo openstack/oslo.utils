@@ -1,0 +1,6 @@
+features:
+  - |
+    Adds a utility CLI module for checking images against the format
+    inspector in oslo_utils.imageutils. After installing oslo.utils, simply
+    run ``python -m oslo_utils.imageutils -h`` for full usage for the new
+    CLI helper.
