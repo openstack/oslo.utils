@@ -29,9 +29,7 @@ from oslo_utils import importutils
 from oslo_utils import timeutils
 
 debtcollector.deprecate(
-    "Eventlet usages are deprecated. "
-    "Eventlet will be soon no longer supported. "
-    "Please migrate your code.")
+    "eventuletutils module is deprecated and will be removed.")
 
 # These may or may not exist; so carefully import them if we can...
 _eventlet = importutils.try_import('eventlet')
