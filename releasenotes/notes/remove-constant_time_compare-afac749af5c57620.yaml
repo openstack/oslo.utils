@@ -1,0 +1,5 @@
+---
+upgrade:
+  - |
+    The deprecated ``oslo_utils.secretutils.constant_time_compare`` function
+    has been removed.

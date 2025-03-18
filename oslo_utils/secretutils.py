@@ -21,25 +21,10 @@ Secret utilities.
 import ctypes
 import ctypes.util
 import hashlib
-import hmac
 import secrets
 import string as _string
 
 import debtcollector.removals
-
-
-@debtcollector.removals.remove(message='Use hmac.compare_digest instead',
-                               category=DeprecationWarning)
-def constant_time_compare(*args, **kwargs):
-    """Return True if both string or binary inputs are equal, otherwise False.
-
-    This function should take a constant amount of time regardless of
-    how many characters in the strings match. This function uses an
-    approach designed to prevent timing analysis by avoiding
-    content-based short circuiting behaviour, making it appropriate
-    for cryptography.
-    """
-    return hmac.compare_digest(*args, **kwargs)
 
 
 @debtcollector.removals.remove(message='Use hashlib.md5 instead',
