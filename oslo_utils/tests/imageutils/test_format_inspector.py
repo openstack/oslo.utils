@@ -396,9 +396,9 @@ class TestFormatInspectors(test_base.BaseTestCase):
         )
 
         # Make sure the multiple detected formats are exposed
-        self.assertEqual(
-            ['iso', 'qcow2'], sorted(x.NAME for x in wrapper.formats)
-        )
+        formats = wrapper.formats
+        assert formats is not None
+        self.assertEqual(['iso', 'qcow2'], sorted(x.NAME for x in formats))
 
     def test_from_file_reads_minimum(self):
         img = self._create_img('qcow2', 10 * units.Mi)
@@ -411,7 +411,9 @@ class TestFormatInspectors(test_base.BaseTestCase):
 
     def test_qed_always_unsafe(self):
         img = self._create_img('qed', 10 * units.Mi)
-        fmt = format_inspector.get_inspector('qed').from_file(img)
+        inspector = format_inspector.get_inspector('qed')
+        assert inspector is not None
+        fmt = inspector.from_file(img)
         self.assertTrue(fmt.format_match)
         self.assertRaises(format_inspector.SafetyCheckFailed, fmt.safety_check)
 
@@ -420,6 +422,7 @@ class TestFormatInspectors(test_base.BaseTestCase):
             'vmdk', 10 * units.Mi, subformat='monolithicFlat'
         )
         fmt = format_inspector.detect_file_format(img)
+        assert fmt is not None
         self.assertEqual('vmdk', fmt.NAME)
         e = self.assertRaises(
             format_inspector.SafetyCheckFailed, fmt.safety_check
@@ -918,7 +921,7 @@ class TestFormatInspectors(test_base.BaseTestCase):
     def test_vmdk_format_checks(self):
         # Invalid signature
         fmt = format_inspector.VMDKInspector()
-        chunk = b'\x00' * 512
+        chunk: bytes | bytearray = b'\x00' * 512
         self.assertRaisesRegex(
             format_inspector.ImageFormatError,
             'Signature',
@@ -1057,7 +1060,7 @@ class TestFormatInspectorInfra(test_base.BaseTestCase):
 
         for region in regions:
             try:
-                region.finish()
+                region.finish()  # type: ignore
             except AttributeError:
                 pass
 
@@ -1134,7 +1137,8 @@ class TestFormatInspectorInfra(test_base.BaseTestCase):
         self, mock_log, mock_eat, expected=None
     ):
         wrapper = format_inspector.InspectWrapper(
-            iter([b'123', b'456']), expected_format=expected
+            iter([b'123', b'456']),  # type: ignore
+            expected_format=expected,
         )
         mock_eat.side_effect = Exception('fail')
 
@@ -1157,7 +1161,7 @@ class TestFormatInspectorInfra(test_base.BaseTestCase):
         # Test with an expected format, but not the one we're going to
         # intentionally fail to make sure that we do not log failures
         # for non-expected formats.
-        self.test_wrapper_iter_like_eats_error(expected='vhd')
+        self.test_wrapper_iter_like_eats_error(expected='vhd')  # type: ignore
 
     def test_wrapper_aborts_early(self):
         # Run the InspectWrapper with non-qcow2 data, expecting qcow2, first
@@ -1194,7 +1198,9 @@ class TestFormatInspectorInfra(test_base.BaseTestCase):
     def test_safety_check_records_failure(self):
         # This check will fail with ValueError
         check = format_inspector.SafetyCheck(
-            'foo', lambda: int('a'), description='a fake check'
+            'foo',
+            lambda: int('a'),  # type: ignore
+            description='a fake check',
         )
         self.assertRaisesRegex(
             format_inspector.SafetyViolation, 'Unexpected error', check
@@ -1203,7 +1209,7 @@ class TestFormatInspectorInfra(test_base.BaseTestCase):
     def test_safety_check_constants(self):
         null_check = format_inspector.SafetyCheck.null()
         self.assertIsInstance(null_check, format_inspector.SafetyCheck)
-        self.assertIsNone(null_check())
+        self.assertIsNone(null_check())  # type: ignore
 
         banned_check = format_inspector.SafetyCheck.banned()
         self.assertIsInstance(banned_check, format_inspector.SafetyCheck)
@@ -1271,6 +1277,7 @@ class TestFormatInspectorsTargeted(test_base.BaseTestCase):
         meta.data = self._make_vhd_meta(desired, 33 * 2048)
         ins.new_region('metadata', meta)
         new_region = ins._find_meta_entry(ins._guid(desired))
+        assert new_region is not None
         # Make sure we clamp to our limit of 32 * 2048
         self.assertEqual(
             format_inspector.VHDXInspector.VHDX_METADATA_TABLE_MAX_SIZE,
@@ -1284,5 +1291,6 @@ class TestFormatInspectorsTargeted(test_base.BaseTestCase):
         meta.data = self._make_vhd_meta(desired, 16 * 2048)
         ins.new_region('metadata', meta)
         new_region = ins._find_meta_entry(ins._guid(desired))
+        assert new_region is not None
         # Table size was under the limit, make sure we get it back
         self.assertEqual(16 * 2048, new_region.length)
