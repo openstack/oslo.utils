@@ -89,7 +89,7 @@ class TestFormatInspectors(test_base.BaseTestCase):
         fn = tempfile.mktemp(prefix=prefix, suffix='.iso')
         self._created_files.append(fn)
         subprocess.check_output(
-            'dd if=/dev/zero of=%s bs=1M count=%i' % (fn, size), shell=True
+            f'dd if=/dev/zero of={fn} bs=1M count={int(size)}', shell=True
         )
         # We need to use different file as input and output as the behavior
         # of mkisofs is version dependent if both the input and the output
@@ -140,7 +140,7 @@ class TestFormatInspectors(test_base.BaseTestCase):
             '-o',
             'key-secret=sec0',
             fn,
-            '%i' % image_size,
+            f'{int(image_size)}',
         ]
         subprocess.check_output(' '.join(cmd), shell=True)
         return fn
@@ -200,7 +200,7 @@ class TestFormatInspectors(test_base.BaseTestCase):
         fn = tempfile.mktemp(prefix=prefix, suffix=f'.{fmt}')
         self._created_files.append(fn)
         subprocess.check_output(
-            'qemu-img create -f %s %s %s %i' % (fmt, opt, fn, size), shell=True
+            f'qemu-img create -f {fmt} {opt} {fn} {int(size)}', shell=True
         )
         return fn
 
@@ -223,13 +223,14 @@ class TestFormatInspectors(test_base.BaseTestCase):
         # Create a file with pseudo-random data, otherwise it will get
         # compressed in the streamOptimized format
         subprocess.check_output(
-            'dd if=/dev/urandom of=%s bs=1M count=%i' % (raw, size_mb),
+            f'dd if=/dev/urandom of={raw} bs=1M count={int(size_mb)}',
             shell=True,
         )
 
         # Convert it to VMDK
         subprocess.check_output(
-            f'qemu-img convert -f raw -O vmdk -o subformat={subformat} -S 0 {raw} {fn}',
+            f'qemu-img convert -f raw -O vmdk -o subformat={subformat} '
+            f'-S 0 {raw} {fn}',
             shell=True,
         )
         return fn
@@ -287,14 +288,14 @@ class TestFormatInspectors(test_base.BaseTestCase):
             fmt = self._test_format_at_block_size(format_name, img, block_size)
             self.assertTrue(
                 fmt.format_match,
-                'Failed to match %s at size %i block %i'
-                % (format_name, image_size, block_size),
+                f'Failed to match {format_name} at '
+                f'size {int(image_size)} block {int(block_size)}',
             )
             self.assertEqual(
                 virtual_size,
                 fmt.virtual_size,
-                ('Failed to calculate size for %s at size %i block %i')
-                % (format_name, image_size, block_size),
+                f'Failed to calculate size for {format_name} at '
+                f'size {int(image_size)} block {int(block_size)}',
             )
             memory = sum(fmt.context_info.values())
             self.assertLess(
@@ -481,14 +482,14 @@ class TestFormatInspectors(test_base.BaseTestCase):
             fmt = self._test_format_at_block_size(format_name, img, block_size)
             self.assertTrue(
                 fmt.format_match,
-                'Failed to match %s at size %i block %i'
-                % (format_name, image_size, block_size),
+                f'Failed to match {format_name} at '
+                f'size {int(image_size)} block {int(block_size)}',
             )
             self.assertEqual(
                 virtual_size,
                 fmt.virtual_size,
-                ('Failed to calculate size for %s at size %i block %i')
-                % (format_name, image_size, block_size),
+                f'Failed to calculate size for {format_name} at '
+                f'size {int(image_size)} block {int(block_size)}',
             )
             memory = sum(fmt.context_info.values())
             self.assertLess(

@@ -29,7 +29,7 @@ infile = 'large_json_payload.txt'
 
 with open(infile) as f:
     input_str = f.read()
-print('payload has %d bytes' % len(input_str))
+print(f'payload has {len(input_str)} bytes')
 
 for pattern in strutils._SANITIZE_PATTERNS_2['admin_pass']:
     print(f'\ntesting {pattern.pattern}')

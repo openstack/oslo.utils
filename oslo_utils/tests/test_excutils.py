@@ -175,9 +175,7 @@ class ForeverRetryUncaughtExceptionsTest(test_base.BaseTestCase):
     @mock.patch.object(logging, 'exception')
     @mock.patch.object(timeutils, 'now')
     def test_exc_retrier_1exc_gives_1log(self, mock_now, mock_log):
-        self._exceptions = [
-            Exception('unexpected %d' % 1),
-        ]
+        self._exceptions = [Exception('unexpected 1')]
         mock_now.side_effect = [0]
 
         self.exception_generator()
@@ -185,7 +183,7 @@ class ForeverRetryUncaughtExceptionsTest(test_base.BaseTestCase):
         self.assertEqual([], self._exceptions)
         # log should only be called once
         mock_log.assert_called_once_with(
-            'Unexpected exception occurred %d time(s)... retrying.' % 1
+            'Unexpected exception occurred 1 time(s)... retrying.'
         )
         mock_now.assert_has_calls(
             [

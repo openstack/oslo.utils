@@ -274,8 +274,8 @@ def forever_retry_uncaught_exceptions(*args, **kwargs):
                         # The watch has expired or the exception message
                         # changed, so time to log it again...
                         logging.exception(
-                            'Unexpected exception occurred %d time(s)... '
-                            'retrying.' % same_failure_count
+                            f'Unexpected exception occurred '
+                            f'{same_failure_count} time(s)... retrying.'
                         )
                         if not watch.has_started():
                             watch.start()

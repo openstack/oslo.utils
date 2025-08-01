@@ -792,7 +792,7 @@ class VHDXInspector(FileInspector):
             )
 
         if count >= 2048:
-            raise ImageFormatError('Region count is %i (limit 2047)' % count)
+            raise ImageFormatError('Region count is {int(count)} (limit 2047)')
 
         # Process the regions until we find the metadata one; grab the
         # offset and return
@@ -849,7 +849,7 @@ class VHDXInspector(FileInspector):
 
         if count >= 2048:
             raise ImageFormatError(
-                'Metadata item count is %i (limit 2047)' % count
+                'Metadata item count is {int(count)} (limit 2047)'
             )
 
         for i in range(0, count):
@@ -1003,7 +1003,7 @@ class VMDKInspector(FileInspector):
             raise ImageFormatError(f'Signature KDMV not found: {sig!r}')
 
         if ver not in (1, 2, 3):
-            raise ImageFormatError('Unsupported format version %i' % ver)
+            raise ImageFormatError('Unsupported format version {int(ver)}')
 
         if gdOffset == self.GD_AT_END and not self.has_region('footer'):
             # This means we have a footer, which takes precedence over the
@@ -1364,7 +1364,9 @@ class GPTInspector(FileInspector):
                 sizelba,
             ) = struct.unpack('<B3BB3BII', pte)
             if boot not in (0x00, 0x80):
-                raise SafetyViolation('MBR PTE %i has invalid boot flag' % i)
+                raise SafetyViolation(
+                    f'MBR PTE {int(i)} has invalid boot flag'
+                )
             if ostype != 0:
                 valid_partitions.append(i)
             if ostype == 0xEE:
@@ -1415,7 +1417,7 @@ class LUKSInspector(FileInspector):
         header = self.header_items
         if header['version'] != 1:
             raise SafetyViolation(
-                'LUKS version %i is not supported' % header['version']
+                f'LUKS version {int(header["version"])} is not supported'
             )
 
     @property

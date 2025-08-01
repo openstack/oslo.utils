@@ -132,10 +132,10 @@ class ImageUtilsHumanRawTestCase(test_base.BaseTestCase):
         )
         for i in range(self.snapshot_count):
             img_info = img_info + (
-                '%d        '
-                'd9a9784a500742a7bb95627bb3aace38    '
-                '0 2012-08-20 10:52:46 '
-                '00:00:00.000' % (i + 1),
+                f'{i + 1}        '
+                f'd9a9784a500742a7bb95627bb3aace38    '
+                f'0 2012-08-20 10:52:46 '
+                f'00:00:00.000',
             )
         return img_info
 
