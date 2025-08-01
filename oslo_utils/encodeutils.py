@@ -14,11 +14,16 @@
 #    under the License.
 
 import sys
+from typing import Any
 
 import debtcollector.removals
 
 
-def safe_decode(text, incoming=None, errors='strict'):
+def safe_decode(
+    text: str | bytes,
+    incoming: str | None = None,
+    errors: str = 'strict',
+) -> str:
     """Decodes incoming text/bytes string using `incoming` if they're not
        already unicode.
 
@@ -58,7 +63,12 @@ def safe_decode(text, incoming=None, errors='strict'):
         return text.decode('utf-8', errors)
 
 
-def safe_encode(text, incoming=None, encoding='utf-8', errors='strict'):
+def safe_encode(
+    text: str | bytes,
+    incoming: str | None = None,
+    encoding: str = 'utf-8',
+    errors: str = 'strict',
+) -> bytes:
     """Encodes incoming text/bytes string using `encoding`.
 
     If incoming is not specified, text is expected to be encoded with
@@ -99,7 +109,7 @@ def safe_encode(text, incoming=None, encoding='utf-8', errors='strict'):
         return text
 
 
-def to_utf8(text):
+def to_utf8(text: str | bytes) -> bytes:
     """Encode Unicode to UTF-8, return bytes unchanged.
 
     Raise TypeError if text is not a bytes string or a Unicode string.
@@ -119,7 +129,7 @@ def to_utf8(text):
 @debtcollector.removals.remove(
     message='Use str(exc) instead', category=DeprecationWarning
 )
-def exception_to_unicode(exc):
+def exception_to_unicode(exc: Any) -> str:
     """Get the message of an exception as a Unicode string.
 
     On Python 3, the exception message is always a Unicode string.

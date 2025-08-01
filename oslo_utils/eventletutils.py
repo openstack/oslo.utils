@@ -18,13 +18,20 @@ Eventlet utils helper module.
 .. versionadded:: 1.3
 """
 
+from __future__ import annotations
+
+from collections.abc import Sequence
 import threading
+from typing import TYPE_CHECKING
 import warnings
 
 import debtcollector
 
 from oslo_utils import importutils
 from oslo_utils import timeutils
+
+if TYPE_CHECKING:
+    import greenlet
 
 debtcollector.deprecate(
     "eventletutils module is deprecated and will be removed."
@@ -55,7 +62,7 @@ _ALL_PATCH = frozenset(
 )
 
 
-def fetch_current_thread_functor():
+def fetch_current_thread_functor() -> threading.Thread | greenlet.greenlet:
     """Get the current thread.
 
     If eventlet is used to monkey-patch the threading module, return the
@@ -70,18 +77,19 @@ def fetch_current_thread_functor():
     # reliable to use (and breaks badly when used as all threads share
     # the same current_thread() object)...
     if not EVENTLET_AVAILABLE:
-        return threading.current_thread
+        return threading.current_thread  # type: ignore
     else:
         green_threaded = _patcher.is_monkey_patched('thread')
         if green_threaded:
-            return _eventlet.getcurrent
+            return _eventlet.getcurrent  # type: ignore
         else:
-            return threading.current_thread
+            return threading.current_thread  # type: ignore
 
 
 def warn_eventlet_not_patched(
-    expected_patched_modules=None, what='this library'
-):
+    expected_patched_modules: Sequence[str] | None = None,
+    what: str = 'this library',
+) -> None:
     """Warns if eventlet is being used without patching provided modules.
 
     :param expected_patched_modules: list of modules to check to ensure that
@@ -103,7 +111,7 @@ def warn_eventlet_not_patched(
     :type what: string
     """
     if not expected_patched_modules:
-        expanded_patched_modules = _ALL_PATCH.copy()
+        expanded_patched_modules = set(_ALL_PATCH.copy())
     else:
         expanded_patched_modules = set()
         for m in expected_patched_modules:
@@ -149,7 +157,7 @@ def warn_eventlet_not_patched(
                 )
 
 
-def is_monkey_patched(module):
+def is_monkey_patched(module: str) -> bool:
     """Determines safely is eventlet patching for module enabled or not
     :param module: String, module name
     :return Bool: True if module is patched, False otherwise
@@ -157,7 +165,7 @@ def is_monkey_patched(module):
 
     if _patcher is None:
         return False
-    return _patcher.is_monkey_patched(module)
+    return _patcher.is_monkey_patched(module)  # type: ignore
 
 
 class EventletEvent:
@@ -167,26 +175,26 @@ class EventletEvent:
     the standard threading.Event object.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self) -> None:
         super().__init__()
         self.clear()
 
-    def clear(self):
+    def clear(self) -> None:
         if getattr(self, '_set', True):
             self._set = False
             self._event = _eventlet.event.Event()
 
-    def is_set(self):
+    def is_set(self) -> bool:
         return self._set
 
     isSet = is_set
 
-    def set(self):
+    def set(self) -> None:
         if not self._set:
             self._set = True
             self._event.send(True)
 
-    def wait(self, timeout=None):
+    def wait(self, timeout: int | float | None = None) -> bool:
         with timeutils.StopWatch(timeout) as sw:
             while True:
                 event = self._event
@@ -199,7 +207,7 @@ class EventletEvent:
                 return self.is_set()
 
 
-def Event():
+def Event() -> EventletEvent | threading.Event:
     if is_monkey_patched("thread"):
         return EventletEvent()
     else:

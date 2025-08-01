@@ -17,15 +17,18 @@
 Time related utilities and helper functions.
 """
 
+from __future__ import annotations
+
 import calendar
+from collections.abc import Callable
 import datetime
 import functools
 import logging
 import time
+from typing import Any
 import zoneinfo
 
 import iso8601
-
 
 from oslo_utils import reflection
 
@@ -37,7 +40,7 @@ _MAX_DATETIME_SEC = 59
 now = time.monotonic
 
 
-def parse_isotime(timestr):
+def parse_isotime(timestr: str) -> datetime.datetime:
     """Parse time from ISO 8601 format."""
     try:
         return iso8601.parse_date(timestr)
@@ -47,12 +50,14 @@ def parse_isotime(timestr):
         raise ValueError(str(e))
 
 
-def parse_strtime(timestr, fmt=PERFECT_TIME_FORMAT):
+def parse_strtime(
+    timestr: str, fmt: str = PERFECT_TIME_FORMAT
+) -> datetime.datetime:
     """Turn a formatted time back into a datetime."""
     return datetime.datetime.strptime(timestr, fmt)
 
 
-def normalize_time(timestamp):
+def normalize_time(timestamp: datetime.datetime) -> datetime.datetime:
     """Normalize time in arbitrary timezone to UTC naive object."""
     offset = timestamp.utcoffset()
     if offset is None:
@@ -60,7 +65,35 @@ def normalize_time(timestamp):
     return timestamp.replace(tzinfo=None) - offset
 
 
-def is_older_than(before, seconds):
+# https://github.com/python/mypy/issues/2087
+class _UTCNow:
+    override_time: None | datetime.datetime | list[datetime.datetime] = None
+
+    def __call__(self, with_timezone: bool = False) -> datetime.datetime:
+        """Overridable version of utils.utcnow that can return a TZ-aware datetime.
+
+        See :py:class:`oslo_utils.fixture.TimeFixture`.
+
+        .. versionchanged:: 1.6
+           Added *with_timezone* parameter.
+        """
+        if self.override_time:
+            if isinstance(self.override_time, datetime.datetime):
+                return self.override_time
+            return self.override_time.pop(0)
+        if with_timezone:
+            return datetime.datetime.now(tz=iso8601.iso8601.UTC)
+        return datetime.datetime.now(datetime.timezone.utc).replace(
+            tzinfo=None
+        )
+
+
+utcnow = _UTCNow()
+
+
+def is_older_than(
+    before: str | datetime.datetime, seconds: int | float
+) -> bool:
     """Return True if before is older than seconds.
 
     .. versionchanged:: 1.7
@@ -75,7 +108,9 @@ def is_older_than(before, seconds):
     return utcnow() - before > datetime.timedelta(seconds=seconds)
 
 
-def is_newer_than(after, seconds):
+def is_newer_than(
+    after: str | datetime.datetime, seconds: int | float
+) -> bool:
     """Return True if after is newer than seconds.
 
     .. versionchanged:: 1.7
@@ -90,7 +125,7 @@ def is_newer_than(after, seconds):
     return after - utcnow() > datetime.timedelta(seconds=seconds)
 
 
-def utcnow_ts(microsecond=False):
+def utcnow_ts(microsecond: bool = False) -> float:
     """Timestamp version of our utcnow function.
 
     See :py:class:`oslo_utils.fixture.TimeFixture`.
@@ -115,28 +150,7 @@ def utcnow_ts(microsecond=False):
     return timestamp
 
 
-def utcnow(with_timezone=False):
-    """Overridable version of utils.utcnow that can return a TZ-aware datetime.
-
-    See :py:class:`oslo_utils.fixture.TimeFixture`.
-
-    .. versionchanged:: 1.6
-       Added *with_timezone* parameter.
-    """
-    if utcnow.override_time:
-        try:
-            return utcnow.override_time.pop(0)
-        except AttributeError:
-            return utcnow.override_time
-    if with_timezone:
-        return datetime.datetime.now(tz=iso8601.iso8601.UTC)
-    return datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
-
-
-utcnow.override_time = None
-
-
-def set_time_override(override_time=None):
+def set_time_override(override_time: datetime.datetime | None = None) -> None:
     """Overrides utils.utcnow.
 
     Make it return a constant time or a list thereof, one at a time.
@@ -151,7 +165,7 @@ def set_time_override(override_time=None):
     ).replace(tzinfo=None)
 
 
-def advance_time_delta(timedelta):
+def advance_time_delta(timedelta: datetime.timedelta) -> None:
     """Advance overridden time using a datetime.timedelta.
 
     See :py:class:`oslo_utils.fixture.TimeFixture`.
@@ -160,14 +174,14 @@ def advance_time_delta(timedelta):
     if utcnow.override_time is None:
         raise RuntimeError('override_time must be configured')
 
-    try:
+    if isinstance(utcnow.override_time, datetime.datetime):
+        utcnow.override_time += timedelta
+    else:
         for dt in utcnow.override_time:
             dt += timedelta
-    except TypeError:
-        utcnow.override_time += timedelta
 
 
-def advance_time_seconds(seconds):
+def advance_time_seconds(seconds: int | float) -> None:
     """Advance overridden time by seconds.
 
     See :py:class:`oslo_utils.fixture.TimeFixture`.
@@ -176,7 +190,7 @@ def advance_time_seconds(seconds):
     advance_time_delta(datetime.timedelta(0, seconds))
 
 
-def clear_time_override():
+def clear_time_override() -> None:
     """Remove the overridden time.
 
     See :py:class:`oslo_utils.fixture.TimeFixture`.
@@ -185,7 +199,7 @@ def clear_time_override():
     utcnow.override_time = None
 
 
-def marshall_now(now=None):
+def marshall_now(now: datetime.datetime | None = None) -> dict[str, Any]:
     """Make an rpc-safe datetime with microseconds.
 
     .. versionchanged:: 1.6
@@ -193,7 +207,7 @@ def marshall_now(now=None):
     """
     if not now:
         now = utcnow()
-    d = dict(
+    d: dict[str, str | int | None] = dict(
         day=now.day,
         month=now.month,
         year=now.year,
@@ -209,7 +223,7 @@ def marshall_now(now=None):
     return d
 
 
-def unmarshall_time(tyme):
+def unmarshall_time(tyme: dict[str, Any]) -> datetime.datetime:
     """Unmarshall a datetime dict.
 
     .. versionchanged:: 1.5
@@ -242,7 +256,9 @@ def unmarshall_time(tyme):
     return dt
 
 
-def delta_seconds(before, after):
+def delta_seconds(
+    before: datetime.datetime, after: datetime.datetime
+) -> float:
     """Return the difference between two timing objects.
 
     Compute the difference in seconds between two date, time, or
@@ -252,7 +268,7 @@ def delta_seconds(before, after):
     return delta.total_seconds()
 
 
-def is_soon(dt, window):
+def is_soon(dt: datetime.datetime, window: int | float) -> bool:
     """Determines if time is going to happen in the next window seconds.
 
     :param dt: the time
@@ -274,33 +290,33 @@ class Split:
 
     __slots__ = ['_elapsed', '_length']
 
-    def __init__(self, elapsed, length):
+    def __init__(self, elapsed: float, length: float) -> None:
         self._elapsed = elapsed
         self._length = length
 
     @property
-    def elapsed(self):
+    def elapsed(self) -> float:
         """Duration from stopwatch start."""
         return self._elapsed
 
     @property
-    def length(self):
+    def length(self) -> float:
         """Seconds from last split (or the elapsed time if no prior split)."""
         return self._length
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         r = reflection.get_class_name(self, fully_qualified=False)
         r += f"(elapsed={self._elapsed}, length={self._length})"
         return r
 
 
 def time_it(
-    logger,
-    log_level=logging.DEBUG,
-    message="It took %(seconds).02f seconds to run function '%(func_name)s'",
-    enabled=True,
-    min_duration=0.01,
-):
+    logger: logging.Logger,
+    log_level: int = logging.DEBUG,
+    message: str = "It took %(seconds).02f seconds to run function '%(func_name)s'",
+    enabled: bool = True,
+    min_duration: float = 0.01,
+) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """Decorator that will log how long its decorated function takes to run.
 
     This does **not** output a log if the decorated function fails
@@ -324,12 +340,12 @@ def time_it(
                          to less than or equal to zero or set to none
     """
 
-    def decorator(func):
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         if not enabled:
             return func
 
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             with StopWatch() as w:
                 result = func(*args, **kwargs)
             time_taken = w.elapsed()
@@ -365,18 +381,18 @@ class StopWatch:
     _STARTED = 'STARTED'
     _STOPPED = 'STOPPED'
 
-    def __init__(self, duration=None):
+    def __init__(self, duration: float | None = None) -> None:
         if duration is not None and duration < 0:
             raise ValueError(
                 f"Duration must be greater or equal to zero and not {duration}"
             )
         self._duration = duration
-        self._started_at = None
-        self._stopped_at = None
-        self._state = None
-        self._splits = ()
+        self._started_at: float | None = None
+        self._stopped_at: float | None = None
+        self._state: str | None = None
+        self._splits: tuple[Split, ...] = ()
 
-    def start(self):
+    def start(self) -> StopWatch:
         """Starts the watch (if not already started).
 
         NOTE(harlowja): resets any splits previously captured (if any).
@@ -390,11 +406,11 @@ class StopWatch:
         return self
 
     @property
-    def splits(self):
+    def splits(self) -> tuple[Split, ...]:
         """Accessor to all/any splits that have been captured."""
         return self._splits
 
-    def split(self):
+    def split(self) -> Split:
         """Captures a split/elapsed since start time (and doesn't stop)."""
         if self._state == self._STARTED:
             elapsed = self.elapsed()
@@ -411,7 +427,7 @@ class StopWatch:
                 " stopped"
             )
 
-    def restart(self):
+    def restart(self) -> StopWatch:
         """Restarts the watch from a started/stopped state."""
         if self._state == self._STARTED:
             self.stop()
@@ -419,18 +435,25 @@ class StopWatch:
         return self
 
     @staticmethod
-    def _delta_seconds(earlier, later):
+    def _delta_seconds(earlier: float, later: float) -> float:
         # Uses max to avoid the delta/time going backwards (and thus negative).
         return max(0.0, later - earlier)
 
-    def elapsed(self, maximum=None):
+    def elapsed(self, maximum: float | None = None) -> float:
         """Returns how many seconds have elapsed."""
-        if self._state not in (self._STARTED, self._STOPPED):
+        if (
+            self._state not in (self._STARTED, self._STOPPED)
+            or self._started_at is None
+        ):
             raise RuntimeError(
-                "Can not get the elapsed time of a stopwatch"
-                " if it has not been started/stopped"
+                "Can not get the elapsed time of a stopwatch "
+                "if it has not been started/stopped"
             )
+
         if self._state == self._STOPPED:
+            if self._stopped_at is None:
+                raise RuntimeError("internal error")
+
             elapsed = self._delta_seconds(self._started_at, self._stopped_at)
         else:
             elapsed = self._delta_seconds(self._started_at, now())
@@ -438,19 +461,19 @@ class StopWatch:
             elapsed = max(0.0, maximum)
         return elapsed
 
-    def __enter__(self):
+    def __enter__(self) -> StopWatch:
         """Starts the watch."""
         self.start()
         return self
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, type: Any, value: Any, traceback: Any) -> None:
         """Stops the watch (ignoring errors if stop fails)."""
         try:
             self.stop()
         except RuntimeError:  # nosec: errors are meant to be ignored
             pass
 
-    def leftover(self, return_none=False):
+    def leftover(self, return_none: bool = False) -> float | None:
         """Returns how many seconds are left until the watch expires.
 
         :param return_none: when ``True`` instead of raising a ``RuntimeError``
@@ -472,7 +495,7 @@ class StopWatch:
             return None
         return max(0.0, self._duration - self.elapsed())
 
-    def expired(self):
+    def expired(self) -> bool:
         """Returns if the watch has expired (ie, duration provided elapsed)."""
         if self._state not in (self._STARTED, self._STOPPED):
             raise RuntimeError(
@@ -483,28 +506,27 @@ class StopWatch:
             return False
         return self.elapsed() > self._duration
 
-    def has_started(self):
+    def has_started(self) -> bool:
         """Returns True if the watch is in a started state."""
         return self._state == self._STARTED
 
-    def has_stopped(self):
+    def has_stopped(self) -> bool:
         """Returns True if the watch is in a stopped state."""
         return self._state == self._STOPPED
 
-    def resume(self):
+    def resume(self) -> None:
         """Resumes the watch from a stopped state."""
         if self._state == self._STOPPED:
             self._state = self._STARTED
-            return self
         else:
             raise RuntimeError(
                 "Can not resume a stopwatch that has not been stopped"
             )
 
-    def stop(self):
+    def stop(self) -> StopWatch | None:
         """Stops the watch."""
         if self._state == self._STOPPED:
-            return self
+            return None
         if self._state != self._STARTED:
             raise RuntimeError(
                 "Can not stop a stopwatch that has not been started"

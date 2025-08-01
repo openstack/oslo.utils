@@ -16,6 +16,7 @@
 import collections.abc
 import copy
 import math
+from typing import Any
 from unittest import mock
 
 import ddt
@@ -745,8 +746,8 @@ class NestedMapping(TestMapping):
 
 class MaskDictionaryPasswordTestCase(test_base.BaseTestCase):
     def test_dictionary(self):
-        payload = {'password': 'TL0EfN33'}
-        expected = {'password': '***'}
+        payload: dict[str, Any] = {'password': 'TL0EfN33'}
+        expected: dict[str, Any] = {'password': '***'}
         self.assertEqual(expected, strutils.mask_dict_password(payload))
 
         payload = {'password': 'TL0Ef"N33'}

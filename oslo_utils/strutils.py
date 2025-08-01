@@ -20,8 +20,9 @@ System-level utilities and helper functions.
 import collections.abc
 import math
 import re
+from typing import Any
 import unicodedata
-import urllib
+import urllib.parse
 
 from oslo_utils._i18n import _
 from oslo_utils import encodeutils
@@ -110,9 +111,9 @@ _SANITIZE_KEYS = [
 # _SANITIZE_KEYS we already have. This way, we only have to add the new key
 # to the list of _SANITIZE_KEYS and we can generate regular expressions
 # for XML and JSON automatically.
-_SANITIZE_PATTERNS_2 = {}
-_SANITIZE_PATTERNS_1 = {}
-_SANITIZE_PATTERNS_WILDCARD = {}
+_SANITIZE_PATTERNS_2: dict[str, Any] = {}
+_SANITIZE_PATTERNS_1: dict[str, Any] = {}
+_SANITIZE_PATTERNS_WILDCARD: dict[str, Any] = {}
 
 # NOTE(amrith): Some regular expressions have only one parameter, some
 # have two parameters. Use different lists of patterns here.
@@ -157,7 +158,7 @@ for key in _SANITIZE_KEYS:
         _SANITIZE_PATTERNS_WILDCARD[key].append(reg_ex)
 
 
-def int_from_bool_as_string(subject):
+def int_from_bool_as_string(subject: Any) -> int:
     """Interpret a string as a boolean and return either 1 or 0.
 
     Any string value in:
@@ -171,7 +172,9 @@ def int_from_bool_as_string(subject):
     return int(bool_from_string(subject))
 
 
-def bool_from_string(subject, strict=False, default=False):
+def bool_from_string(
+    subject: Any, strict: bool = False, default: bool = False
+) -> bool:
     """Interpret a subject as a boolean.
 
     A subject can be a boolean, a string or an integer. Boolean type value
@@ -211,7 +214,7 @@ def bool_from_string(subject, strict=False, default=False):
         return default
 
 
-def is_valid_boolstr(value):
+def is_valid_boolstr(value: Any) -> bool:
     """Check if the provided string is a valid bool string or not.
 
     :param value: value to verify
@@ -224,7 +227,9 @@ def is_valid_boolstr(value):
     return str(value).lower() in boolstrs
 
 
-def string_to_bytes(text, unit_system='IEC', return_int=False):
+def string_to_bytes(
+    text: str, unit_system: str = 'IEC', return_int: bool = False
+) -> int | float:
     """Converts a string into an float representation of bytes.
 
     The units supported for IEC / mixed::
@@ -332,16 +337,26 @@ def string_to_bytes(text, unit_system='IEC', return_int=False):
         msg = _('Invalid string format: %s') % text
         raise ValueError(msg)
 
+    if base is None:
+        msg = _('Could not auto-detect base')
+        raise ValueError(msg)
+
     if not unit_prefix:
         res = magnitude
     else:
-        res = magnitude * pow(base, UNIT_PREFIX_EXPONENT[unit_prefix])
+        exponent = UNIT_PREFIX_EXPONENT.get(unit_prefix)
+        if exponent is None:
+            msg = _('Invalid unit prefix: %s') % unit_prefix
+            raise ValueError(msg)
+        res = magnitude * pow(base, exponent)
     if return_int:
         return int(math.ceil(res))
     return res
 
 
-def to_slug(value, incoming=None, errors="strict"):
+def to_slug(
+    value: Any, incoming: str | None = None, errors: str = "strict"
+) -> str:
     """Normalize string.
 
     Convert to lowercase, remove non-word characters, and convert spaces
@@ -382,7 +397,7 @@ def to_slug(value, incoming=None, errors="strict"):
 # this file or, even better, pick an existing pattern or key to use in
 # your application to ensure that the value is masked by this
 # function.
-def mask_password(message, secret="***"):  # noqa: S107
+def mask_password(message: str, secret: str = "***") -> str:  # noqa: S107
     """Replace password with *secret* in message.
 
     :param message: The string which includes security information.
@@ -454,7 +469,14 @@ def mask_password(message, secret="***"):  # noqa: S107
     return message
 
 
-def mask_dict_password(dictionary, secret="***"):  # noqa: S107
+# TODO(stephenfin): The types aren't great for this. We want to indicate that
+# the types of values in the returned dict are always identical to those of the
+# input collection except if the value was a non-dict collection. It would be
+# better if we returned the same type of Mapping here that we received on input.
+def mask_dict_password(
+    dictionary: collections.abc.Mapping[Any, Any],
+    secret: str = "***",  # noqa: S107
+) -> dict[str, Any]:
     """Replace password with *secret* in a dictionary recursively.
 
     :param dictionary: The dictionary which includes secret information.
@@ -492,9 +514,7 @@ def mask_dict_password(dictionary, secret="***"):  # noqa: S107
     >>>                     'user': 'admin',
     >>>                     'home-dir': '/home/admin'},
     >>>                     '???')
-    {'password': '--password ???', 'user': 'admin',
-     'home-dir': '/home/admin'}
-
+    {'password': '--password ???', 'user': 'admin', 'home-dir': '/home/admin'}
 
     For example (a nested dictionary is masked):
 
@@ -507,14 +527,15 @@ def mask_dict_password(dictionary, secret="***"):  # noqa: S107
     .. versionadded:: 3.4
 
     """
-
     if not isinstance(dictionary, collections.abc.Mapping):
         raise TypeError(f"Expected a Mapping, got {type(dictionary)} instead.")
-    out = {}
+
+    out: dict[str, Any] = {}
     for k, v in dictionary.items():
         if isinstance(v, collections.abc.Mapping):
             out[k] = mask_dict_password(v, secret=secret)
             continue
+
         # NOTE(jlvillal): Check to see if anything in the dictionary 'key'
         # contains any key specified in _SANITIZE_KEYS.
         k_matched = False
@@ -532,10 +553,11 @@ def mask_dict_password(dictionary, secret="***"):  # noqa: S107
             else:
                 # Just leave it alone.
                 out[k] = v
+
     return out
 
 
-def is_int_like(val):
+def is_int_like(val: Any) -> bool:
     """Check if a value looks like an integer with base 10.
 
     :param val: Value to verify
@@ -550,7 +572,12 @@ def is_int_like(val):
         return False
 
 
-def check_string_length(value, name=None, min_length=0, max_length=None):
+def check_string_length(
+    value: str,
+    name: str | None = None,
+    min_length: int = 0,
+    max_length: int | None = None,
+) -> None:
     """Check the length of specified string.
 
     :param value: the value of the string
@@ -582,7 +609,12 @@ def check_string_length(value, name=None, min_length=0, max_length=None):
         raise ValueError(msg)
 
 
-def validate_integer(value, name, min_value=None, max_value=None):
+def validate_integer(
+    value: int,
+    name: str,
+    min_value: int | None = None,
+    max_value: int | None = None,
+) -> int:
     """Make sure that value is a valid integer, potentially within range.
 
     :param value: value of the integer
@@ -617,7 +649,12 @@ def validate_integer(value, name, min_value=None, max_value=None):
     return value
 
 
-def split_path(path, minsegs=1, maxsegs=None, rest_with_last=False):
+def split_path(
+    path: str,
+    minsegs: int = 1,
+    maxsegs: int | None = None,
+    rest_with_last: bool = False,
+) -> list[str | None]:
     """Validate and split the given HTTP request path.
 
     **Examples**::
@@ -646,6 +683,7 @@ def split_path(path, minsegs=1, maxsegs=None, rest_with_last=False):
             _('minsegs > maxsegs: %(min)d > %(max)d)')
             % {'min': minsegs, 'max': maxsegs}
         )
+
     if rest_with_last:
         segs = path.split('/', maxsegs)
         minsegs += 1
@@ -671,12 +709,12 @@ def split_path(path, minsegs=1, maxsegs=None, rest_with_last=False):
             or (count == maxsegs + 1 and segs[maxsegs])
         ):
             raise ValueError(_('Invalid path: %s') % urllib.parse.quote(path))
+
     segs = segs[1:maxsegs]
-    segs.extend([None] * (maxsegs - 1 - len(segs)))
-    return segs
+    return segs + [None] * (maxsegs - 1 - len(segs))
 
 
-def split_by_commas(value):
+def split_by_commas(value: str) -> list[str]:
     """Split values by commas and quotes according to api-wg
 
     :param value: value to be split

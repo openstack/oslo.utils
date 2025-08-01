@@ -148,11 +148,12 @@ class TimeUtilsTest(test_base.BaseTestCase):
         self.assertEqual(ts, skynet_self_aware_ts)
 
     def test_utcnow(self):
-        timeutils.set_time_override(mock.sentinel.utcnow)
-        self.assertEqual(timeutils.utcnow(), mock.sentinel.utcnow)
+        now = datetime.datetime.now()
+        timeutils.set_time_override(now)
+        self.assertEqual(timeutils.utcnow(), now)
 
         timeutils.clear_time_override()
-        self.assertFalse(timeutils.utcnow() == mock.sentinel.utcnow)
+        self.assertNotEqual(timeutils.utcnow(), now)
 
         self.assertTrue(timeutils.utcnow())
 

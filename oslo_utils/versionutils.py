@@ -28,7 +28,9 @@ import packaging.version
 from oslo_utils._i18n import _
 
 
-def is_compatible(requested_version, current_version, same_major=True):
+def is_compatible(
+    requested_version: str, current_version: str, same_major: bool = True
+) -> bool:
     """Determine whether `requested_version` is satisfied by
     `current_version`; in other words, `current_version` is >=
     `requested_version`.
@@ -49,10 +51,10 @@ def is_compatible(requested_version, current_version, same_major=True):
         if requested.major != current.major:
             return False
 
-    return current >= requested
+    return bool(current >= requested)
 
 
-def convert_version_to_int(version):
+def convert_version_to_int(version: str | tuple[int, ...]) -> int:
     """Convert a version to an integer.
 
     *version* must be a string with dots or a tuple of integers.
@@ -69,22 +71,22 @@ def convert_version_to_int(version):
         raise ValueError(msg) from ex
 
 
-def convert_version_to_str(version_int):
+def convert_version_to_str(version_int: int) -> str:
     """Convert a version integer to a string with dots.
 
     .. versionadded:: 2.0
     """
-    version_numbers = []
+    version_numbers: list[int] = []
     factor = 1000
     while version_int != 0:
         version_number = version_int - (version_int // factor * factor)
-        version_numbers.insert(0, str(version_number))
+        version_numbers.insert(0, version_number)
         version_int = version_int // factor
 
     return '.'.join(map(str, version_numbers))
 
 
-def convert_version_to_tuple(version_str):
+def convert_version_to_tuple(version_str: str) -> tuple[int, ...]:
     """Convert a version string with dots to a tuple.
 
     .. versionadded:: 2.0
@@ -111,19 +113,21 @@ class VersionPredicate:
         "!=": operator.ne,
     }
 
-    def __init__(self, predicate_str):
+    def __init__(self, predicate_str: str) -> None:
         self.pred = [
             self._parse_predicate(pred) for pred in predicate_str.split(',')
         ]
 
-    def _parse_predicate(self, pred):
+    def _parse_predicate(
+        self, pred: str
+    ) -> tuple[str, packaging.version.Version]:
         res = self._PREDICATE_MATCH.match(pred)
         if not res:
             raise ValueError(f"bad package restriction syntax: {pred}")
         cond, ver_str = res.groups()
         return (cond, packaging.version.Version(ver_str))
 
-    def satisfied_by(self, version_str):
+    def satisfied_by(self, version_str: str) -> bool:
         version = packaging.version.Version(version_str)
         for cond, ver in self.pred:
             if not self._COMP_MAP[cond](version, ver):
