@@ -37,7 +37,7 @@ def md5(string=b'', usedforsecurity=True):
     parameter, this passes the parameter through as expected.
     See https://bugs.python.org/issue9216
     """
-    return hashlib.md5(string, usedforsecurity=usedforsecurity)  # nosec
+    return hashlib.md5(string, usedforsecurity=usedforsecurity)  # noqa: S324
 
 
 if ctypes.util.find_library("crypt"):

@@ -21,10 +21,13 @@ import testscenarios
 from oslo_utils import secretutils
 
 
-class SecretUtilsTest(testscenarios.TestWithScenarios, test_base.BaseTestCase):
-    _gen_digest = lambda text: hmac.new(
+def _gen_digest(text):
+    return hmac.new(
         b'foo', text.encode('utf-8'), digestmod=hashlib.sha1
     ).digest()
+
+
+class SecretUtilsTest(testscenarios.TestWithScenarios, test_base.BaseTestCase):
     scenarios = [
         ('binary', {'converter': _gen_digest}),
         ('unicode', {'converter': lambda text: text}),

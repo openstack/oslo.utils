@@ -382,7 +382,7 @@ def to_slug(value, incoming=None, errors="strict"):
 # this file or, even better, pick an existing pattern or key to use in
 # your application to ensure that the value is masked by this
 # function.
-def mask_password(message, secret="***"):  # nosec
+def mask_password(message, secret="***"):  # noqa: S107
     """Replace password with *secret* in message.
 
     :param message: The string which includes security information.
@@ -454,7 +454,7 @@ def mask_password(message, secret="***"):  # nosec
     return message
 
 
-def mask_dict_password(dictionary, secret="***"):  # nosec
+def mask_dict_password(dictionary, secret="***"):  # noqa: S107
     """Replace password with *secret* in a dictionary recursively.
 
     :param dictionary: The dictionary which includes secret information.

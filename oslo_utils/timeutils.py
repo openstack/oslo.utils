@@ -157,7 +157,9 @@ def advance_time_delta(timedelta):
     See :py:class:`oslo_utils.fixture.TimeFixture`.
 
     """
-    assert utcnow.override_time is not None  # nosec
+    if utcnow.override_time is None:
+        raise RuntimeError('override_time must be configured')
+
     try:
         for dt in utcnow.override_time:
             dt += timedelta
