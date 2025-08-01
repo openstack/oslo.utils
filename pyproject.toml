@@ -42,22 +42,12 @@ show_error_context = true
 strict = true
 # debtcollector is untyped (for now)
 disallow_untyped_decorators = false
-# some of our own functional are untyped (for now)
-disallow_untyped_calls = false
 exclude = '''
 (?x)(
     doc
     | releasenotes
   )
 '''
-
-[[tool.mypy.overrides]]
-module = [
-    "oslo_utils.imageutils.*",
-]
-disallow_untyped_calls = false
-disallow_untyped_defs = false
-disallow_subclassing_any = false
 
 [[tool.mypy.overrides]]
 module = [
