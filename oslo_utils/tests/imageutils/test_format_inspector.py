@@ -33,8 +33,8 @@ TEST_IMAGE_PREFIX = 'oslo-unittest-formatinspector-'
 
 def get_size_format_from_qemu_img(filename):
     output = subprocess.check_output(
-        'qemu-img info --output=json "%s"' % filename,
-        shell=True)
+        f'qemu-img info --output=json "{filename}"', shell=True
+    )
     info = QemuImgInfo(output, format='json')
     return info.virtual_size, info.file_format
 
@@ -79,24 +79,25 @@ class TestFormatInspectors(test_base.BaseTestCase):
             # redirect it to stdout to use grep.
             try:
                 subprocess.check_output(
-                    'mkisofs --help 2>&1 | grep udf', shell=True)
+                    'mkisofs --help 2>&1 | grep udf', shell=True
+                )
             except Exception:
                 self.skipTest('mkisofs does not support udf format')
             base_cmd += " -udf"
         prefix = TEST_IMAGE_PREFIX
-        prefix += '-%s-' % subformat
+        prefix += f'-{subformat}-'
         fn = tempfile.mktemp(prefix=prefix, suffix='.iso')
         self._created_files.append(fn)
         subprocess.check_output(
-            'dd if=/dev/zero of=%s bs=1M count=%i' % (fn, size),
-            shell=True)
+            'dd if=/dev/zero of=%s bs=1M count=%i' % (fn, size), shell=True
+        )
         # We need to use different file as input and output as the behavior
         # of mkisofs is version dependent if both the input and the output
         # are the same and can cause test failures
-        out_fn = "%s.iso" % fn
+        out_fn = f"{fn}.iso"
         subprocess.check_output(
-            '{} -V "TEST" -o {}  {}'.format(base_cmd, out_fn, fn),
-            shell=True)
+            f'{base_cmd} -V "TEST" -o {out_fn}  {fn}', shell=True
+        )
         self._created_files.append(out_fn)
         return out_fn
 
@@ -104,24 +105,24 @@ class TestFormatInspectors(test_base.BaseTestCase):
         data = bytearray(b'\x00' * 512 * 10)
         # The last two bytes of the first sector is the little-endian signature
         # value 0xAA55
-        data[510:512] = b'\x55\xAA'
+        data[510:512] = b'\x55\xaa'
 
         # This is one EFI Protective MBR partition in the first PTE slot,
         # which is 16 bytes starting at offset 446.
-        data[446:446 + 16] = struct.pack('<BBBBBBBBII',
-                                         0x00,  # boot
-                                         0x00,  # start C
-                                         0x02,  # start H
-                                         0x00,  # start S
-                                         0xEE,  # OS type
-                                         0x00,  # end C
-                                         0x00,  # end H
-                                         0x00,  # end S
-                                         0x01,  # start LBA
-                                         0x00,  # size LBA
-                                         )
-        fn = tempfile.mktemp(prefix='{}-gpt-{}'.format(TEST_IMAGE_PREFIX,
-                                                       subformat))
+        data[446 : 446 + 16] = struct.pack(
+            '<BBBBBBBBII',
+            0x00,  # boot
+            0x00,  # start C
+            0x02,  # start H
+            0x00,  # start S
+            0xEE,  # OS type
+            0x00,  # end C
+            0x00,  # end H
+            0x00,  # end S
+            0x01,  # start LBA
+            0x00,  # size LBA
+        )
+        fn = tempfile.mktemp(prefix=f'{TEST_IMAGE_PREFIX}-gpt-{subformat}')
         with open(fn, 'wb') as f:
             f.write(data)
         self._created_files.append(fn)
@@ -129,15 +130,24 @@ class TestFormatInspectors(test_base.BaseTestCase):
 
     def _create_luks(self, image_size, subformat):
         fn = tempfile.mktemp(suffix='.luks')
-        cmd = ['qemu-img', 'create', '-f', 'luks',
-               '--object', 'secret,id=sec0,data=secret-passphrase',
-               '-o', 'key-secret=sec0', fn, '%i' % image_size]
+        cmd = [
+            'qemu-img',
+            'create',
+            '-f',
+            'luks',
+            '--object',
+            'secret,id=sec0,data=secret-passphrase',
+            '-o',
+            'key-secret=sec0',
+            fn,
+            '%i' % image_size,
+        ]
         subprocess.check_output(' '.join(cmd), shell=True)
         return fn
 
     def _create_img(
-            self, fmt, size, subformat=None, options=None,
-            backing_file=None):
+        self, fmt, size, subformat=None, options=None, backing_file=None
+    ):
         """Create an image file of the given format and size.
 
         :param fmt: The format to create
@@ -165,10 +175,12 @@ class TestFormatInspectors(test_base.BaseTestCase):
         # the help output.
         try:
             subprocess.check_output(
-                'qemu-img --help | grep %s' % fmt, shell=True)
+                f'qemu-img --help | grep {fmt}', shell=True
+            )
         except Exception:
             self.skipTest(
-                'qemu-img not installed or does not support %s format' % fmt)
+                f'qemu-img not installed or does not support {fmt} format'
+            )
 
         if options is None:
             options = {}
@@ -180,18 +192,16 @@ class TestFormatInspectors(test_base.BaseTestCase):
             prefix += subformat + '-'
 
         if options:
-            opt += '-o ' + ','.join('{}={}'.format(k, v)
-                                    for k, v in options.items())
+            opt += '-o ' + ','.join(f'{k}={v}' for k, v in options.items())
 
         if backing_file is not None:
-            opt += ' -b %s -F raw' % backing_file
+            opt += f' -b {backing_file} -F raw'
 
-        fn = tempfile.mktemp(prefix=prefix,
-                             suffix='.%s' % fmt)
+        fn = tempfile.mktemp(prefix=prefix, suffix=f'.{fmt}')
         self._created_files.append(fn)
         subprocess.check_output(
-            'qemu-img create -f %s %s %s %i' % (fmt, opt, fn, size),
-            shell=True)
+            'qemu-img create -f %s %s %s %i' % (fmt, opt, fn, size), shell=True
+        )
         return fn
 
     def _create_allocated_vmdk(self, size_mb, subformat=None):
@@ -204,7 +214,7 @@ class TestFormatInspectors(test_base.BaseTestCase):
             subformat = 'monolithicSparse'
 
         prefix = TEST_IMAGE_PREFIX
-        prefix += '-%s-' % subformat
+        prefix += f'-{subformat}-'
         fn = tempfile.mktemp(prefix=prefix, suffix='.vmdk')
         self._created_files.append(fn)
         raw = tempfile.mktemp(prefix=prefix, suffix='.raw')
@@ -214,18 +224,18 @@ class TestFormatInspectors(test_base.BaseTestCase):
         # compressed in the streamOptimized format
         subprocess.check_output(
             'dd if=/dev/urandom of=%s bs=1M count=%i' % (raw, size_mb),
-            shell=True)
+            shell=True,
+        )
 
         # Convert it to VMDK
         subprocess.check_output(
-            'qemu-img convert -f raw -O vmdk -o subformat={} -S 0 {} {}'
-            .format(subformat, raw, fn),
-            shell=True)
+            f'qemu-img convert -f raw -O vmdk -o subformat={subformat} -S 0 {raw} {fn}',
+            shell=True,
+        )
         return fn
 
     def _test_format_at_block_size(self, format_name, img, block_size):
-        wrapper = format_inspector.InspectWrapper(open(img, 'rb'),
-                                                  format_name)
+        wrapper = format_inspector.InspectWrapper(open(img, 'rb'), format_name)
         current_block_size = block_size
         while True:
             chunk = wrapper.read(current_block_size)
@@ -247,8 +257,9 @@ class TestFormatInspectors(test_base.BaseTestCase):
         self.assertIsNotNone(wrapper.format, 'Failed to detect format')
         return wrapper.format
 
-    def _test_format_at_image_size(self, format_name, image_size,
-                                   subformat=None, safety_check=False):
+    def _test_format_at_image_size(
+        self, format_name, image_size, subformat=None, safety_check=False
+    ):
         """Test the format inspector for the given format at the
         given image size.
 
@@ -274,17 +285,23 @@ class TestFormatInspectors(test_base.BaseTestCase):
             block_sizes.extend([17, 512])
         for block_size in block_sizes:
             fmt = self._test_format_at_block_size(format_name, img, block_size)
-            self.assertTrue(fmt.format_match,
-                            'Failed to match %s at size %i block %i' % (
-                                format_name, image_size, block_size))
-            self.assertEqual(virtual_size, fmt.virtual_size,
-                             ('Failed to calculate size for %s at size %i '
-                              'block %i') % (format_name, image_size,
-                                             block_size))
+            self.assertTrue(
+                fmt.format_match,
+                'Failed to match %s at size %i block %i'
+                % (format_name, image_size, block_size),
+            )
+            self.assertEqual(
+                virtual_size,
+                fmt.virtual_size,
+                ('Failed to calculate size for %s at size %i block %i')
+                % (format_name, image_size, block_size),
+            )
             memory = sum(fmt.context_info.values())
-            self.assertLess(memory, 512 * units.Ki,
-                            'Format used more than 512KiB of memory: %s' % (
-                                fmt.context_info))
+            self.assertLess(
+                memory,
+                512 * units.Ki,
+                f'Format used more than 512KiB of memory: {fmt.context_info}',
+            )
             if safety_check:
                 fmt.safety_check()
                 # If the safety check is supposed to pass, we can also make
@@ -296,9 +313,12 @@ class TestFormatInspectors(test_base.BaseTestCase):
         # Try a few different image sizes, including some odd and very small
         # sizes
         for image_size in (512, 513, 2057, 7):
-            self._test_format_at_image_size(format_name, image_size * units.Mi,
-                                            subformat=subformat,
-                                            safety_check=True)
+            self._test_format_at_image_size(
+                format_name,
+                image_size * units.Mi,
+                subformat=subformat,
+                safety_check=True,
+            )
 
     @ddt.data('qcow2', 'vhd', 'vhdx', 'vmdk', 'gpt', 'luks')
     def test_format(self, format):
@@ -334,11 +354,11 @@ class TestFormatInspectors(test_base.BaseTestCase):
         fn = tempfile.mktemp(prefix=prefix, suffix='.iso')
         self._created_files.append(fn)
         subprocess.check_output(
-            'dd if={} of={} bs=32K count=1'.format(qcow, fn),
-            shell=True)
+            f'dd if={qcow} of={fn} bs=32K count=1', shell=True
+        )
         subprocess.check_output(
-            'dd if={} of={} bs=32K skip=1 seek=1'.format(iso, fn),
-            shell=True)
+            f'dd if={iso} of={fn} bs=32K skip=1 seek=1', shell=True
+        )
         return qcow, iso, fn
 
     def test_bad_iso_qcow2(self):
@@ -350,10 +370,14 @@ class TestFormatInspectors(test_base.BaseTestCase):
         # thing to do.
         _, _, fn = self._generate_bad_iso()
 
-        self.assertRaisesRegex(format_inspector.ImageFormatError,
-                               'Multiple formats detected',
-                               self._test_format_at_block_size,
-                               'iso', fn, 4 * units.Ki)
+        self.assertRaisesRegex(
+            format_inspector.ImageFormatError,
+            'Multiple formats detected',
+            self._test_format_at_block_size,
+            'iso',
+            fn,
+            4 * units.Ki,
+        )
 
     def test_bad_iso_qcow2_multiple_matches(self):
         # Test that we can access multiple detected formats if we specifically
@@ -366,12 +390,14 @@ class TestFormatInspectors(test_base.BaseTestCase):
                 pass
 
         # Make sure we fail the single-format test
-        self.assertRaises(format_inspector.ImageFormatError,
-                          getattr, wrapper, 'format')
+        self.assertRaises(
+            format_inspector.ImageFormatError, getattr, wrapper, 'format'
+        )
 
         # Make sure the multiple detected formats are exposed
-        self.assertEqual(['iso', 'qcow2'],
-                         sorted(x.NAME for x in wrapper.formats))
+        self.assertEqual(
+            ['iso', 'qcow2'], sorted(x.NAME for x in wrapper.formats)
+        )
 
     def test_from_file_reads_minimum(self):
         img = self._create_img('qcow2', 10 * units.Mi)
@@ -386,22 +412,23 @@ class TestFormatInspectors(test_base.BaseTestCase):
         img = self._create_img('qed', 10 * units.Mi)
         fmt = format_inspector.get_inspector('qed').from_file(img)
         self.assertTrue(fmt.format_match)
-        self.assertRaises(format_inspector.SafetyCheckFailed,
-                          fmt.safety_check)
+        self.assertRaises(format_inspector.SafetyCheckFailed, fmt.safety_check)
 
     def test_vmdk_non_sparse_unsafe(self):
-        img = self._create_img('vmdk', 10 * units.Mi,
-                               subformat='monolithicFlat')
+        img = self._create_img(
+            'vmdk', 10 * units.Mi, subformat='monolithicFlat'
+        )
         fmt = format_inspector.detect_file_format(img)
         self.assertEqual('vmdk', fmt.NAME)
-        e = self.assertRaises(format_inspector.SafetyCheckFailed,
-                              fmt.safety_check)
+        e = self.assertRaises(
+            format_inspector.SafetyCheckFailed, fmt.safety_check
+        )
         self.assertIn('Unsupported subformat', str(e.failures['descriptor']))
 
     def _test_vmdk_bad_descriptor_offset(self, subformat=None):
         format_name = 'vmdk'
         image_size = 10 * units.Mi
-        descriptorOffsetAddr = 0x1c
+        descriptorOffsetAddr = 0x1C
         BAD_ADDRESS = 0x400
         img = self._create_img(format_name, image_size, subformat=subformat)
 
@@ -414,10 +441,14 @@ class TestFormatInspectors(test_base.BaseTestCase):
         # Read the format in various sizes, some of which will read whole
         # sections in a single read, others will be completely unaligned, etc.
         for block_size in (64 * units.Ki, 512, 17, 1 * units.Mi):
-            self.assertRaisesRegex(format_inspector.ImageFormatError,
-                                   'Wrong descriptor location',
-                                   self._test_format_at_block_size,
-                                   'vmdk', img, block_size)
+            self.assertRaisesRegex(
+                format_inspector.ImageFormatError,
+                'Wrong descriptor location',
+                self._test_format_at_block_size,
+                'vmdk',
+                img,
+                block_size,
+            )
 
     def test_vmdk_bad_descriptor_offset(self):
         self._test_vmdk_bad_descriptor_offset()
@@ -429,13 +460,14 @@ class TestFormatInspectors(test_base.BaseTestCase):
         format_name = 'vmdk'
         image_size = 5 * units.Mi
         virtual_size = 5 * units.Mi
-        descriptorOffsetAddr = 0x1c
+        descriptorOffsetAddr = 0x1C
         descriptorSizeAddr = descriptorOffsetAddr + 8
         twoMBInSectors = (2 << 20) // 512
         # We need a big VMDK because otherwise we will not have enough data to
         # fill-up the CaptureRegion.
-        img = self._create_allocated_vmdk(image_size // units.Mi,
-                                          subformat=subformat)
+        img = self._create_allocated_vmdk(
+            image_size // units.Mi, subformat=subformat
+        )
 
         # Corrupt the end of descriptor address so it "ends" at 2MB
         fd = open(img, 'r+b')
@@ -447,17 +479,23 @@ class TestFormatInspectors(test_base.BaseTestCase):
         # sections in a single read, others will be completely unaligned, etc.
         for block_size in (64 * units.Ki, 512, 17, 1 * units.Mi):
             fmt = self._test_format_at_block_size(format_name, img, block_size)
-            self.assertTrue(fmt.format_match,
-                            'Failed to match %s at size %i block %i' % (
-                                format_name, image_size, block_size))
-            self.assertEqual(virtual_size, fmt.virtual_size,
-                             ('Failed to calculate size for %s at size %i '
-                              'block %i') % (format_name, image_size,
-                                             block_size))
+            self.assertTrue(
+                fmt.format_match,
+                'Failed to match %s at size %i block %i'
+                % (format_name, image_size, block_size),
+            )
+            self.assertEqual(
+                virtual_size,
+                fmt.virtual_size,
+                ('Failed to calculate size for %s at size %i block %i')
+                % (format_name, image_size, block_size),
+            )
             memory = sum(fmt.context_info.values())
-            self.assertLess(memory, 1.5 * units.Mi,
-                            'Format used more than 1.5MiB of memory: %s' % (
-                                fmt.context_info))
+            self.assertLess(
+                memory,
+                1.5 * units.Mi,
+                f'Format used more than 1.5MiB of memory: {fmt.context_info}',
+            )
 
     def test_vmdk_bad_descriptor_mem_limit(self):
         self._test_vmdk_bad_descriptor_mem_limit()
@@ -480,30 +518,39 @@ class TestFormatInspectors(test_base.BaseTestCase):
         inspector.safety_check()
 
         # A backing file makes it unsafe
-        fn = self._create_img('qcow2', 5 * units.Mi, None,
-                              backing_file=backing_fn)
+        fn = self._create_img(
+            'qcow2', 5 * units.Mi, None, backing_file=backing_fn
+        )
         inspector = format_inspector.QcowInspector.from_file(fn)
-        self.assertRaisesRegex(format_inspector.SafetyCheckFailed,
-                               '.*backing_file.*',
-                               inspector.safety_check)
+        self.assertRaisesRegex(
+            format_inspector.SafetyCheckFailed,
+            '.*backing_file.*',
+            inspector.safety_check,
+        )
 
         # A data-file makes it unsafe
-        fn = self._create_img('qcow2', 5 * units.Mi,
-                              options={'data_file': data_fn,
-                                       'data_file_raw': 'on'})
+        fn = self._create_img(
+            'qcow2',
+            5 * units.Mi,
+            options={'data_file': data_fn, 'data_file_raw': 'on'},
+        )
         inspector = format_inspector.QcowInspector.from_file(fn)
-        self.assertRaisesRegex(format_inspector.SafetyCheckFailed,
-                               '.*data_file.*',
-                               inspector.safety_check)
+        self.assertRaisesRegex(
+            format_inspector.SafetyCheckFailed,
+            '.*data_file.*',
+            inspector.safety_check,
+        )
 
         # Trying to load a non-QCOW file is an error
-        self.assertRaises(format_inspector.ImageFormatError,
-                          format_inspector.QcowInspector.from_file,
-                          backing_fn)
+        self.assertRaises(
+            format_inspector.ImageFormatError,
+            format_inspector.QcowInspector.from_file,
+            backing_fn,
+        )
 
     def test_qcow2_feature_flag_checks(self):
         data = bytearray(512)
-        data[0:4] = b'QFI\xFB'
+        data[0:4] = b'QFI\xfb'
         inspector = format_inspector.QcowInspector()
         inspector.region('header').data = data
 
@@ -518,9 +565,13 @@ class TestFormatInspectors(test_base.BaseTestCase):
         # A feature flag set in the first byte (highest-order) is not
         # something we know about, so fail.
         data[0x48] = 0x01
-        self.assertRaisesRegex(format_inspector.SafetyViolation,
-                               'Unknown QCOW2 features found',
-                               inspector.check_unknown_features),
+        (
+            self.assertRaisesRegex(
+                format_inspector.SafetyViolation,
+                'Unknown QCOW2 features found',
+                inspector.check_unknown_features,
+            ),
+        )
 
         # The first bit in the last byte (lowest-order) is known (the dirty
         # bit) so that should pass
@@ -531,21 +582,29 @@ class TestFormatInspectors(test_base.BaseTestCase):
         # Currently (as of 2024), the high-order feature flag bit in the low-
         # order byte is not assigned, so make sure we reject it.
         data[0x4F] = 0x80
-        self.assertRaisesRegex(format_inspector.SafetyViolation,
-                               'Unknown QCOW2 features found',
-                               inspector.check_unknown_features),
+        (
+            self.assertRaisesRegex(
+                format_inspector.SafetyViolation,
+                'Unknown QCOW2 features found',
+                inspector.check_unknown_features,
+            ),
+        )
 
         # Version 1 should be rejected outright
         set_version(1)
-        self.assertRaisesRegex(format_inspector.SafetyViolation,
-                               'Unsupported qcow2 version',
-                               inspector.check_unknown_features)
+        self.assertRaisesRegex(
+            format_inspector.SafetyViolation,
+            'Unsupported qcow2 version',
+            inspector.check_unknown_features,
+        )
 
         # Version 4 should be rejected outright
         set_version(4)
-        self.assertRaisesRegex(format_inspector.SafetyViolation,
-                               'Unsupported qcow2 version',
-                               inspector.check_unknown_features)
+        self.assertRaisesRegex(
+            format_inspector.SafetyViolation,
+            'Unsupported qcow2 version',
+            inspector.check_unknown_features,
+        )
 
         # Version 2 had no feature flagging, so with the above flags still
         # set, we should not process that data as feature flags and pass here.
@@ -553,13 +612,13 @@ class TestFormatInspectors(test_base.BaseTestCase):
         inspector.check_unknown_features()
 
     def test_qcow2_future_flags(self):
-
         class Qcow2Future(format_inspector.QcowInspector):
             """A hypothetical future where qcow2 has 12 extra features."""
+
             I_FEATURES_MAX_BIT = 12
 
         data = bytearray(512)
-        data[0:4] = b'QFI\xFB'
+        data[0:4] = b'QFI\xfb'
         inspector = Qcow2Future()
         inspector.region('header').data = data
         data[0x07] = 3
@@ -575,9 +634,11 @@ class TestFormatInspectors(test_base.BaseTestCase):
 
         # Bit 16 is not allowed
         data[0x4E] = 0x81
-        self.assertRaisesRegex(format_inspector.SafetyViolation,
-                               'Unknown QCOW2 features found',
-                               inspector.check_unknown_features)
+        self.assertRaisesRegex(
+            format_inspector.SafetyViolation,
+            'Unknown QCOW2 features found',
+            inspector.check_unknown_features,
+        )
 
     def test_vdi(self):
         self._test_format('vdi')
@@ -600,14 +661,16 @@ class TestFormatInspectors(test_base.BaseTestCase):
                 continue
             self.assertFalse(fmt.format_match)
             memory = sum(fmt.context_info.values())
-            self.assertLess(memory, 512 * units.Ki,
-                            'Format used more than 512KiB of memory: %s' % (
-                                fmt.context_info))
+            self.assertLess(
+                memory,
+                512 * units.Ki,
+                f'Format used more than 512KiB of memory: {fmt.context_info}',
+            )
 
     def test_invalid_data_without_raw(self):
         wrapper = format_inspector.InspectWrapper(
-            open(__file__, 'rb'),
-            allowed_formats=['qcow2', 'vmdk'])
+            open(__file__, 'rb'), allowed_formats=['qcow2', 'vmdk']
+        )
         while True:
             chunk = wrapper.read(32)
             if not chunk:
@@ -615,8 +678,9 @@ class TestFormatInspectors(test_base.BaseTestCase):
 
         wrapper.close()
         # Make sure this was not detected as any other format
-        self.assertRaises(format_inspector.ImageFormatError,
-                          lambda: wrapper.format)
+        self.assertRaises(
+            format_inspector.ImageFormatError, lambda: wrapper.format
+        )
 
     def test_vmdk_invalid_type(self):
         fmt = format_inspector.VMDKInspector()
@@ -632,8 +696,9 @@ class TestFormatInspectors(test_base.BaseTestCase):
                 self.assertEqual(0, fmt.virtual_size)
 
     def test_vmdk_with_footer(self):
-        img_fn = self._create_img('vmdk', 10 * units.Mi,
-                                  subformat='streamOptimized')
+        img_fn = self._create_img(
+            'vmdk', 10 * units.Mi, subformat='streamOptimized'
+        )
 
         # Make the file signal that there is a footer, add a footer, but with
         # invalid data
@@ -641,15 +706,16 @@ class TestFormatInspectors(test_base.BaseTestCase):
             # Write the "expect a footer" sentinel into the header
             f.seek(56)
             f.write(
-                struct.pack('<Q', format_inspector.VMDKInspector.GD_AT_END))
+                struct.pack('<Q', format_inspector.VMDKInspector.GD_AT_END)
+            )
             # Add room for the footer marker, footer, and EOS marker, but
             # filled with zeroes (which is invalid)
             f.seek(0, 2)
             f.write(b'\x00' * 512 * 3)
         fmt = format_inspector.VMDKInspector.from_file(img_fn)
-        self.assertRaisesRegex(format_inspector.SafetyCheckFailed,
-                               'footer',
-                               fmt.safety_check)
+        self.assertRaisesRegex(
+            format_inspector.SafetyCheckFailed, 'footer', fmt.safety_check
+        )
 
         # Make the footer and footer/EOS markers legit
         header = bytearray(fmt.region('header').data)
@@ -674,13 +740,29 @@ class TestFormatInspectors(test_base.BaseTestCase):
 
     def test_vmdk_footer_checks(self):
         def make_header(sig=b'KDMV', ver=1, d_sec=1, d_off=0x200, gdo=None):
-            return struct.pack('<4sIIQQQQIQQ', sig, ver, 0, 0, 0, d_sec, d_off,
-                               0, 0,
-                               gdo or format_inspector.VMDKInspector.GD_AT_END)
+            return struct.pack(
+                '<4sIIQQQQIQQ',
+                sig,
+                ver,
+                0,
+                0,
+                0,
+                d_sec,
+                d_off,
+                0,
+                0,
+                gdo or format_inspector.VMDKInspector.GD_AT_END,
+            )
 
-        def make_footer(fm_typ=3, fm_sz=0, fm_pad=b'\x00',
-                        eos_typ=0, eos_sz=0, eos_pad=b'\x00',
-                        **header):
+        def make_footer(
+            fm_typ=3,
+            fm_sz=0,
+            fm_pad=b'\x00',
+            eos_typ=0,
+            eos_sz=0,
+            eos_pad=b'\x00',
+            **header,
+        ):
             region = bytearray(b'\x00' * 512 * 3)
             region[512:1024] = make_header(**header)
             region[8] = fm_sz
@@ -689,7 +771,7 @@ class TestFormatInspectors(test_base.BaseTestCase):
 
             region[1024 + 8] = eos_sz
             region[1024 + 12] = eos_typ
-            region[1024 + 16:] = eos_pad * 496
+            region[1024 + 16 :] = eos_pad * 496
             return region
 
         fmt = format_inspector.VMDKInspector()
@@ -698,58 +780,71 @@ class TestFormatInspectors(test_base.BaseTestCase):
 
         # Signature must match header
         fmt.region('footer').data = make_footer(sig=b'leak')
-        self.assertRaisesRegex(format_inspector.SafetyViolation,
-                               'signature', fmt.check_footer)
+        self.assertRaisesRegex(
+            format_inspector.SafetyViolation, 'signature', fmt.check_footer
+        )
 
         # Version must match header
         fmt.region('footer').data = make_footer(ver=2)
-        self.assertRaisesRegex(format_inspector.SafetyViolation,
-                               'version', fmt.check_footer)
+        self.assertRaisesRegex(
+            format_inspector.SafetyViolation, 'version', fmt.check_footer
+        )
 
         # Descriptor cannot be longer
         fmt.region('footer').data = make_footer(d_sec=2)
-        self.assertRaisesRegex(format_inspector.SafetyViolation,
-                               'descriptor', fmt.check_footer)
+        self.assertRaisesRegex(
+            format_inspector.SafetyViolation, 'descriptor', fmt.check_footer
+        )
 
         # Descriptor cannot be relocated
         fmt.region('footer').data = make_footer(d_off=0x300)
-        self.assertRaisesRegex(format_inspector.SafetyViolation,
-                               'descriptor', fmt.check_footer)
+        self.assertRaisesRegex(
+            format_inspector.SafetyViolation, 'descriptor', fmt.check_footer
+        )
 
         # Footer must not have GD_AT_END implying another footer
         fmt.region('footer').data = make_footer()
-        self.assertRaisesRegex(format_inspector.SafetyViolation,
-                               'another footer', fmt.check_footer)
+        self.assertRaisesRegex(
+            format_inspector.SafetyViolation,
+            'another footer',
+            fmt.check_footer,
+        )
 
         # Footer marker type must be correct
         fmt.region('footer').data = make_footer(gdo=123, fm_typ=7)
-        self.assertRaisesRegex(format_inspector.SafetyViolation,
-                               'marker', fmt.check_footer)
+        self.assertRaisesRegex(
+            format_inspector.SafetyViolation, 'marker', fmt.check_footer
+        )
 
         # Footer marker must indicate size=0
         fmt.region('footer').data = make_footer(gdo=123, fm_sz=1)
-        self.assertRaisesRegex(format_inspector.SafetyViolation,
-                               'marker', fmt.check_footer)
+        self.assertRaisesRegex(
+            format_inspector.SafetyViolation, 'marker', fmt.check_footer
+        )
 
         # Footer marker must be zero-padded
         fmt.region('footer').data = make_footer(gdo=123, fm_pad=b'\x01')
-        self.assertRaisesRegex(format_inspector.SafetyViolation,
-                               'marker', fmt.check_footer)
+        self.assertRaisesRegex(
+            format_inspector.SafetyViolation, 'marker', fmt.check_footer
+        )
 
         # EOS marker type must be correct
         fmt.region('footer').data = make_footer(gdo=123, eos_typ=7)
-        self.assertRaisesRegex(format_inspector.SafetyViolation,
-                               'marker', fmt.check_footer)
+        self.assertRaisesRegex(
+            format_inspector.SafetyViolation, 'marker', fmt.check_footer
+        )
 
         # EOS marker must indicate size=0
         fmt.region('footer').data = make_footer(gdo=123, eos_sz=1)
-        self.assertRaisesRegex(format_inspector.SafetyViolation,
-                               'marker', fmt.check_footer)
+        self.assertRaisesRegex(
+            format_inspector.SafetyViolation, 'marker', fmt.check_footer
+        )
 
         # EOS marker must be zero-padded
         fmt.region('footer').data = make_footer(gdo=123, eos_pad=b'\x01')
-        self.assertRaisesRegex(format_inspector.SafetyViolation,
-                               'marker', fmt.check_footer)
+        self.assertRaisesRegex(
+            format_inspector.SafetyViolation, 'marker', fmt.check_footer
+        )
 
         # Everything in place should pass
         fmt.region('footer').data = make_footer(gdo=123)
@@ -777,14 +872,16 @@ class TestFormatInspectors(test_base.BaseTestCase):
 
         # This should fail because the createType header is broken
         fmt = setup_check()
-        e = self.assertRaises(format_inspector.SafetyCheckFailed,
-                              fmt.safety_check)
+        e = self.assertRaises(
+            format_inspector.SafetyCheckFailed, fmt.safety_check
+        )
         self.assertIn('Unsupported subformat', str(e.failures['descriptor']))
 
         # This should fail because the createType is not safe
         descriptor_lines[1] = 'createType="monolithicFlat"'
-        e = self.assertRaises(format_inspector.SafetyCheckFailed,
-                              fmt.safety_check)
+        e = self.assertRaises(
+            format_inspector.SafetyCheckFailed, fmt.safety_check
+        )
         self.assertIn('Unsupported subformat', str(e.failures['descriptor']))
 
         # Fix createType and make sure we pass now
@@ -795,55 +892,67 @@ class TestFormatInspectors(test_base.BaseTestCase):
         # Add an extent in an invalid mode which we will not recognize and fail
         descriptor_lines.append('wronly 2048 somefile2.vmdk')
         fmt = setup_check()
-        e = self.assertRaises(format_inspector.SafetyCheckFailed,
-                              fmt.safety_check)
+        e = self.assertRaises(
+            format_inspector.SafetyCheckFailed, fmt.safety_check
+        )
         self.assertIn('descriptor data', str(e.failures['descriptor']))
 
         # Add an extent with a valid mode but an invalid character
         descriptor_lines[-1] = 'rw 2048 /etc/hosts'
         fmt = setup_check()
-        e = self.assertRaises(format_inspector.SafetyCheckFailed,
-                              fmt.safety_check)
+        e = self.assertRaises(
+            format_inspector.SafetyCheckFailed, fmt.safety_check
+        )
         self.assertIn('extent filenames', str(e.failures['descriptor']))
 
         # Make sure we fail if there are no extents
         descriptor_lines.pop()
         descriptor_lines.pop()
         fmt = setup_check()
-        e = self.assertRaises(format_inspector.SafetyCheckFailed,
-                              fmt.safety_check)
+        e = self.assertRaises(
+            format_inspector.SafetyCheckFailed, fmt.safety_check
+        )
         self.assertIn('No extents found', str(e.failures['descriptor']))
 
     def test_vmdk_format_checks(self):
         # Invalid signature
         fmt = format_inspector.VMDKInspector()
-        chunk = (b'\x00' * 512)
-        self.assertRaisesRegex(format_inspector.ImageFormatError,
-                               'Signature',
-                               fmt.eat_chunk, chunk)
+        chunk = b'\x00' * 512
+        self.assertRaisesRegex(
+            format_inspector.ImageFormatError,
+            'Signature',
+            fmt.eat_chunk,
+            chunk,
+        )
 
         # Good signature but unknown version
         fmt = format_inspector.VMDKInspector()
         chunk = b'KDMV\x00' + (b'\x00' * 512)
-        self.assertRaisesRegex(format_inspector.ImageFormatError,
-                               'Unsupported format version',
-                               fmt.eat_chunk, chunk)
+        self.assertRaisesRegex(
+            format_inspector.ImageFormatError,
+            'Unsupported format version',
+            fmt.eat_chunk,
+            chunk,
+        )
 
         # Good signature and version, no footer, invalid descriptor location
         fmt = format_inspector.VMDKInspector()
         chunk = bytearray(b'\x00' * 512)
         chunk[0:5] = b'KDMV\x01'
-        self.assertRaisesRegex(format_inspector.ImageFormatError,
-                               'Wrong descriptor location',
-                               fmt.eat_chunk, chunk)
+        self.assertRaisesRegex(
+            format_inspector.ImageFormatError,
+            'Wrong descriptor location',
+            fmt.eat_chunk,
+            chunk,
+        )
 
     def test_gpt_mbr_check(self):
         data = bytearray(b'\x00' * 512 * 2)
-        data[510:512] = b'\x55\xAA'
+        data[510:512] = b'\x55\xaa'
         fmt = format_inspector.GPTInspector()
 
         def mkpte(n=0, boot=0, ostype=0xEE, starth=2, startlba=1):
-            data[446 + n * 16:446 + n * 16 + 16] = struct.pack(
+            data[446 + n * 16 : 446 + n * 16 + 16] = struct.pack(
                 '<BBBBBBBBII',
                 boot,  # boot
                 0x00,  # start C
@@ -855,7 +964,7 @@ class TestFormatInspectors(test_base.BaseTestCase):
                 0x00,  # end S
                 startlba,  # start LBA
                 0x00,  # size LBA
-                )
+            )
             fmt.region('mbr').data = data
             fmt.region_complete('mbr')
 
@@ -865,24 +974,30 @@ class TestFormatInspectors(test_base.BaseTestCase):
 
         # Make sure we fail if the boot flag is not one of the valid values
         mkpte(boot=0xA)
-        self.assertRaisesRegex(format_inspector.SafetyViolation,
-                               'invalid boot flag',
-                               fmt.check_mbr_partitions)
+        self.assertRaisesRegex(
+            format_inspector.SafetyViolation,
+            'invalid boot flag',
+            fmt.check_mbr_partitions,
+        )
 
         # Make sure we fail if no partitions are defined. This is probably
         # not a safety problem, but may mean that we mis-identified the image.
         mkpte(ostype=0)
-        self.assertRaisesRegex(format_inspector.SafetyViolation,
-                               'no partitions defined',
-                               fmt.check_mbr_partitions)
+        self.assertRaisesRegex(
+            format_inspector.SafetyViolation,
+            'no partitions defined',
+            fmt.check_mbr_partitions,
+        )
 
         # EFI Protective MBRs are not allowed to have any other partitions
         # defined other than the GPT-protecting one.
         mkpte()
         mkpte(n=1)
-        self.assertRaisesRegex(format_inspector.SafetyViolation,
-                               'invalid extra partitions',
-                               fmt.check_mbr_partitions)
+        self.assertRaisesRegex(
+            format_inspector.SafetyViolation,
+            'invalid extra partitions',
+            fmt.check_mbr_partitions,
+        )
 
         # Make sure that we tolerate any start CHS value for non-EFI types,
         # but refuse outside the required values for EFI.
@@ -890,18 +1005,22 @@ class TestFormatInspectors(test_base.BaseTestCase):
         mkpte(ostype=0x8E, starth=1)
         fmt.check_mbr_partitions()
         mkpte(starth=1)
-        self.assertRaisesRegex(format_inspector.SafetyViolation,
-                               'invalid start CHS',
-                               fmt.check_mbr_partitions)
+        self.assertRaisesRegex(
+            format_inspector.SafetyViolation,
+            'invalid start CHS',
+            fmt.check_mbr_partitions,
+        )
 
         # Make sure that we tolerate any start LBA value for non-EFI types,
         # but refuse outside the required values for EFI.
         mkpte(ostype=0x8E, startlba=2)
         fmt.check_mbr_partitions()
         mkpte(startlba=2)
-        self.assertRaisesRegex(format_inspector.SafetyViolation,
-                               'invalid start LBA',
-                               fmt.check_mbr_partitions)
+        self.assertRaisesRegex(
+            format_inspector.SafetyViolation,
+            'invalid start LBA',
+            fmt.check_mbr_partitions,
+        )
 
     def test_unique_names(self):
         for key, inspector_cls in format_inspector.ALL_FORMATS.items():
@@ -926,7 +1045,7 @@ class TestFormatInspectorInfra(test_base.BaseTestCase):
 
         pos = 0
         for i in range(0, len(data), bs):
-            chunk = data[i:i + bs]
+            chunk = data[i : i + bs]
             pos += len(chunk)
             for region in regions:
                 region.capture(chunk, pos)
@@ -1010,10 +1129,12 @@ class TestFormatInspectorInfra(test_base.BaseTestCase):
 
     @mock.patch.object(format_inspector.VMDKInspector, 'eat_chunk')
     @mock.patch.object(format_inspector.LOG, 'debug')
-    def test_wrapper_iter_like_eats_error(self, mock_log, mock_eat,
-                                          expected=None):
-        wrapper = format_inspector.InspectWrapper(iter([b'123', b'456']),
-                                                  expected_format=expected)
+    def test_wrapper_iter_like_eats_error(
+        self, mock_log, mock_eat, expected=None
+    ):
+        wrapper = format_inspector.InspectWrapper(
+            iter([b'123', b'456']), expected_format=expected
+        )
         mock_eat.side_effect = Exception('fail')
 
         data = b''
@@ -1041,36 +1162,42 @@ class TestFormatInspectorInfra(test_base.BaseTestCase):
         # Run the InspectWrapper with non-qcow2 data, expecting qcow2, first
         # read past the header should raise the error and abort us early.
         data = io.BytesIO(b'\x00' * units.Mi)
-        wrapper = format_inspector.InspectWrapper(data,
-                                                  expected_format='qcow2')
-        self.assertRaises(format_inspector.ImageFormatError,
-                          wrapper.read, 2048)
+        wrapper = format_inspector.InspectWrapper(
+            data, expected_format='qcow2'
+        )
+        self.assertRaises(
+            format_inspector.ImageFormatError, wrapper.read, 2048
+        )
         # We should only have read 2048 bytes from the 1MiB of source data if
         # we aborted early.
         self.assertEqual(2048, data.tell())
 
     def test_get_inspector(self):
-        self.assertEqual(format_inspector.QcowInspector,
-                         format_inspector.get_inspector('qcow2'))
+        self.assertEqual(
+            format_inspector.QcowInspector,
+            format_inspector.get_inspector('qcow2'),
+        )
         self.assertIsNone(format_inspector.get_inspector('foo'))
 
     def test_safety_check_records_result(self):
         def fake_check():
             raise format_inspector.SafetyViolation('myresult')
 
-        check = format_inspector.SafetyCheck('foo', fake_check,
-                                             description='a fake check')
-        self.assertRaisesRegex(format_inspector.SafetyViolation,
-                               'myresult',
-                               check)
+        check = format_inspector.SafetyCheck(
+            'foo', fake_check, description='a fake check'
+        )
+        self.assertRaisesRegex(
+            format_inspector.SafetyViolation, 'myresult', check
+        )
 
     def test_safety_check_records_failure(self):
         # This check will fail with ValueError
-        check = format_inspector.SafetyCheck('foo', lambda: int('a'),
-                                             description='a fake check')
-        self.assertRaisesRegex(format_inspector.SafetyViolation,
-                               'Unexpected error',
-                               check)
+        check = format_inspector.SafetyCheck(
+            'foo', lambda: int('a'), description='a fake check'
+        )
+        self.assertRaisesRegex(
+            format_inspector.SafetyViolation, 'Unexpected error', check
+        )
 
     def test_safety_check_constants(self):
         null_check = format_inspector.SafetyCheck.null()
@@ -1079,19 +1206,23 @@ class TestFormatInspectorInfra(test_base.BaseTestCase):
 
         banned_check = format_inspector.SafetyCheck.banned()
         self.assertIsInstance(banned_check, format_inspector.SafetyCheck)
-        self.assertRaisesRegex(format_inspector.SafetyViolation,
-                               'not allowed',
-                               banned_check)
+        self.assertRaisesRegex(
+            format_inspector.SafetyViolation, 'not allowed', banned_check
+        )
 
     def test_safety_check_error_conditions(self):
         inspector = format_inspector.QcowInspector()
-        self.assertRaisesRegex(format_inspector.ImageFormatError,
-                               'Incomplete file.*',
-                               inspector.safety_check)
+        self.assertRaisesRegex(
+            format_inspector.ImageFormatError,
+            'Incomplete file.*',
+            inspector.safety_check,
+        )
         inspector.eat_chunk(b'\x00' * 512)
-        self.assertRaisesRegex(format_inspector.ImageFormatError,
-                               'content does not match',
-                               inspector.safety_check)
+        self.assertRaisesRegex(
+            format_inspector.ImageFormatError,
+            'content does not match',
+            inspector.safety_check,
+        )
 
         self.assertRaises(RuntimeError, inspector.add_safety_check, 'foo')
 
@@ -1104,8 +1235,10 @@ class TestFormatInspectorInfra(test_base.BaseTestCase):
             @property
             def format_match(self):
                 return True
-        self.assertRaisesRegex(RuntimeError, 'at least one safety',
-                               BadSafetyCheck)
+
+        self.assertRaisesRegex(
+            RuntimeError, 'at least one safety', BadSafetyCheck
+        )
 
     def test_finish_is_final(self):
         fmt = format_inspector.RawFileInspector()
@@ -1140,7 +1273,8 @@ class TestFormatInspectorsTargeted(test_base.BaseTestCase):
         # Make sure we clamp to our limit of 32 * 2048
         self.assertEqual(
             format_inspector.VHDXInspector.VHDX_METADATA_TABLE_MAX_SIZE,
-            new_region.length)
+            new_region.length,
+        )
 
     def test_vhd_table_under_limit(self):
         ins = format_inspector.VHDXInspector()

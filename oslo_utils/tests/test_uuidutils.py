@@ -21,7 +21,6 @@ from oslo_utils import uuidutils
 
 
 class UUIDUtilsTest(test_base.BaseTestCase):
-
     def test_generate_uuid(self):
         uuid_string = uuidutils.generate_uuid()
         self.assertIsInstance(uuid_string, str)
@@ -37,18 +36,28 @@ class UUIDUtilsTest(test_base.BaseTestCase):
 
     def test_is_uuid_like(self):
         self.assertTrue(uuidutils.is_uuid_like(str(uuid.uuid4())))
-        self.assertTrue(uuidutils.is_uuid_like(
-            '{12345678-1234-5678-1234-567812345678}'))
-        self.assertTrue(uuidutils.is_uuid_like(
-            '12345678123456781234567812345678'))
-        self.assertTrue(uuidutils.is_uuid_like(
-            'urn:uuid:12345678-1234-5678-1234-567812345678'))
-        self.assertTrue(uuidutils.is_uuid_like(
-            'urn:bbbaaaaa-aaaa-aaaa-aabb-bbbbbbbbbbbb'))
-        self.assertTrue(uuidutils.is_uuid_like(
-            'uuid:bbbaaaaa-aaaa-aaaa-aabb-bbbbbbbbbbbb'))
-        self.assertTrue(uuidutils.is_uuid_like(
-            '{}---bbb---aaa--aaa--aaa-----aaa---aaa--bbb-bbb---bbb-bbb-bb-{}'))
+        self.assertTrue(
+            uuidutils.is_uuid_like('{12345678-1234-5678-1234-567812345678}')
+        )
+        self.assertTrue(
+            uuidutils.is_uuid_like('12345678123456781234567812345678')
+        )
+        self.assertTrue(
+            uuidutils.is_uuid_like(
+                'urn:uuid:12345678-1234-5678-1234-567812345678'
+            )
+        )
+        self.assertTrue(
+            uuidutils.is_uuid_like('urn:bbbaaaaa-aaaa-aaaa-aabb-bbbbbbbbbbbb')
+        )
+        self.assertTrue(
+            uuidutils.is_uuid_like('uuid:bbbaaaaa-aaaa-aaaa-aabb-bbbbbbbbbbbb')
+        )
+        self.assertTrue(
+            uuidutils.is_uuid_like(
+                '{}---bbb---aaa--aaa--aaa-----aaa---aaa--bbb-bbb---bbb-bbb-bb-{}'
+            )
+        )
 
     def test_is_uuid_like_insensitive(self):
         self.assertTrue(uuidutils.is_uuid_like(str(uuid.uuid4()).upper()))

@@ -25,7 +25,6 @@ from oslo_utils import uuidutils
 
 
 class TimeFixtureTest(test_base.BaseTestCase):
-
     def test_set_time_override_using_default(self):
         # When the fixture is used with its default constructor, the
         # override_time is set to the current timestamp.
@@ -66,7 +65,6 @@ class TimeFixtureTest(test_base.BaseTestCase):
 
 
 class UUIDSentinelsTest(test_base.BaseTestCase):
-
     def test_different_sentinel(self):
         uuid1 = uuids.foobar
         uuid2 = uuids.barfoo

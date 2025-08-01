@@ -31,19 +31,20 @@ class Fail2(excutils.CausedByException):
 
 
 class CausedByTest(test_base.BaseTestCase):
-
     def test_caused_by_explicit(self):
-        e = self.assertRaises(Fail1,
-                              excutils.raise_with_cause,
-                              Fail1, "I was broken",
-                              cause=Fail2("I have been broken"))
+        e = self.assertRaises(
+            Fail1,
+            excutils.raise_with_cause,
+            Fail1,
+            "I was broken",
+            cause=Fail2("I have been broken"),
+        )
         self.assertIsInstance(e.cause, Fail2)
         e_p = e.pformat()
         self.assertIn("I have been broken", e_p)
         self.assertIn("Fail2", e_p)
 
     def test_caused_by_implicit(self):
-
         def raises_chained():
             try:
                 raise Fail2("I have been broken")
@@ -58,9 +59,7 @@ class CausedByTest(test_base.BaseTestCase):
 
 
 class SaveAndReraiseTest(test_base.BaseTestCase):
-
     def test_save_and_reraise_exception_forced(self):
-
         def _force_reraise():
             try:
                 raise OSError("I broke")
@@ -72,7 +71,6 @@ class SaveAndReraiseTest(test_base.BaseTestCase):
         self.assertRaises(IOError, _force_reraise)
 
     def test_save_and_reraise_exception_capture_reraise(self):
-
         def _force_reraise():
             try:
                 raise OSError("I broke")
@@ -131,8 +129,9 @@ class SaveAndReraiseTest(test_base.BaseTestCase):
                 ctxt.reraise = False
 
     @mock.patch('logging.getLogger')
-    def test_save_and_reraise_exception_dropped_no_reraise(self,
-                                                           get_logger_mock):
+    def test_save_and_reraise_exception_dropped_no_reraise(
+        self, get_logger_mock
+    ):
         logger = get_logger_mock()
         e = None
         msg = 'second exception'
@@ -161,7 +160,6 @@ class SaveAndReraiseTest(test_base.BaseTestCase):
 
 
 class ForeverRetryUncaughtExceptionsTest(test_base.BaseTestCase):
-
     def setUp(self):
         super().setUp()
 
@@ -177,7 +175,6 @@ class ForeverRetryUncaughtExceptionsTest(test_base.BaseTestCase):
     @mock.patch.object(logging, 'exception')
     @mock.patch.object(timeutils, 'now')
     def test_exc_retrier_1exc_gives_1log(self, mock_now, mock_log):
-
         self._exceptions = [
             Exception('unexpected %d' % 1),
         ]
@@ -190,9 +187,11 @@ class ForeverRetryUncaughtExceptionsTest(test_base.BaseTestCase):
         mock_log.assert_called_once_with(
             'Unexpected exception occurred %d time(s)... retrying.' % 1
         )
-        mock_now.assert_has_calls([
-            mock.call(),
-        ])
+        mock_now.assert_has_calls(
+            [
+                mock.call(),
+            ]
+        )
 
     @mock.patch.object(logging, 'exception')
     @mock.patch.object(timeutils, 'now')
@@ -218,9 +217,13 @@ class ForeverRetryUncaughtExceptionsTest(test_base.BaseTestCase):
         self.assertEqual([], self._exceptions)
         self.assertEqual(10, len(mock_now.mock_calls))
         self.assertEqual(1, len(mock_log.mock_calls))
-        mock_log.assert_has_calls([
-            mock.call('Unexpected exception occurred 1 time(s)... retrying.'),
-        ])
+        mock_log.assert_has_calls(
+            [
+                mock.call(
+                    'Unexpected exception occurred 1 time(s)... retrying.'
+                ),
+            ]
+        )
 
     @mock.patch.object(logging, 'exception')
     @mock.patch.object(timeutils, 'now')
@@ -248,10 +251,16 @@ class ForeverRetryUncaughtExceptionsTest(test_base.BaseTestCase):
         self.assertEqual([], self._exceptions)
         self.assertEqual(4, len(mock_now.mock_calls))
         self.assertEqual(2, len(mock_log.mock_calls))
-        mock_log.assert_has_calls([
-            mock.call('Unexpected exception occurred 1 time(s)... retrying.'),
-            mock.call('Unexpected exception occurred 1 time(s)... retrying.'),
-        ])
+        mock_log.assert_has_calls(
+            [
+                mock.call(
+                    'Unexpected exception occurred 1 time(s)... retrying.'
+                ),
+                mock.call(
+                    'Unexpected exception occurred 1 time(s)... retrying.'
+                ),
+            ]
+        )
 
     @mock.patch.object(logging, 'exception')
     @mock.patch.object(timeutils, 'now')
@@ -298,10 +307,16 @@ class ForeverRetryUncaughtExceptionsTest(test_base.BaseTestCase):
         self.assertEqual([], self._exceptions)
         self.assertEqual(12, len(mock_now.mock_calls))
         self.assertEqual(2, len(mock_log.mock_calls))
-        mock_log.assert_has_calls([
-            mock.call('Unexpected exception occurred 1 time(s)... retrying.'),
-            mock.call('Unexpected exception occurred 5 time(s)... retrying.'),
-        ])
+        mock_log.assert_has_calls(
+            [
+                mock.call(
+                    'Unexpected exception occurred 1 time(s)... retrying.'
+                ),
+                mock.call(
+                    'Unexpected exception occurred 5 time(s)... retrying.'
+                ),
+            ]
+        )
 
     @mock.patch.object(logging, 'exception')
     @mock.patch.object(timeutils, 'now')
@@ -343,15 +358,20 @@ class ForeverRetryUncaughtExceptionsTest(test_base.BaseTestCase):
         self.assertEqual([], self._exceptions)
         self.assertEqual(5, len(mock_now.mock_calls))
         self.assertEqual(2, len(mock_log.mock_calls))
-        mock_log.assert_has_calls([
-            mock.call('Unexpected exception occurred 1 time(s)... retrying.'),
-            mock.call('Unexpected exception occurred 1 time(s)... retrying.'),
-        ])
+        mock_log.assert_has_calls(
+            [
+                mock.call(
+                    'Unexpected exception occurred 1 time(s)... retrying.'
+                ),
+                mock.call(
+                    'Unexpected exception occurred 1 time(s)... retrying.'
+                ),
+            ]
+        )
 
     @mock.patch.object(logging, 'exception')
     @mock.patch.object(timeutils, 'now')
     def test_exc_retrier_mixed_4exc_2min_gives_2logs(self, mock_now, mock_log):
-
         self._exceptions = [
             Exception('unexpected 1'),
         ]
@@ -383,10 +403,16 @@ class ForeverRetryUncaughtExceptionsTest(test_base.BaseTestCase):
         self.assertEqual([], self._exceptions)
         self.assertEqual(5, len(mock_now.mock_calls))
         self.assertEqual(2, len(mock_log.mock_calls))
-        mock_log.assert_has_calls([
-            mock.call('Unexpected exception occurred 1 time(s)... retrying.'),
-            mock.call('Unexpected exception occurred 1 time(s)... retrying.'),
-        ])
+        mock_log.assert_has_calls(
+            [
+                mock.call(
+                    'Unexpected exception occurred 1 time(s)... retrying.'
+                ),
+                mock.call(
+                    'Unexpected exception occurred 1 time(s)... retrying.'
+                ),
+            ]
+        )
 
     @mock.patch.object(logging, 'exception')
     @mock.patch.object(timeutils, 'now')
@@ -419,15 +445,22 @@ class ForeverRetryUncaughtExceptionsTest(test_base.BaseTestCase):
         self.assertEqual([], self._exceptions)
         self.assertEqual(7, len(mock_now.mock_calls))
         self.assertEqual(3, len(mock_log.mock_calls))
-        mock_log.assert_has_calls([
-            mock.call('Unexpected exception occurred 1 time(s)... retrying.'),
-            mock.call('Unexpected exception occurred 2 time(s)... retrying.'),
-            mock.call('Unexpected exception occurred 1 time(s)... retrying.'),
-        ])
+        mock_log.assert_has_calls(
+            [
+                mock.call(
+                    'Unexpected exception occurred 1 time(s)... retrying.'
+                ),
+                mock.call(
+                    'Unexpected exception occurred 2 time(s)... retrying.'
+                ),
+                mock.call(
+                    'Unexpected exception occurred 1 time(s)... retrying.'
+                ),
+            ]
+        )
 
 
 class ExceptionFilterTest(test_base.BaseTestCase):
-
     def _make_filter_func(self, ignore_classes=AssertionError):
         @excutils.exception_filter
         def ignore_exceptions(ex):
@@ -496,9 +529,9 @@ class ExceptionFilterTest(test_base.BaseTestCase):
                 raise RuntimeError
             except Exception as exc2:
                 self.assertIsNot(exc1, exc2)
-            raised = self.assertRaises(RuntimeError,
-                                       ignore_assertion_error,
-                                       exc1)
+            raised = self.assertRaises(
+                RuntimeError, ignore_assertion_error, exc1
+            )
             self.assertIs(exc1, raised)
 
     def test_raise_previous_after_filtered_func_call(self):

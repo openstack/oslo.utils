@@ -20,12 +20,14 @@ from oslo_utils import reflection
 
 
 RUNTIME_ERROR_CLASSES = [
-    'RuntimeError', 'Exception', 'BaseException', 'object',
+    'RuntimeError',
+    'Exception',
+    'BaseException',
+    'object',
 ]
 
 
 def dummy_decorator(f):
-
     @functools.wraps(f)
     def wrapper(*args, **kwargs):
         return f(*args, **kwargs)
@@ -54,7 +56,6 @@ class TestObject:
 
 
 class Class:
-
     def method(self, c, d):
         pass
 
@@ -110,7 +111,6 @@ class MemberGetTest(test_base.BaseTestCase):
 
 class CallbackEqualityTest(test_base.BaseTestCase):
     def test_different_simple_callbacks(self):
-
         def a():
             pass
 
@@ -120,9 +120,7 @@ class CallbackEqualityTest(test_base.BaseTestCase):
         self.assertFalse(reflection.is_same_callback(a, b))
 
     def test_static_instance_callbacks(self):
-
         class A:
-
             @staticmethod
             def b(a, b, c):
                 pass
@@ -133,7 +131,6 @@ class CallbackEqualityTest(test_base.BaseTestCase):
         self.assertTrue(reflection.is_same_callback(a.b, b.b))
 
     def test_different_instance_callbacks(self):
-
         class A:
             def b(self):
                 pass
@@ -161,7 +158,6 @@ class BoundMethodTest(test_base.BaseTestCase):
 
 
 class GetCallableNameTest(test_base.BaseTestCase):
-
     def test_mere_function(self):
         name = reflection.get_callable_name(mere_function)
         self.assertEqual('.'.join((__name__, 'mere_function')), name)
@@ -192,8 +188,9 @@ class GetCallableNameTest(test_base.BaseTestCase):
 
     def test_callable_class_call(self):
         name = reflection.get_callable_name(CallableClass().__call__)
-        self.assertEqual('.'.join((__name__, 'CallableClass',
-                                   '__call__')), name)
+        self.assertEqual(
+            '.'.join((__name__, 'CallableClass', '__call__')), name
+        )
 
 
 class GetCallableNameTestExtended(test_base.BaseTestCase):
@@ -206,35 +203,47 @@ class GetCallableNameTestExtended(test_base.BaseTestCase):
     def test_inner_callable_class(self):
         obj = self.InnerCallableClass()
         name = reflection.get_callable_name(obj.__call__)
-        expected_name = '.'.join((__name__, 'GetCallableNameTestExtended',
-                                  'InnerCallableClass', '__call__'))
+        expected_name = '.'.join(
+            (
+                __name__,
+                'GetCallableNameTestExtended',
+                'InnerCallableClass',
+                '__call__',
+            )
+        )
         self.assertEqual(expected_name, name)
 
     def test_inner_callable_function(self):
         def a():
-
             def b():
                 pass
 
             return b
 
         name = reflection.get_callable_name(a())
-        expected_name = '.'.join((__name__, 'GetCallableNameTestExtended',
-                                  'test_inner_callable_function', '<locals>',
-                                  'a', '<locals>', 'b'))
+        expected_name = '.'.join(
+            (
+                __name__,
+                'GetCallableNameTestExtended',
+                'test_inner_callable_function',
+                '<locals>',
+                'a',
+                '<locals>',
+                'b',
+            )
+        )
         self.assertEqual(expected_name, name)
 
     def test_inner_class(self):
         obj = self.InnerCallableClass()
         name = reflection.get_callable_name(obj)
-        expected_name = '.'.join((__name__,
-                                  'GetCallableNameTestExtended',
-                                  'InnerCallableClass'))
+        expected_name = '.'.join(
+            (__name__, 'GetCallableNameTestExtended', 'InnerCallableClass')
+        )
         self.assertEqual(expected_name, name)
 
 
 class GetCallableArgsTest(test_base.BaseTestCase):
-
     def test_mere_function(self):
         result = reflection.get_callable_args(mere_function)
         self.assertEqual(['a', 'b'], result)
@@ -244,8 +253,9 @@ class GetCallableArgsTest(test_base.BaseTestCase):
         self.assertEqual(['a', 'b', 'optional'], result)
 
     def test_required_only(self):
-        result = reflection.get_callable_args(function_with_defs,
-                                              required_only=True)
+        result = reflection.get_callable_args(
+            function_with_defs, required_only=True
+        )
         self.assertEqual(['a', 'b'], result)
 
     def test_method(self):
@@ -272,12 +282,12 @@ class GetCallableArgsTest(test_base.BaseTestCase):
         @dummy_decorator
         def special_fun(x, y):
             pass
+
         result = reflection.get_callable_args(special_fun)
         self.assertEqual(['x', 'y'], result)
 
 
 class AcceptsKwargsTest(test_base.BaseTestCase):
-
     def test_no_kwargs(self):
         self.assertEqual(False, reflection.accepts_kwargs(mere_function))
 
@@ -286,7 +296,6 @@ class AcceptsKwargsTest(test_base.BaseTestCase):
 
 
 class GetClassNameTest(test_base.BaseTestCase):
-
     def test_std_exception(self):
         name = reflection.get_class_name(RuntimeError)
         self.assertEqual('RuntimeError', name)
@@ -312,36 +321,37 @@ class GetClassNameTest(test_base.BaseTestCase):
 
     def test_class_method(self):
         name = reflection.get_class_name(Class.class_method)
-        self.assertEqual('%s.Class' % __name__, name)
+        self.assertEqual(f'{__name__}.Class', name)
         # test with fully_qualified=False
-        name = reflection.get_class_name(Class.class_method,
-                                         fully_qualified=False)
+        name = reflection.get_class_name(
+            Class.class_method, fully_qualified=False
+        )
         self.assertEqual('Class', name)
 
     def test_static_method(self):
-        self.assertRaises(TypeError, reflection.get_class_name,
-                          Class.static_method)
+        self.assertRaises(
+            TypeError, reflection.get_class_name, Class.static_method
+        )
 
     def test_unbound_method(self):
-        self.assertRaises(TypeError, reflection.get_class_name,
-                          mere_function)
+        self.assertRaises(TypeError, reflection.get_class_name, mere_function)
 
     def test_bound_method(self):
         c = Class()
         name = reflection.get_class_name(c.method)
-        self.assertEqual('%s.Class' % __name__, name)
+        self.assertEqual(f'{__name__}.Class', name)
         # test with fully_qualified=False
         name = reflection.get_class_name(c.method, fully_qualified=False)
         self.assertEqual('Class', name)
 
 
 class GetAllClassNamesTest(test_base.BaseTestCase):
-
     def test_std_class(self):
         names = list(reflection.get_all_class_names(RuntimeError))
         self.assertEqual(RUNTIME_ERROR_CLASSES, names)
 
     def test_std_class_up_to(self):
-        names = list(reflection.get_all_class_names(RuntimeError,
-                                                    up_to=Exception))
+        names = list(
+            reflection.get_all_class_names(RuntimeError, up_to=Exception)
+        )
         self.assertEqual(RUNTIME_ERROR_CLASSES[:-2], names)

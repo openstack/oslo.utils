@@ -29,15 +29,16 @@ def safe_decode(text, incoming=None, errors='strict'):
                 representation of it.
     :raises TypeError: If text is not an instance of str
     """
-    if not isinstance(text, (str, bytes)):
-        raise TypeError("%s can't be decoded" % type(text))
+    if not isinstance(text, str | bytes):
+        raise TypeError(f"{type(text)} can't be decoded")
 
     if isinstance(text, str):
         return text
 
     if not incoming:
-        incoming = (getattr(sys.stdin, 'encoding', None) or
-                    sys.getdefaultencoding())
+        incoming = (
+            getattr(sys.stdin, 'encoding', None) or sys.getdefaultencoding()
+        )
 
     try:
         return text.decode(incoming, errors)
@@ -57,8 +58,7 @@ def safe_decode(text, incoming=None, errors='strict'):
         return text.decode('utf-8', errors)
 
 
-def safe_encode(text, incoming=None,
-                encoding='utf-8', errors='strict'):
+def safe_encode(text, incoming=None, encoding='utf-8', errors='strict'):
     """Encodes incoming text/bytes string using `encoding`.
 
     If incoming is not specified, text is expected to be encoded with
@@ -75,12 +75,13 @@ def safe_encode(text, incoming=None,
     See also to_utf8() function which is simpler and don't depend on
     the locale encoding.
     """
-    if not isinstance(text, (str, bytes)):
-        raise TypeError("%s can't be encoded" % type(text))
+    if not isinstance(text, str | bytes):
+        raise TypeError(f"{type(text)} can't be encoded")
 
     if not incoming:
-        incoming = (getattr(sys.stdin, 'encoding', None) or
-                    sys.getdefaultencoding())
+        incoming = (
+            getattr(sys.stdin, 'encoding', None) or sys.getdefaultencoding()
+        )
 
     # Avoid case issues in comparisons
     if hasattr(incoming, 'lower'):
@@ -110,12 +111,14 @@ def to_utf8(text):
     elif isinstance(text, str):
         return text.encode('utf-8')
     else:
-        raise TypeError("bytes or Unicode expected, got %s"
-                        % type(text).__name__)
+        raise TypeError(
+            f"bytes or Unicode expected, got {type(text).__name__}"
+        )
 
 
-@debtcollector.removals.remove(message='Use str(exc) instead',
-                               category=DeprecationWarning)
+@debtcollector.removals.remove(
+    message='Use str(exc) instead', category=DeprecationWarning
+)
 def exception_to_unicode(exc):
     """Get the message of an exception as a Unicode string.
 

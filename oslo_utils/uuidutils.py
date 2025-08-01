@@ -35,11 +35,13 @@ def generate_uuid(dashed=True):
 
 
 def _format_uuid_string(string):
-    return (string.replace('urn:', '')
-                  .replace('uuid:', '')
-                  .strip('{}')
-                  .replace('-', '')
-                  .lower())
+    return (
+        string.replace('urn:', '')
+        .replace('uuid:', '')
+        .strip('{}')
+        .replace('-', '')
+        .lower()
+    )
 
 
 def is_uuid_like(val):

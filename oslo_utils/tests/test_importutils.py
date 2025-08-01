@@ -22,7 +22,6 @@ from oslo_utils import importutils
 
 
 class ImportUtilsTest(test_base.BaseTestCase):
-
     # NOTE(jkoelker) There has GOT to be a way to test this. But mocking
     #                __import__ is the devil. Right now we just make
     #               sure we can import something from the stdlib
@@ -31,8 +30,9 @@ class ImportUtilsTest(test_base.BaseTestCase):
         self.assertEqual(sys.modules['datetime'].datetime, dt)
 
     def test_import_bad_class(self):
-        self.assertRaises(ImportError, importutils.import_class,
-                          'lol.u_mad.brah')
+        self.assertRaises(
+            ImportError, importutils.import_class, 'lol.u_mad.brah'
+        )
 
     def test_import_module(self):
         dt = importutils.import_module('datetime')
@@ -43,69 +43,88 @@ class ImportUtilsTest(test_base.BaseTestCase):
         self.assertEqual(obj.__class__.__name__, 'FakeDriver')
 
     def test_import_object_optional_arg_present(self):
-        obj = importutils.import_object('oslo_utils.tests.fake.FakeDriver',
-                                        first_arg=False)
+        obj = importutils.import_object(
+            'oslo_utils.tests.fake.FakeDriver', first_arg=False
+        )
         self.assertEqual(obj.__class__.__name__, 'FakeDriver')
 
     def test_import_object_required_arg_not_present(self):
         # arg 1 isn't optional here
-        self.assertRaises(TypeError, importutils.import_object,
-                          'oslo_utils.tests.fake.FakeDriver2')
+        self.assertRaises(
+            TypeError,
+            importutils.import_object,
+            'oslo_utils.tests.fake.FakeDriver2',
+        )
 
     def test_import_object_required_arg_present(self):
-        obj = importutils.import_object('oslo_utils.tests.fake.FakeDriver2',
-                                        first_arg=False)
+        obj = importutils.import_object(
+            'oslo_utils.tests.fake.FakeDriver2', first_arg=False
+        )
         self.assertEqual(obj.__class__.__name__, 'FakeDriver2')
 
     # namespace tests
     def test_import_object_ns_optional_arg_not_present(self):
-        obj = importutils.import_object_ns('oslo_utils',
-                                           'tests.fake.FakeDriver')
+        obj = importutils.import_object_ns(
+            'oslo_utils', 'tests.fake.FakeDriver'
+        )
         self.assertEqual(obj.__class__.__name__, 'FakeDriver')
 
     def test_import_object_ns_optional_arg_present(self):
-        obj = importutils.import_object_ns('oslo_utils',
-                                           'tests.fake.FakeDriver',
-                                           first_arg=False)
+        obj = importutils.import_object_ns(
+            'oslo_utils', 'tests.fake.FakeDriver', first_arg=False
+        )
         self.assertEqual(obj.__class__.__name__, 'FakeDriver')
 
     def test_import_object_ns_required_arg_not_present(self):
         # arg 1 isn't optional here
-        self.assertRaises(TypeError, importutils.import_object_ns,
-                          'oslo_utils', 'tests.fake.FakeDriver2')
+        self.assertRaises(
+            TypeError,
+            importutils.import_object_ns,
+            'oslo_utils',
+            'tests.fake.FakeDriver2',
+        )
 
     def test_import_object_ns_required_arg_present(self):
-        obj = importutils.import_object_ns('oslo_utils',
-                                           'tests.fake.FakeDriver2',
-                                           first_arg=False)
+        obj = importutils.import_object_ns(
+            'oslo_utils', 'tests.fake.FakeDriver2', first_arg=False
+        )
         self.assertEqual(obj.__class__.__name__, 'FakeDriver2')
 
     # namespace tests
     def test_import_object_ns_full_optional_arg_not_present(self):
-        obj = importutils.import_object_ns('tests2',
-                                           'oslo_utils.tests.fake.FakeDriver')
+        obj = importutils.import_object_ns(
+            'tests2', 'oslo_utils.tests.fake.FakeDriver'
+        )
         self.assertEqual(obj.__class__.__name__, 'FakeDriver')
 
     def test_import_object_ns_full_optional_arg_present(self):
-        obj = importutils.import_object_ns('tests2',
-                                           'oslo_utils.tests.fake.FakeDriver',
-                                           first_arg=False)
+        obj = importutils.import_object_ns(
+            'tests2', 'oslo_utils.tests.fake.FakeDriver', first_arg=False
+        )
         self.assertEqual(obj.__class__.__name__, 'FakeDriver')
 
     def test_import_object_ns_full_required_arg_not_present(self):
         # arg 1 isn't optional here
-        self.assertRaises(TypeError, importutils.import_object_ns,
-                          'tests2', 'oslo_utils.tests.fake.FakeDriver2')
+        self.assertRaises(
+            TypeError,
+            importutils.import_object_ns,
+            'tests2',
+            'oslo_utils.tests.fake.FakeDriver2',
+        )
 
     def test_import_object_ns_full_required_arg_present(self):
-        obj = importutils.import_object_ns('tests2',
-                                           'oslo_utils.tests.fake.FakeDriver2',
-                                           first_arg=False)
+        obj = importutils.import_object_ns(
+            'tests2', 'oslo_utils.tests.fake.FakeDriver2', first_arg=False
+        )
         self.assertEqual(obj.__class__.__name__, 'FakeDriver2')
 
     def test_import_object_ns_raise_import_error_in_init(self):
-        self.assertRaises(ImportError, importutils.import_object_ns,
-                          'tests2', 'oslo_utils.tests.fake.FakeDriver3')
+        self.assertRaises(
+            ImportError,
+            importutils.import_object_ns,
+            'tests2',
+            'oslo_utils.tests.fake.FakeDriver3',
+        )
 
     def test_import_object(self):
         dt = importutils.import_object('datetime.time')
@@ -120,20 +139,30 @@ class ImportUtilsTest(test_base.BaseTestCase):
         v2 = importutils.import_versioned_module('oslo_utils.tests.fake', 2)
         self.assertEqual(sys.modules['oslo_utils.tests.fake.v2'], v2)
 
-        dummpy = importutils.import_versioned_module('oslo_utils.tests.fake',
-                                                     2, 'dummpy')
-        self.assertEqual(sys.modules['oslo_utils.tests.fake.v2.dummpy'],
-                         dummpy)
+        dummpy = importutils.import_versioned_module(
+            'oslo_utils.tests.fake', 2, 'dummpy'
+        )
+        self.assertEqual(
+            sys.modules['oslo_utils.tests.fake.v2.dummpy'], dummpy
+        )
 
     def test_import_versioned_module_wrong_version_parameter(self):
-        self.assertRaises(ValueError,
-                          importutils.import_versioned_module,
-                          'oslo_utils.tests.fake', "2.0", 'fake')
+        self.assertRaises(
+            ValueError,
+            importutils.import_versioned_module,
+            'oslo_utils.tests.fake',
+            "2.0",
+            'fake',
+        )
 
     def test_import_versioned_module_error(self):
-        self.assertRaises(ImportError,
-                          importutils.import_versioned_module,
-                          'oslo_utils.tests.fake', 2, 'fake')
+        self.assertRaises(
+            ImportError,
+            importutils.import_versioned_module,
+            'oslo_utils.tests.fake',
+            2,
+            'fake',
+        )
 
     def test_try_import(self):
         dt = importutils.try_import('datetime')
@@ -144,8 +173,9 @@ class ImportUtilsTest(test_base.BaseTestCase):
         self.assertIsNone(foo)
 
     def test_import_any_none_found(self):
-        self.assertRaises(ImportError, importutils.import_any,
-                          'foo.bar', 'foo.foo.bar')
+        self.assertRaises(
+            ImportError, importutils.import_any, 'foo.bar', 'foo.foo.bar'
+        )
 
     def test_import_any_found(self):
         dt = importutils.import_any('foo.bar', 'datetime')

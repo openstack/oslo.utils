@@ -29,7 +29,6 @@ load_tests = testscenarios.load_tests_apply_scenarios
 
 
 class StrUtilsTest(test_base.BaseTestCase):
-
     def test_bool_bool_from_string(self):
         self.assertTrue(strutils.bool_from_string(True))
         self.assertFalse(strutils.bool_from_string(False))
@@ -59,8 +58,9 @@ class StrUtilsTest(test_base.BaseTestCase):
         self.assertFalse(strutils.bool_from_string(c('no')))
         self.assertFalse(strutils.bool_from_string(c('0')))
         self.assertFalse(strutils.bool_from_string(c('42')))
-        self.assertFalse(strutils.bool_from_string(c(
-                         'This should not be True')))
+        self.assertFalse(
+            strutils.bool_from_string(c('This should not be True'))
+        )
         self.assertFalse(strutils.bool_from_string(c('F')))
         self.assertFalse(strutils.bool_from_string(c('f')))
         self.assertFalse(strutils.bool_from_string(c('N')))
@@ -79,11 +79,14 @@ class StrUtilsTest(test_base.BaseTestCase):
         self._test_bool_from_string(str)
         self.assertFalse(strutils.bool_from_string('使用', strict=False))
 
-        exc = self.assertRaises(ValueError, strutils.bool_from_string,
-                                '使用', strict=True)
-        expected_msg = ("Unrecognized value '使用', acceptable values are:"
-                        " '0', '1', 'f', 'false', 'n', 'no', 'off', 'on',"
-                        " 't', 'true', 'y', 'yes'")
+        exc = self.assertRaises(
+            ValueError, strutils.bool_from_string, '使用', strict=True
+        )
+        expected_msg = (
+            "Unrecognized value '使用', acceptable values are:"
+            " '0', '1', 'f', 'false', 'n', 'no', 'off', 'on',"
+            " 't', 'true', 'y', 'yes'"
+        )
         self.assertEqual(expected_msg, str(exc))
 
     def test_other_bool_from_string(self):
@@ -99,28 +102,37 @@ class StrUtilsTest(test_base.BaseTestCase):
 
     def test_strict_bool_from_string(self):
         # None isn't allowed in strict mode
-        exc = self.assertRaises(ValueError, strutils.bool_from_string, None,
-                                strict=True)
-        expected_msg = ("Unrecognized value 'None', acceptable values are:"
-                        " '0', '1', 'f', 'false', 'n', 'no', 'off', 'on',"
-                        " 't', 'true', 'y', 'yes'")
+        exc = self.assertRaises(
+            ValueError, strutils.bool_from_string, None, strict=True
+        )
+        expected_msg = (
+            "Unrecognized value 'None', acceptable values are:"
+            " '0', '1', 'f', 'false', 'n', 'no', 'off', 'on',"
+            " 't', 'true', 'y', 'yes'"
+        )
         self.assertEqual(expected_msg, str(exc))
 
         # Unrecognized strings aren't allowed
         self.assertFalse(strutils.bool_from_string('Other', strict=False))
-        exc = self.assertRaises(ValueError, strutils.bool_from_string, 'Other',
-                                strict=True)
-        expected_msg = ("Unrecognized value 'Other', acceptable values are:"
-                        " '0', '1', 'f', 'false', 'n', 'no', 'off', 'on',"
-                        " 't', 'true', 'y', 'yes'")
+        exc = self.assertRaises(
+            ValueError, strutils.bool_from_string, 'Other', strict=True
+        )
+        expected_msg = (
+            "Unrecognized value 'Other', acceptable values are:"
+            " '0', '1', 'f', 'false', 'n', 'no', 'off', 'on',"
+            " 't', 'true', 'y', 'yes'"
+        )
         self.assertEqual(expected_msg, str(exc))
 
         # Unrecognized numbers aren't allowed
-        exc = self.assertRaises(ValueError, strutils.bool_from_string, 2,
-                                strict=True)
-        expected_msg = ("Unrecognized value '2', acceptable values are:"
-                        " '0', '1', 'f', 'false', 'n', 'no', 'off', 'on',"
-                        " 't', 'true', 'y', 'yes'")
+        exc = self.assertRaises(
+            ValueError, strutils.bool_from_string, 2, strict=True
+        )
+        expected_msg = (
+            "Unrecognized value '2', acceptable values are:"
+            " '0', '1', 'f', 'false', 'n', 'no', 'off', 'on',"
+            " 't', 'true', 'y', 'yes'"
+        )
         self.assertEqual(expected_msg, str(exc))
 
         # False-like values are allowed
@@ -136,8 +148,9 @@ class StrUtilsTest(test_base.BaseTestCase):
         # Avoid font-similarity issues (one looks like lowercase-el, zero like
         # oh, etc...)
         for char in ('O', 'o', 'L', 'l', 'I', 'i'):
-            self.assertRaises(ValueError, strutils.bool_from_string, char,
-                              strict=True)
+            self.assertRaises(
+                ValueError, strutils.bool_from_string, char, strict=True
+            )
 
     def test_int_from_bool_as_string(self):
         self.assertEqual(1, strutils.int_from_bool_as_string(True))
@@ -163,20 +176,16 @@ class StrUtilsTest(test_base.BaseTestCase):
         self.assertRaises(TypeError, to_slug, True)
         self.assertEqual("hello", to_slug("hello"))
         self.assertEqual("two-words", to_slug("Two Words"))
-        self.assertEqual("ma-any-spa-ce-es",
-                         to_slug("Ma-any\t spa--ce- es"))
+        self.assertEqual("ma-any-spa-ce-es", to_slug("Ma-any\t spa--ce- es"))
         self.assertEqual("excamation", to_slug("exc!amation!"))
         self.assertEqual("ampserand", to_slug("&ampser$and"))
         self.assertEqual("ju5tnum8er", to_slug("ju5tnum8er"))
         self.assertEqual("strip-", to_slug(" strip - "))
-        self.assertEqual("perche",
-                         to_slug(b"perch\xc3\xa9"))
-        self.assertEqual("strange",
-                         to_slug("\x80strange", errors="ignore"))
+        self.assertEqual("perche", to_slug(b"perch\xc3\xa9"))
+        self.assertEqual("strange", to_slug("\x80strange", errors="ignore"))
 
 
 class StringToBytesTest(test_base.BaseTestCase):
-
     _unit_system = [
         ('si', dict(unit_system='SI')),
         ('iec', dict(unit_system='IEC')),
@@ -240,17 +249,18 @@ class StringToBytesTest(test_base.BaseTestCase):
 
     @classmethod
     def generate_scenarios(cls):
-        cls.scenarios = testscenarios.multiply_scenarios(cls._unit_system,
-                                                         cls._sign,
-                                                         cls._magnitude,
-                                                         cls._unit_prefix,
-                                                         cls._unit_suffix,
-                                                         cls._return_int)
+        cls.scenarios = testscenarios.multiply_scenarios(
+            cls._unit_system,
+            cls._sign,
+            cls._magnitude,
+            cls._unit_prefix,
+            cls._unit_suffix,
+            cls._return_int,
+        )
 
     def test_string_to_bytes(self):
-
         def _get_quantity(sign, magnitude, unit_suffix):
-            res = float('{}{}'.format(sign, magnitude))
+            res = float(f'{sign}{magnitude}')
             if unit_suffix in ['b', 'bit']:
                 res /= 8
             return res
@@ -264,7 +274,7 @@ class StringToBytesTest(test_base.BaseTestCase):
                 if unit_prefix.endswith('i'):
                     res = getattr(units, unit_prefix)
                 else:
-                    res = getattr(units, '%si' % unit_prefix)
+                    res = getattr(units, f'{unit_prefix}i')
             elif unit_system == 'mixed':
                 # Note: this will return 'i' units as power-of-two,
                 # and other units as power-of-ten.  Additionally, for
@@ -275,21 +285,28 @@ class StringToBytesTest(test_base.BaseTestCase):
                 res = getattr(units, unit_prefix)
             return res
 
-        text = ''.join([self.sign, self.magnitude, self.unit_prefix,
-                        self.unit_suffix])
-        err_si = self.unit_system == 'SI' and (self.unit_prefix == 'K' or
-                                               self.unit_prefix.endswith('i'))
+        text = ''.join(
+            [self.sign, self.magnitude, self.unit_prefix, self.unit_suffix]
+        )
+        err_si = self.unit_system == 'SI' and (
+            self.unit_prefix == 'K' or self.unit_prefix.endswith('i')
+        )
         err_iec = self.unit_system == 'IEC' and self.unit_prefix == 'k'
         if getattr(self, 'assert_error', False) or err_si or err_iec:
-            self.assertRaises(ValueError, strutils.string_to_bytes,
-                              text, unit_system=self.unit_system,
-                              return_int=self.return_int)
+            self.assertRaises(
+                ValueError,
+                strutils.string_to_bytes,
+                text,
+                unit_system=self.unit_system,
+                return_int=self.return_int,
+            )
             return
         quantity = _get_quantity(self.sign, self.magnitude, self.unit_suffix)
         constant = _get_constant(self.unit_prefix, self.unit_system)
         expected = quantity * constant
-        actual = strutils.string_to_bytes(text, unit_system=self.unit_system,
-                                          return_int=self.return_int)
+        actual = strutils.string_to_bytes(
+            text, unit_system=self.unit_system, return_int=self.return_int
+        )
         if self.return_int:
             self.assertEqual(actual, int(math.ceil(expected)))
         else:
@@ -300,7 +317,6 @@ StringToBytesTest.generate_scenarios()
 
 
 class MaskPasswordTestCase(test_base.BaseTestCase):
-
     def test_namespace_objects(self):
         payload = """
         Namespace(passcode='', username='', password='my"password',
@@ -313,7 +329,6 @@ class MaskPasswordTestCase(test_base.BaseTestCase):
         self.assertEqual(expected, strutils.mask_password(payload))
 
     def test_sanitize_keys(self):
-
         lowered = [k.lower() for k in strutils._SANITIZE_KEYS]
         message = "The _SANITIZE_KEYS must all be lowercase."
         self.assertEqual(strutils._SANITIZE_KEYS, lowered, message)
@@ -574,53 +589,63 @@ class MaskPasswordTestCase(test_base.BaseTestCase):
     def test_mask_password(self):
         payload = "test = 'password'  :   'aaaaaa'"
         expected = "test = 'password'  :   '111'"
-        self.assertEqual(expected,
-                         strutils.mask_password(payload, secret='111'))
+        self.assertEqual(
+            expected, strutils.mask_password(payload, secret='111')
+        )
 
         payload = 'mysqld --password "aaaaaa"'
         expected = 'mysqld --password "****"'
-        self.assertEqual(expected,
-                         strutils.mask_password(payload, secret='****'))
+        self.assertEqual(
+            expected, strutils.mask_password(payload, secret='****')
+        )
 
         payload = 'mysqld --password aaaaaa'
         expected = 'mysqld --password ???'
-        self.assertEqual(expected,
-                         strutils.mask_password(payload, secret='???'))
+        self.assertEqual(
+            expected, strutils.mask_password(payload, secret='???')
+        )
 
         payload = 'mysqld --password = "aaaaaa"'
         expected = 'mysqld --password = "****"'
-        self.assertEqual(expected,
-                         strutils.mask_password(payload, secret='****'))
+        self.assertEqual(
+            expected, strutils.mask_password(payload, secret='****')
+        )
 
         payload = "mysqld --password = 'aaaaaa'"
         expected = "mysqld --password = '****'"
-        self.assertEqual(expected,
-                         strutils.mask_password(payload, secret='****'))
+        self.assertEqual(
+            expected, strutils.mask_password(payload, secret='****')
+        )
 
         payload = "mysqld --password = aaaaaa"
         expected = "mysqld --password = ****"
-        self.assertEqual(expected,
-                         strutils.mask_password(payload, secret='****'))
+        self.assertEqual(
+            expected, strutils.mask_password(payload, secret='****')
+        )
 
         payload = "test = password =   aaaaaa"
         expected = "test = password =   111"
-        self.assertEqual(expected,
-                         strutils.mask_password(payload, secret='111'))
+        self.assertEqual(
+            expected, strutils.mask_password(payload, secret='111')
+        )
 
         payload = "test = password=   aaaaaa"
         expected = "test = password=   111"
-        self.assertEqual(expected,
-                         strutils.mask_password(payload, secret='111'))
+        self.assertEqual(
+            expected, strutils.mask_password(payload, secret='111')
+        )
 
         payload = "test = password =aaaaaa"
         expected = "test = password =111"
-        self.assertEqual(expected,
-                         strutils.mask_password(payload, secret='111'))
+        self.assertEqual(
+            expected, strutils.mask_password(payload, secret='111')
+        )
 
         payload = "test = password=aaaaaa"
         expected = "test = password=111"
-        self.assertEqual(expected,
-                         strutils.mask_password(payload, secret='111'))
+        self.assertEqual(
+            expected, strutils.mask_password(payload, secret='111')
+        )
 
         payload = 'test = "original_password" : "aaaaaaaaa"'
         expected = 'test = "original_password" : "***"'
@@ -649,50 +674,56 @@ class MaskPasswordTestCase(test_base.BaseTestCase):
         expected = """{'token':'***'}"""
         self.assertEqual(expected, strutils.mask_password(payload))
 
-        payload = ("test = 'node.session.auth.password','-v','TL0EfN33',"
-                   "'nomask'")
-        expected = ("test = 'node.session.auth.password','-v','***',"
-                    "'nomask'")
+        payload = (
+            "test = 'node.session.auth.password','-v','TL0EfN33','nomask'"
+        )
+        expected = "test = 'node.session.auth.password','-v','***','nomask'"
         self.assertEqual(expected, strutils.mask_password(payload))
 
-        payload = ("test = 'node.session.auth.password', '--password', "
-                   "'TL0EfN33', 'nomask'")
-        expected = ("test = 'node.session.auth.password', '--password', "
-                    "'***', 'nomask'")
+        payload = (
+            "test = 'node.session.auth.password', '--password', "
+            "'TL0EfN33', 'nomask'"
+        )
+        expected = (
+            "test = 'node.session.auth.password', '--password', "
+            "'***', 'nomask'"
+        )
         self.assertEqual(expected, strutils.mask_password(payload))
 
-        payload = ("test = 'node.session.auth.password', '--password', "
-                   "'TL0EfN33'")
-        expected = ("test = 'node.session.auth.password', '--password', "
-                    "'***'")
+        payload = (
+            "test = 'node.session.auth.password', '--password', 'TL0EfN33'"
+        )
+        expected = "test = 'node.session.auth.password', '--password', '***'"
         self.assertEqual(expected, strutils.mask_password(payload))
 
         payload = "test = node.session.auth.password -v TL0EfN33 nomask"
         expected = "test = node.session.auth.password -v *** nomask"
         self.assertEqual(expected, strutils.mask_password(payload))
 
-        payload = ("test = node.session.auth.password --password TL0EfN33 "
-                   "nomask")
-        expected = ("test = node.session.auth.password --password *** "
-                    "nomask")
+        payload = (
+            "test = node.session.auth.password --password TL0EfN33 nomask"
+        )
+        expected = "test = node.session.auth.password --password *** nomask"
         self.assertEqual(expected, strutils.mask_password(payload))
 
-        payload = ("test = node.session.auth.password --password TL0EfN33")
-        expected = ("test = node.session.auth.password --password ***")
+        payload = "test = node.session.auth.password --password TL0EfN33"
+        expected = "test = node.session.auth.password --password ***"
         self.assertEqual(expected, strutils.mask_password(payload))
 
         payload = "test = cmd --password my\xe9\x80\x80pass"
-        expected = ("test = cmd --password ***")
+        expected = "test = cmd --password ***"
         self.assertEqual(expected, strutils.mask_password(payload))
 
 
 class TestMapping(collections.abc.Mapping):
     """Test class for non-dict mappings"""
+
     def __init__(self):
         super().__init__()
-        self.data = {'password': 'shhh',
-                     'foo': 'bar',
-                     }
+        self.data = {
+            'password': 'shhh',
+            'foo': 'bar',
+        }
 
     def __getitem__(self, key):
         return self.data[key]
@@ -706,121 +737,135 @@ class TestMapping(collections.abc.Mapping):
 
 class NestedMapping(TestMapping):
     """Test class that contains an instance of TestMapping"""
+
     def __init__(self):
         super().__init__()
         self.data = {'nested': TestMapping()}
 
 
 class MaskDictionaryPasswordTestCase(test_base.BaseTestCase):
-
     def test_dictionary(self):
         payload = {'password': 'TL0EfN33'}
         expected = {'password': '***'}
-        self.assertEqual(expected,
-                         strutils.mask_dict_password(payload))
+        self.assertEqual(expected, strutils.mask_dict_password(payload))
 
         payload = {'password': 'TL0Ef"N33'}
         expected = {'password': '***'}
-        self.assertEqual(expected,
-                         strutils.mask_dict_password(payload))
+        self.assertEqual(expected, strutils.mask_dict_password(payload))
 
         payload = {'user': 'admin', 'password': 'TL0EfN33'}
         expected = {'user': 'admin', 'password': '***'}
-        self.assertEqual(expected,
-                         strutils.mask_dict_password(payload))
+        self.assertEqual(expected, strutils.mask_dict_password(payload))
 
-        payload = {'strval': 'somestring',
-                   'dictval': {'user': 'admin', 'password': 'TL0EfN33'}}
-        expected = {'strval': 'somestring',
-                    'dictval': {'user': 'admin', 'password': '***'}}
-        self.assertEqual(expected,
-                         strutils.mask_dict_password(payload))
+        payload = {
+            'strval': 'somestring',
+            'dictval': {'user': 'admin', 'password': 'TL0EfN33'},
+        }
+        expected = {
+            'strval': 'somestring',
+            'dictval': {'user': 'admin', 'password': '***'},
+        }
+        self.assertEqual(expected, strutils.mask_dict_password(payload))
 
-        payload = {'strval': '--password abc',
-                   'dont_change': 'this is fine',
-                   'dictval': {'user': 'admin', 'password': b'TL0EfN33'}}
-        expected = {'strval': '--password ***',
-                    'dont_change': 'this is fine',
-                    'dictval': {'user': 'admin', 'password': '***'}}
-        self.assertEqual(expected,
-                         strutils.mask_dict_password(payload))
+        payload = {
+            'strval': '--password abc',
+            'dont_change': 'this is fine',
+            'dictval': {'user': 'admin', 'password': b'TL0EfN33'},
+        }
+        expected = {
+            'strval': '--password ***',
+            'dont_change': 'this is fine',
+            'dictval': {'user': 'admin', 'password': '***'},
+        }
+        self.assertEqual(expected, strutils.mask_dict_password(payload))
 
         payload = {'ipmi_password': 'KeDrahishvowphyecMornEm0or('}
         expected = {'ipmi_password': '***'}
-        self.assertEqual(expected,
-                         strutils.mask_dict_password(payload))
+        self.assertEqual(expected, strutils.mask_dict_password(payload))
 
         payload = {'passwords': {'KeystoneFernetKey1': 'c5FijjS'}}
         expected = {'passwords': {'KeystoneFernetKey1': '***'}}
-        self.assertEqual(expected,
-                         strutils.mask_dict_password(payload))
+        self.assertEqual(expected, strutils.mask_dict_password(payload))
 
         payload = {'passwords': {'keystonecredential0': 'c5FijjS'}}
         expected = {'passwords': {'keystonecredential0': '***'}}
-        self.assertEqual(expected,
-                         strutils.mask_dict_password(payload))
+        self.assertEqual(expected, strutils.mask_dict_password(payload))
 
     def test_do_no_harm(self):
         payload = {}
         expected = {}
-        self.assertEqual(expected,
-                         strutils.mask_dict_password(payload))
+        self.assertEqual(expected, strutils.mask_dict_password(payload))
 
-        payload = {'somekey': 'somevalue',
-                   'anotherkey': 'anothervalue'}
-        expected = {'somekey': 'somevalue',
-                    'anotherkey': 'anothervalue'}
-        self.assertEqual(expected,
-                         strutils.mask_dict_password(payload))
+        payload = {'somekey': 'somevalue', 'anotherkey': 'anothervalue'}
+        expected = {'somekey': 'somevalue', 'anotherkey': 'anothervalue'}
+        self.assertEqual(expected, strutils.mask_dict_password(payload))
 
     def test_do_an_int(self):
         payload = {}
         payload[1] = 2
         expected = payload.copy()
-        self.assertEqual(expected,
-                         strutils.mask_dict_password(payload))
+        self.assertEqual(expected, strutils.mask_dict_password(payload))
 
     def test_mask_values(self):
         payload = {'somekey': 'test = cmd --password my\xe9\x80\x80pass'}
         expected = {'somekey': 'test = cmd --password ***'}
-        self.assertEqual(expected,
-                         strutils.mask_dict_password(payload))
+        self.assertEqual(expected, strutils.mask_dict_password(payload))
 
     def test_other_non_str_values(self):
-        payload = {'password': 'DK0PK1AK3', 'bool': True,
-                   'dict': {'cat': 'meow', 'password': "*aa38skdjf"},
-                   'float': 0.1, 'int': 123, 'list': [1, 2], 'none': None,
-                   'str': 'foo'}
-        expected = {'password': '***', 'bool': True,
-                    'dict': {'cat': 'meow', 'password': '***'},
-                    'float': 0.1, 'int': 123, 'list': [1, 2], 'none': None,
-                    'str': 'foo'}
-        self.assertEqual(expected,
-                         strutils.mask_dict_password(payload))
+        payload = {
+            'password': 'DK0PK1AK3',
+            'bool': True,
+            'dict': {'cat': 'meow', 'password': "*aa38skdjf"},
+            'float': 0.1,
+            'int': 123,
+            'list': [1, 2],
+            'none': None,
+            'str': 'foo',
+        }
+        expected = {
+            'password': '***',
+            'bool': True,
+            'dict': {'cat': 'meow', 'password': '***'},
+            'float': 0.1,
+            'int': 123,
+            'list': [1, 2],
+            'none': None,
+            'str': 'foo',
+        }
+        self.assertEqual(expected, strutils.mask_dict_password(payload))
 
     def test_argument_untouched(self):
         """Make sure that the argument passed in is not modified"""
-        payload = {'password': 'DK0PK1AK3', 'bool': True,
-                   'dict': {'cat': 'meow', 'password': "*aa38skdjf"},
-                   'float': 0.1, 'int': 123, 'list': [1, 2], 'none': None,
-                   'str': 'foo'}
+        payload = {
+            'password': 'DK0PK1AK3',
+            'bool': True,
+            'dict': {'cat': 'meow', 'password': "*aa38skdjf"},
+            'float': 0.1,
+            'int': 123,
+            'list': [1, 2],
+            'none': None,
+            'str': 'foo',
+        }
         pristine = copy.deepcopy(payload)
         # Send the payload into the function, to see if it gets modified
         strutils.mask_dict_password(payload)
         self.assertEqual(pristine, payload)
 
     def test_non_dict(self):
-        expected = {'password': '***',
-                    'foo': 'bar',
-                    }
+        expected = {
+            'password': '***',
+            'foo': 'bar',
+        }
         payload = TestMapping()
         self.assertEqual(expected, strutils.mask_dict_password(payload))
 
     def test_nested_non_dict(self):
-        expected = {'nested': {'password': '***',
-                               'foo': 'bar',
-                               }
-                    }
+        expected = {
+            'nested': {
+                'password': '***',
+                'foo': 'bar',
+            }
+        }
         payload = NestedMapping()
         self.assertEqual(expected, strutils.mask_dict_password(payload))
 
@@ -842,7 +887,8 @@ class IsIntLikeTestCase(test_base.BaseTestCase):
         self.assertFalse(strutils.is_int_like("...."))
         self.assertFalse(strutils.is_int_like("1g"))
         self.assertFalse(
-            strutils.is_int_like("0cc3346e-9fef-4445-abe6-5d2b2690ec64"))
+            strutils.is_int_like("0cc3346e-9fef-4445-abe6-5d2b2690ec64")
+        )
         self.assertFalse(strutils.is_int_like("a1"))
         # NOTE(viktors): 12e3 - is a float number
         self.assertFalse(strutils.is_int_like("12e3"))
@@ -853,36 +899,44 @@ class IsIntLikeTestCase(test_base.BaseTestCase):
 
 class StringLengthTestCase(test_base.BaseTestCase):
     def test_check_string_length(self):
-        self.assertIsNone(strutils.check_string_length(
-                          'test', 'name', max_length=255))
-        self.assertRaises(ValueError,
-                          strutils.check_string_length,
-                          '', 'name', min_length=1)
-        self.assertRaises(ValueError,
-                          strutils.check_string_length,
-                          'a' * 256, 'name', max_length=255)
-        self.assertRaises(TypeError,
-                          strutils.check_string_length,
-                          11, 'name', max_length=255)
-        self.assertRaises(TypeError,
-                          strutils.check_string_length,
-                          dict(), 'name', max_length=255)
+        self.assertIsNone(
+            strutils.check_string_length('test', 'name', max_length=255)
+        )
+        self.assertRaises(
+            ValueError, strutils.check_string_length, '', 'name', min_length=1
+        )
+        self.assertRaises(
+            ValueError,
+            strutils.check_string_length,
+            'a' * 256,
+            'name',
+            max_length=255,
+        )
+        self.assertRaises(
+            TypeError, strutils.check_string_length, 11, 'name', max_length=255
+        )
+        self.assertRaises(
+            TypeError,
+            strutils.check_string_length,
+            dict(),
+            'name',
+            max_length=255,
+        )
 
     def test_check_string_length_noname(self):
-        self.assertIsNone(strutils.check_string_length(
-                          'test', max_length=255))
-        self.assertRaises(ValueError,
-                          strutils.check_string_length,
-                          '', min_length=1)
-        self.assertRaises(ValueError,
-                          strutils.check_string_length,
-                          'a' * 256, max_length=255)
-        self.assertRaises(TypeError,
-                          strutils.check_string_length,
-                          11, max_length=255)
-        self.assertRaises(TypeError,
-                          strutils.check_string_length,
-                          dict(), max_length=255)
+        self.assertIsNone(strutils.check_string_length('test', max_length=255))
+        self.assertRaises(
+            ValueError, strutils.check_string_length, '', min_length=1
+        )
+        self.assertRaises(
+            ValueError, strutils.check_string_length, 'a' * 256, max_length=255
+        )
+        self.assertRaises(
+            TypeError, strutils.check_string_length, 11, max_length=255
+        )
+        self.assertRaises(
+            TypeError, strutils.check_string_length, dict(), max_length=255
+        )
 
 
 class SplitPathTestCase(test_base.BaseTestCase):
@@ -906,10 +960,12 @@ class SplitPathTestCase(test_base.BaseTestCase):
         self.assertEqual(strutils.split_path('/a/'), ['a'])
         self.assertEqual(strutils.split_path('/a/c', 2), ['a', 'c'])
         self.assertEqual(strutils.split_path('/a/c/o', 3), ['a', 'c', 'o'])
-        self.assertEqual(strutils.split_path('/a/c/o/r', 3, 3, True),
-                         ['a', 'c', 'o/r'])
-        self.assertEqual(strutils.split_path('/a/c', 2, 3, True),
-                         ['a', 'c', None])
+        self.assertEqual(
+            strutils.split_path('/a/c/o/r', 3, 3, True), ['a', 'c', 'o/r']
+        )
+        self.assertEqual(
+            strutils.split_path('/a/c', 2, 3, True), ['a', 'c', None]
+        )
         self.assertEqual(strutils.split_path('/a/c/', 2), ['a', 'c'])
         self.assertEqual(strutils.split_path('/a/c/', 2, 3), ['a', 'c', ''])
 
@@ -941,8 +997,10 @@ class SplitByCommas(test_base.BaseTestCase):
         self.check(["a,b", "ac"], '"a,b",ac')
 
     def test_with_backslash_inside_quoted(self):
-        self.check(['abc"', 'de', 'fg,h', 'klm\\', '"nop'],
-                   r'"abc\"","de","fg,h","klm\\","\"nop"')
+        self.check(
+            ['abc"', 'de', 'fg,h', 'klm\\', '"nop'],
+            r'"abc\"","de","fg,h","klm\\","\"nop"',
+        )
 
     def test_with_backslash_inside_unquoted(self):
         self.check([r'a\bc', 'de'], r'a\bc,de')
@@ -953,31 +1011,51 @@ class SplitByCommas(test_base.BaseTestCase):
 
 @ddt.ddt
 class ValidateIntegerTestCase(test_base.BaseTestCase):
-
     @ddt.unpack
-    @ddt.data({"value": 42, "name": "answer", "output": 42},
-              {"value": "42", "name": "answer", "output": 42},
-              {"value": "7", "name": "lucky", "output": 7,
-               "min_value": 7, "max_value": 8},
-              {"value": 7, "name": "lucky", "output": 7,
-               "min_value": 6, "max_value": 7},
-              {"value": 300, "name": "Spartaaa!!!", "output": 300,
-               "min_value": 300},
-              {"value": "300", "name": "Spartaaa!!!", "output": 300,
-               "max_value": 300})
+    @ddt.data(
+        {"value": 42, "name": "answer", "output": 42},
+        {"value": "42", "name": "answer", "output": 42},
+        {
+            "value": "7",
+            "name": "lucky",
+            "output": 7,
+            "min_value": 7,
+            "max_value": 8,
+        },
+        {
+            "value": 7,
+            "name": "lucky",
+            "output": 7,
+            "min_value": 6,
+            "max_value": 7,
+        },
+        {"value": 300, "name": "Spartaaa!!!", "output": 300, "min_value": 300},
+        {
+            "value": "300",
+            "name": "Spartaaa!!!",
+            "output": 300,
+            "max_value": 300,
+        },
+    )
     def test_valid_inputs(self, output, value, name, **kwargs):
-        self.assertEqual(strutils.validate_integer(value, name,
-                                                   **kwargs), output)
+        self.assertEqual(
+            strutils.validate_integer(value, name, **kwargs), output
+        )
 
     @ddt.unpack
-    @ddt.data({"value": "im-not-an-int", "name": ''},
-              {"value": 3.14, "name": "Pie"},
-              {"value": "299", "name": "Sparta no-show",
-               "min_value": 300, "max_value": 300},
-              {"value": 55, "name": "doing 55 in a 54",
-               "max_value": 54},
-              {"value": chr(129), "name": "UnicodeError",
-               "max_value": 1000})
+    @ddt.data(
+        {"value": "im-not-an-int", "name": ''},
+        {"value": 3.14, "name": "Pie"},
+        {
+            "value": "299",
+            "name": "Sparta no-show",
+            "min_value": 300,
+            "max_value": 300,
+        },
+        {"value": 55, "name": "doing 55 in a 54", "max_value": 54},
+        {"value": chr(129), "name": "UnicodeError", "max_value": 1000},
+    )
     def test_invalid_inputs(self, value, name, **kwargs):
-        self.assertRaises(ValueError, strutils.validate_integer,
-                          value, name, **kwargs)
+        self.assertRaises(
+            ValueError, strutils.validate_integer, value, name, **kwargs
+        )

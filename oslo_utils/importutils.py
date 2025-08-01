@@ -31,9 +31,9 @@ def import_class(import_str):
     try:
         return getattr(sys.modules[mod_str], class_str)
     except AttributeError:
-        raise ImportError('Class %s cannot be found (%s)' %
-                          (class_str,
-                           traceback.format_exception(*sys.exc_info())))
+        raise ImportError(
+            f'Class {class_str} cannot be found ({traceback.format_exception(*sys.exc_info())})'
+        )
 
 
 def import_object(import_str, *args, **kwargs):
@@ -57,7 +57,7 @@ def import_object_ns(name_space, import_str, *args, **kwargs):
        Don't capture :exc:`ImportError` when instanciating the object, only
        when importing the object class.
     """
-    import_value = "{}.{}".format(name_space, import_str)
+    import_value = f"{name_space}.{import_str}"
     try:
         cls = import_class(import_value)
     except ImportError:
@@ -89,9 +89,9 @@ def import_versioned_module(module, version, submodule=None):
     """
 
     # NOTE(gcb) Disallow parameter version include character '.'
-    if '.' in '%s' % version:
+    if '.' in f'{version}':
         raise ValueError("Parameter version shouldn't include character '.'.")
-    module_str = '{}.v{}'.format(module, version)
+    module_str = f'{module}.v{version}'
     if submodule:
         module_str = '.'.join((module_str, submodule))
     return import_module(module_str)
@@ -119,5 +119,6 @@ def import_any(module, *modules):
         if imported_module:
             return imported_module
 
-    raise ImportError('Unable to import any modules from the list %s' %
-                      str(modules))
+    raise ImportError(
+        f'Unable to import any modules from the list {str(modules)}'
+    )

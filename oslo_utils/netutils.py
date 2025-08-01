@@ -169,8 +169,7 @@ def is_valid_cidr(address):
     # Verify it here
     ip_segment = address.split('/')
 
-    if (len(ip_segment) <= 1 or
-            ip_segment[1] == ''):
+    if len(ip_segment) <= 1 or ip_segment[1] == '':
         return False
 
     return True
@@ -217,12 +216,18 @@ def get_ipv6_addr_by_EUI64(prefix, mac):
         prefix = netaddr.IPNetwork(prefix)
         return netaddr.IPAddress(prefix.first + eui64 ^ (1 << 57))
     except (ValueError, netaddr.AddrFormatError):
-        raise ValueError(_('Bad prefix or mac format for generating IPv6 '
-                           'address by EUI-64: %(prefix)s, %(mac)s:')
-                         % {'prefix': prefix, 'mac': mac})
+        raise ValueError(
+            _(
+                'Bad prefix or mac format for generating IPv6 '
+                'address by EUI-64: %(prefix)s, %(mac)s:'
+            )
+            % {'prefix': prefix, 'mac': mac}
+        )
     except TypeError:
-        raise TypeError(_('Bad prefix type for generating IPv6 address by '
-                          'EUI-64: %s') % prefix)
+        raise TypeError(
+            _('Bad prefix type for generating IPv6 address by EUI-64: %s')
+            % prefix
+        )
 
 
 def get_mac_addr_by_ipv6(ipv6, dialect=netaddr.mac_unix_expanded):
@@ -242,16 +247,23 @@ def get_mac_addr_by_ipv6(ipv6, dialect=netaddr.mac_unix_expanded):
 
     .. versionadded:: 4.3.0
     """
-    return netaddr.EUI(int(
-        # out of the lowest 8 bytes (byte positions 8-1)
-        # delete the middle 2 bytes (5-4, 0xff_fe)
-        # by shifting the highest 3 bytes to the right by 2 bytes (8-6 -> 6-4)
-        (((ipv6 & 0xff_ff_ff_00_00_00_00_00) >> 16) +
-         # adding the lowest 3 bytes as they are (3-1)
-         (ipv6 & 0xff_ff_ff)) ^
-        # then invert the universal/local bit
-        0x02_00_00_00_00_00),
-        dialect=dialect)
+    return netaddr.EUI(
+        int(
+            # out of the lowest 8 bytes (byte positions 8-1)
+            # delete the middle 2 bytes (5-4, 0xff_fe)
+            # by shifting the highest 3 bytes to the right by 2 bytes (8-6 -> 6-4)
+            (
+                ((ipv6 & 0xFF_FF_FF_00_00_00_00_00) >> 16)
+                +
+                # adding the lowest 3 bytes as they are (3-1)
+                (ipv6 & 0xFF_FF_FF)
+            )
+            ^
+            # then invert the universal/local bit
+            0x02_00_00_00_00_00
+        ),
+        dialect=dialect,
+    )
 
 
 def is_ipv6_enabled():
@@ -288,7 +300,7 @@ def escape_ipv6(address):
     .. versionadded:: 3.29.0
     """
     if is_valid_ipv6(address):
-        return "[%s]" % address
+        return f"[{address}]"
     return address
 
 
@@ -332,7 +344,7 @@ def _is_int_in_range(value, start, end):
         val = int(value)
     except (ValueError, TypeError):
         return False
-    return (start <= val <= end)
+    return start <= val <= end
 
 
 def is_valid_port(port):
@@ -394,8 +406,7 @@ def get_my_ipv4():
 
 
 def _get_my_ipv4_address():
-    """Figure out the best ipv4
-    """
+    """Figure out the best ipv4"""
     LOCALHOST = '127.0.0.1'
     interface = None
 
@@ -407,12 +418,16 @@ def _get_my_ipv4_address():
                     interface = route_attrs[0]
                     break
             else:
-                LOG.info('Could not determine default network interface, '
-                         'using %s for IPv4 address', LOCALHOST)
+                LOG.info(
+                    'Could not determine default network interface, '
+                    'using %s for IPv4 address',
+                    LOCALHOST,
+                )
                 return LOCALHOST
     except FileNotFoundError:
-        LOG.info('IPv4 route table not found, '
-                 'using %s for IPv4 address', LOCALHOST)
+        LOG.info(
+            'IPv4 route table not found, using %s for IPv4 address', LOCALHOST
+        )
         return LOCALHOST
 
     try:
@@ -420,13 +435,17 @@ def _get_my_ipv4_address():
         v4addrs = [addr for addr in addrs if addr.family == socket.AF_INET]
         return v4addrs[0].address
     except (KeyError, IndexError):
-        LOG.info('Could not determine IPv4 address for interface %s, '
-                 'using 127.0.0.1',
-                 interface)
+        LOG.info(
+            'Could not determine IPv4 address for interface %s, '
+            'using 127.0.0.1',
+            interface,
+        )
     except Exception as e:
-        LOG.info('Could not determine IPv4 address for '
-                 'interface %(interface)s: %(error)s',
-                 {'interface': interface, 'error': e})
+        LOG.info(
+            'Could not determine IPv4 address for '
+            'interface %(interface)s: %(error)s',
+            {'interface': interface, 'error': e},
+        )
     return LOCALHOST
 
 
@@ -450,8 +469,7 @@ def get_my_ipv6():
 
 
 def _get_my_ipv6_address():
-    """Figure out the best IPv6 address
-    """
+    """Figure out the best IPv6 address"""
     LOCALHOST = '::1'
     interface = None
     ZERO_ADDRESS = '00000000000000000000000000000000'
@@ -461,17 +479,23 @@ def _get_my_ipv6_address():
         with open('/proc/net/ipv6_route') as routes:
             for route in routes:
                 route_attrs = route.strip().split(' ')
-                if ((route_attrs[0], route_attrs[1]) == ZERO_PAIR and
-                        (route_attrs[2], route_attrs[3]) == ZERO_PAIR):
+                if (route_attrs[0], route_attrs[1]) == ZERO_PAIR and (
+                    route_attrs[2],
+                    route_attrs[3],
+                ) == ZERO_PAIR:
                     interface = route_attrs[-1]
                     break
             else:
-                LOG.info('Could not determine default network interface, '
-                         'using %s for IPv6 address', LOCALHOST)
+                LOG.info(
+                    'Could not determine default network interface, '
+                    'using %s for IPv6 address',
+                    LOCALHOST,
+                )
                 return LOCALHOST
     except FileNotFoundError:
-        LOG.info('IPv6 route table not found, '
-                 'using %s for IPv6 address', LOCALHOST)
+        LOG.info(
+            'IPv6 route table not found, using %s for IPv6 address', LOCALHOST
+        )
         return LOCALHOST
 
     try:
@@ -479,13 +503,17 @@ def _get_my_ipv6_address():
         v6addrs = [addr for addr in addrs if addr.family == socket.AF_INET6]
         return v6addrs[0].address
     except (KeyError, IndexError):
-        LOG.info('Could not determine IPv6 address for interface '
-                 '%(interface)s, using %(address)s',
-                 {'interface': interface, 'address': LOCALHOST})
+        LOG.info(
+            'Could not determine IPv6 address for interface '
+            '%(interface)s, using %(address)s',
+            {'interface': interface, 'address': LOCALHOST},
+        )
     except Exception as e:
-        LOG.info('Could not determine IPv6 address for '
-                 'interface %(interface)s: %(error)s',
-                 {'interface': interface, 'error': e})
+        LOG.info(
+            'Could not determine IPv6 address for '
+            'interface %(interface)s: %(error)s',
+            {'interface': interface, 'error': e},
+        )
     return LOCALHOST
 
 
@@ -511,7 +539,7 @@ class _ModifiedSplitResult(parse.SplitResult):
                 return dict(parse.parse_qsl(self.query))
             else:
                 params = {}
-                for (key, value) in parse.parse_qsl(self.query):
+                for key, value in parse.parse_qsl(self.query):
                     if key in params:
                         if isinstance(params[key], list):
                             params[key].append(value)
@@ -533,19 +561,22 @@ def urlsplit(url, scheme='', allow_fragments=True):
     The parameters are the same as urlparse.urlsplit.
     """
     scheme, netloc, path, query, fragment = parse.urlsplit(
-        url, scheme, allow_fragments)
+        url, scheme, allow_fragments
+    )
     if allow_fragments and '#' in path:
         path, fragment = path.split('#', 1)
     if '?' in path:
         path, query = path.split('?', 1)
-    return _ModifiedSplitResult(scheme, netloc,
-                                path, query, fragment)
+    return _ModifiedSplitResult(scheme, netloc, path, query, fragment)
 
 
-def set_tcp_keepalive(sock, tcp_keepalive=True,
-                      tcp_keepidle=None,
-                      tcp_keepalive_interval=None,
-                      tcp_keepalive_count=None):
+def set_tcp_keepalive(
+    sock,
+    tcp_keepalive=True,
+    tcp_keepidle=None,
+    tcp_keepalive_interval=None,
+    tcp_keepalive_count=None,
+):
     """Set values for tcp keepalive parameters
 
     This function configures tcp keepalive parameters if users wish to do
@@ -575,22 +606,24 @@ def set_tcp_keepalive(sock, tcp_keepalive=True,
     # Idle + Count * Interval effectively gives you the total timeout.
     if tcp_keepidle is not None:
         if hasattr(socket, 'TCP_KEEPIDLE'):
-            sock.setsockopt(socket.IPPROTO_TCP,
-                            socket.TCP_KEEPIDLE,
-                            tcp_keepidle)
+            sock.setsockopt(
+                socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, tcp_keepidle
+            )
         else:
             LOG.warning('tcp_keepidle not available on your system')
     if tcp_keepalive_interval is not None:
         if hasattr(socket, 'TCP_KEEPINTVL'):
-            sock.setsockopt(socket.IPPROTO_TCP,
-                            socket.TCP_KEEPINTVL,
-                            tcp_keepalive_interval)
+            sock.setsockopt(
+                socket.IPPROTO_TCP,
+                socket.TCP_KEEPINTVL,
+                tcp_keepalive_interval,
+            )
         else:
             LOG.warning('tcp_keepintvl not available on your system')
     if tcp_keepalive_count is not None:
         if hasattr(socket, 'TCP_KEEPCNT'):
-            sock.setsockopt(socket.IPPROTO_TCP,
-                            socket.TCP_KEEPCNT,
-                            tcp_keepalive_count)
+            sock.setsockopt(
+                socket.IPPROTO_TCP, socket.TCP_KEEPCNT, tcp_keepalive_count
+            )
         else:
             LOG.warning('tcp_keepcnt not available on your system')

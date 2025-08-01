@@ -61,38 +61,49 @@ class IsCompatibleTestCase(test_base.BaseTestCase):
         rule is not enforced, so a current version of 2.0 is deemed to satisfy
         a requirement of 1.0.
         """
-        self.assertFalse(versionutils.is_compatible('2.0', '1.0',
-                                                    same_major=False))
-        self.assertTrue(versionutils.is_compatible('1.0', '1.0',
-                                                   same_major=False))
-        self.assertTrue(versionutils.is_compatible('1.0', '2.0',
-                                                   same_major=False))
+        self.assertFalse(
+            versionutils.is_compatible('2.0', '1.0', same_major=False)
+        )
+        self.assertTrue(
+            versionutils.is_compatible('1.0', '1.0', same_major=False)
+        )
+        self.assertTrue(
+            versionutils.is_compatible('1.0', '2.0', same_major=False)
+        )
 
     def test_convert_version_to_int(self):
         self.assertEqual(6002000, versionutils.convert_version_to_int('6.2.0'))
-        self.assertEqual(6004003,
-                         versionutils.convert_version_to_int((6, 4, 3)))
-        self.assertEqual(5, versionutils.convert_version_to_int((5, )))
-        self.assertRaises(ValueError,
-                          versionutils.convert_version_to_int, '5a.6b')
+        self.assertEqual(
+            6004003, versionutils.convert_version_to_int((6, 4, 3))
+        )
+        self.assertEqual(5, versionutils.convert_version_to_int((5,)))
+        self.assertRaises(
+            ValueError, versionutils.convert_version_to_int, '5a.6b'
+        )
 
     def test_convert_version_to_string(self):
         self.assertEqual('6.7.0', versionutils.convert_version_to_str(6007000))
         self.assertEqual('4', versionutils.convert_version_to_str(4))
 
     def test_convert_version_to_tuple(self):
-        self.assertEqual((6, 7, 0),
-                         versionutils.convert_version_to_tuple('6.7.0'))
-        self.assertEqual((6, 7, 0),
-                         versionutils.convert_version_to_tuple('6.7.0a1'))
-        self.assertEqual((6, 7, 0),
-                         versionutils.convert_version_to_tuple('6.7.0alpha1'))
-        self.assertEqual((6, 7, 0),
-                         versionutils.convert_version_to_tuple('6.7.0b1'))
-        self.assertEqual((6, 7, 0),
-                         versionutils.convert_version_to_tuple('6.7.0beta1'))
-        self.assertEqual((6, 7, 0),
-                         versionutils.convert_version_to_tuple('6.7.0rc1'))
+        self.assertEqual(
+            (6, 7, 0), versionutils.convert_version_to_tuple('6.7.0')
+        )
+        self.assertEqual(
+            (6, 7, 0), versionutils.convert_version_to_tuple('6.7.0a1')
+        )
+        self.assertEqual(
+            (6, 7, 0), versionutils.convert_version_to_tuple('6.7.0alpha1')
+        )
+        self.assertEqual(
+            (6, 7, 0), versionutils.convert_version_to_tuple('6.7.0b1')
+        )
+        self.assertEqual(
+            (6, 7, 0), versionutils.convert_version_to_tuple('6.7.0beta1')
+        )
+        self.assertEqual(
+            (6, 7, 0), versionutils.convert_version_to_tuple('6.7.0rc1')
+        )
 
 
 class VersionPredicateTest(test_base.BaseTestCase):
@@ -137,7 +148,15 @@ class VersionPredicateTest(test_base.BaseTestCase):
         self.assertFalse(pred.satisfied_by('2.0.0'))
 
     def test_version_predicate_valid_invalid(self):
-        for invalid_str in ['3.0.0', 'foo', '<> 3.0.0', '>=1.0.0;<2.0.0',
-                            '>abc', '>=1.0.0,', '>=1.0.0,2.0.0']:
+        for invalid_str in [
+            '3.0.0',
+            'foo',
+            '<> 3.0.0',
+            '>=1.0.0;<2.0.0',
+            '>abc',
+            '>=1.0.0,',
+            '>=1.0.0,2.0.0',
+        ]:
             self.assertRaises(
-                ValueError, versionutils.VersionPredicate, invalid_str)
+                ValueError, versionutils.VersionPredicate, invalid_str
+            )

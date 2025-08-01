@@ -21,609 +21,451 @@ class SpecsMatcherTestCase(test_base.BaseTestCase):
         assertion(specs_matcher.match(value, req))
 
     def test_specs_matches_simple(self):
-        self._do_specs_matcher_test(
-            value='1',
-            req='1',
-            matches=True)
+        self._do_specs_matcher_test(value='1', req='1', matches=True)
 
     def test_specs_fails_string_vs_int(self):
         # With no operator specified it is a string comparison test, therefore
         # '1' does not equal '01'
-        self._do_specs_matcher_test(
-            value='01',
-            req='1',
-            matches=False)
+        self._do_specs_matcher_test(value='01', req='1', matches=False)
 
     def test_specs_match_int_leading_zero(self):
         # Show that numerical comparison works with leading zero
-        self._do_specs_matcher_test(
-            value='01',
-            req='== 1',
-            matches=True)
+        self._do_specs_matcher_test(value='01', req='== 1', matches=True)
 
     def test_specs_fails_simple(self):
-        self._do_specs_matcher_test(
-            value='',
-            req='1',
-            matches=False)
+        self._do_specs_matcher_test(value='', req='1', matches=False)
 
     def test_specs_fails_simple2(self):
-        self._do_specs_matcher_test(
-            value='3',
-            req='1',
-            matches=False)
+        self._do_specs_matcher_test(value='3', req='1', matches=False)
 
     def test_specs_fails_simple3(self):
-        self._do_specs_matcher_test(
-            value='222',
-            req='2',
-            matches=False)
+        self._do_specs_matcher_test(value='222', req='2', matches=False)
 
     def test_specs_fails_with_bogus_ops(self):
-        self._do_specs_matcher_test(
-            value='4',
-            req='! 2',
-            matches=False)
+        self._do_specs_matcher_test(value='4', req='! 2', matches=False)
 
     def test_specs_matches_with_op_eq(self):
-        self._do_specs_matcher_test(
-            value='123',
-            req='= 123',
-            matches=True)
+        self._do_specs_matcher_test(value='123', req='= 123', matches=True)
 
     def test_specs_matches_with_op_eq2(self):
-        self._do_specs_matcher_test(
-            value='124',
-            req='= 123',
-            matches=True)
+        self._do_specs_matcher_test(value='124', req='= 123', matches=True)
 
     def test_specs_fails_with_op_eq(self):
-        self._do_specs_matcher_test(
-            value='34',
-            req='= 234',
-            matches=False)
+        self._do_specs_matcher_test(value='34', req='= 234', matches=False)
 
     def test_specs_fails_with_op_eq3(self):
-        self._do_specs_matcher_test(
-            value='34',
-            req='=',
-            matches=False)
+        self._do_specs_matcher_test(value='34', req='=', matches=False)
 
     def test_specs_matches_with_op_seq(self):
-        self._do_specs_matcher_test(
-            value='123',
-            req='s== 123',
-            matches=True)
+        self._do_specs_matcher_test(value='123', req='s== 123', matches=True)
 
     def test_specs_fails_with_op_seq(self):
-        self._do_specs_matcher_test(
-            value='1234',
-            req='s== 123',
-            matches=False)
+        self._do_specs_matcher_test(value='1234', req='s== 123', matches=False)
 
     def test_specs_matches_with_op_sneq(self):
-        self._do_specs_matcher_test(
-            value='1234',
-            req='s!= 123',
-            matches=True)
+        self._do_specs_matcher_test(value='1234', req='s!= 123', matches=True)
 
     def test_specs_fails_with_op_sneq(self):
-        self._do_specs_matcher_test(
-            value='123',
-            req='s!= 123',
-            matches=False)
+        self._do_specs_matcher_test(value='123', req='s!= 123', matches=False)
 
     def test_specs_matches_with_op_sge(self):
-        self._do_specs_matcher_test(
-            value='234',
-            req='s>= 1000',
-            matches=True)
+        self._do_specs_matcher_test(value='234', req='s>= 1000', matches=True)
 
     def test_specs_matches_with_op_sge2(self):
-        self._do_specs_matcher_test(
-            value='234',
-            req='s>= 234',
-            matches=True)
+        self._do_specs_matcher_test(value='234', req='s>= 234', matches=True)
 
     def test_specs_fails_with_op_sge(self):
-        self._do_specs_matcher_test(
-            value='1000',
-            req='s>= 234',
-            matches=False)
+        self._do_specs_matcher_test(value='1000', req='s>= 234', matches=False)
 
     def test_specs_matches_with_op_sle(self):
-        self._do_specs_matcher_test(
-            value='1000',
-            req='s<= 1234',
-            matches=True)
+        self._do_specs_matcher_test(value='1000', req='s<= 1234', matches=True)
 
     def test_specs_matches_with_op_sle2(self):
-        self._do_specs_matcher_test(
-            value='1234',
-            req='s<= 1234',
-            matches=True)
+        self._do_specs_matcher_test(value='1234', req='s<= 1234', matches=True)
 
     def test_specs_fails_with_op_sle(self):
         self._do_specs_matcher_test(
-            value='1234',
-            req='s<= 1000',
-            matches=False)
+            value='1234', req='s<= 1000', matches=False
+        )
 
     def test_specs_matches_with_op_sl(self):
-        self._do_specs_matcher_test(
-            value='12',
-            req='s< 2',
-            matches=True)
+        self._do_specs_matcher_test(value='12', req='s< 2', matches=True)
 
     def test_specs_fails_with_op_sl(self):
-        self._do_specs_matcher_test(
-            value='2',
-            req='s< 12',
-            matches=False)
+        self._do_specs_matcher_test(value='2', req='s< 12', matches=False)
 
     def test_specs_fails_with_op_sl2(self):
-        self._do_specs_matcher_test(
-            value='12',
-            req='s< 12',
-            matches=False)
+        self._do_specs_matcher_test(value='12', req='s< 12', matches=False)
 
     def test_specs_matches_with_op_sg(self):
-        self._do_specs_matcher_test(
-            value='2',
-            req='s> 12',
-            matches=True)
+        self._do_specs_matcher_test(value='2', req='s> 12', matches=True)
 
     def test_specs_fails_with_op_sg(self):
-        self._do_specs_matcher_test(
-            value='12',
-            req='s> 2',
-            matches=False)
+        self._do_specs_matcher_test(value='12', req='s> 2', matches=False)
 
     def test_specs_fails_with_op_sg2(self):
-        self._do_specs_matcher_test(
-            value='12',
-            req='s> 12',
-            matches=False)
+        self._do_specs_matcher_test(value='12', req='s> 12', matches=False)
 
     def test_specs_matches_with_op_in(self):
         self._do_specs_matcher_test(
-            value='12311321',
-            req='<in> 11',
-            matches=True)
+            value='12311321', req='<in> 11', matches=True
+        )
 
     def test_specs_matches_with_op_in2(self):
         self._do_specs_matcher_test(
-            value='12311321',
-            req='<in> 12311321',
-            matches=True)
+            value='12311321', req='<in> 12311321', matches=True
+        )
 
     def test_specs_matches_with_op_in3(self):
         self._do_specs_matcher_test(
-            value='12311321',
-            req='<in> 12311321 <in>',
-            matches=True)
+            value='12311321', req='<in> 12311321 <in>', matches=True
+        )
 
     def test_specs_fails_with_op_in(self):
         self._do_specs_matcher_test(
-            value='12310321',
-            req='<in> 11',
-            matches=False)
+            value='12310321', req='<in> 11', matches=False
+        )
 
     def test_specs_fails_with_op_in2(self):
         self._do_specs_matcher_test(
-            value='12310321',
-            req='<in> 11 <in>',
-            matches=False)
+            value='12310321', req='<in> 11 <in>', matches=False
+        )
 
     def test_specs_matches_with_op_or(self):
         self._do_specs_matcher_test(
-            value='12',
-            req='<or> 11 <or> 12',
-            matches=True)
+            value='12', req='<or> 11 <or> 12', matches=True
+        )
 
     def test_specs_matches_with_op_or2(self):
         self._do_specs_matcher_test(
-            value='12',
-            req='<or> 11 <or> 12 <or>',
-            matches=True)
+            value='12', req='<or> 11 <or> 12 <or>', matches=True
+        )
 
     def test_specs_matches_with_op_or3(self):
-        self._do_specs_matcher_test(
-            value='12',
-            req='<or> 12',
-            matches=True)
+        self._do_specs_matcher_test(value='12', req='<or> 12', matches=True)
 
     def test_specs_fails_with_op_or(self):
         self._do_specs_matcher_test(
-            value='13',
-            req='<or> 11 <or> 12',
-            matches=False)
+            value='13', req='<or> 11 <or> 12', matches=False
+        )
 
     def test_specs_fails_with_op_or2(self):
         self._do_specs_matcher_test(
-            value='13',
-            req='<or> 11 <or> 12 <or>',
-            matches=False)
+            value='13', req='<or> 11 <or> 12 <or>', matches=False
+        )
 
     def test_specs_fails_with_op_or3(self):
-        self._do_specs_matcher_test(
-            value='13',
-            req='<or> 11',
-            matches=False)
+        self._do_specs_matcher_test(value='13', req='<or> 11', matches=False)
 
     def test_specs_matches_with_op_le(self):
-        self._do_specs_matcher_test(
-            value='2',
-            req='<= 10',
-            matches=True)
+        self._do_specs_matcher_test(value='2', req='<= 10', matches=True)
 
     def test_specs_matches_with_op_le2(self):
-        self._do_specs_matcher_test(
-            value='10',
-            req='<= 10',
-            matches=True)
+        self._do_specs_matcher_test(value='10', req='<= 10', matches=True)
 
     def test_specs_fails_with_op_le(self):
-        self._do_specs_matcher_test(
-            value='3',
-            req='<= 2',
-            matches=False)
+        self._do_specs_matcher_test(value='3', req='<= 2', matches=False)
 
     def test_specs_matches_with_op_ge(self):
-        self._do_specs_matcher_test(
-            value='3',
-            req='>= 1',
-            matches=True)
+        self._do_specs_matcher_test(value='3', req='>= 1', matches=True)
 
     def test_specs_matches_with_op_ge2(self):
-        self._do_specs_matcher_test(
-            value='3.0',
-            req='>= 3',
-            matches=True)
+        self._do_specs_matcher_test(value='3.0', req='>= 3', matches=True)
 
     def test_specs_matches_with_op_g(self):
-        self._do_specs_matcher_test(
-            value='3',
-            req='> 1',
-            matches=True)
+        self._do_specs_matcher_test(value='3', req='> 1', matches=True)
 
     def test_specs_matches_with_op_g2(self):
-        self._do_specs_matcher_test(
-            value='3',
-            req='> 3',
-            matches=False)
+        self._do_specs_matcher_test(value='3', req='> 3', matches=False)
 
     def test_specs_matches_with_op_g3(self):
-        self._do_specs_matcher_test(
-            value='3.0',
-            req='> 2',
-            matches=True)
+        self._do_specs_matcher_test(value='3.0', req='> 2', matches=True)
 
     def test_specs_matches_with_op_l(self):
-        self._do_specs_matcher_test(
-            value='3',
-            req='< 5',
-            matches=True)
+        self._do_specs_matcher_test(value='3', req='< 5', matches=True)
 
     def test_specs_matches_with_op_l2(self):
-        self._do_specs_matcher_test(
-            value='3',
-            req='< 3',
-            matches=False)
+        self._do_specs_matcher_test(value='3', req='< 3', matches=False)
 
     def test_specs_matches_with_op_l3(self):
-        self._do_specs_matcher_test(
-            value='1.0',
-            req='< 6',
-            matches=True)
+        self._do_specs_matcher_test(value='1.0', req='< 6', matches=True)
 
     def test_specs_fails_with_op_ge(self):
-        self._do_specs_matcher_test(
-            value='2',
-            req='>= 3',
-            matches=False)
+        self._do_specs_matcher_test(value='2', req='>= 3', matches=False)
 
     def test_specs_matches_with_op_ne(self):
-        self._do_specs_matcher_test(
-            value='3.2',
-            req='!= 3.1',
-            matches=True)
+        self._do_specs_matcher_test(value='3.2', req='!= 3.1', matches=True)
 
     def test_specs_fails_with_op_ne(self):
-        self._do_specs_matcher_test(
-            value='3.2',
-            req='!= 3.2',
-            matches=False)
+        self._do_specs_matcher_test(value='3.2', req='!= 3.2', matches=False)
 
     def test_specs_matches_with_op_eqeq(self):
-        self._do_specs_matcher_test(
-            value='3',
-            req='== 3',
-            matches=True)
+        self._do_specs_matcher_test(value='3', req='== 3', matches=True)
 
     def test_specs_matches_with_op_eqeq2(self):
-        self._do_specs_matcher_test(
-            value='3.0',
-            req='== 3',
-            matches=True)
+        self._do_specs_matcher_test(value='3.0', req='== 3', matches=True)
 
     def test_specs_fails_with_op_eqeq(self):
-        self._do_specs_matcher_test(
-            value='3.0',
-            req='== 3.1',
-            matches=False)
+        self._do_specs_matcher_test(value='3.0', req='== 3.1', matches=False)
 
     def test_specs_matches_all_with_op_allin(self):
         self._do_specs_matcher_test(
             value=str(['aes', 'mmx', 'aux']),
             req='<all-in> aes mmx',
-            matches=True)
+            matches=True,
+        )
 
     def test_specs_matches_one_with_op_allin(self):
         self._do_specs_matcher_test(
-            value=str(['aes', 'mmx', 'aux']),
-            req='<all-in> mmx',
-            matches=True)
+            value=str(['aes', 'mmx', 'aux']), req='<all-in> mmx', matches=True
+        )
 
     def test_specs_fails_with_op_allin(self):
         self._do_specs_matcher_test(
             value=str(['aes', 'mmx', 'aux']),
             req='<all-in>  txt',
-            matches=False)
+            matches=False,
+        )
 
     def test_specs_fails_all_with_op_allin(self):
         self._do_specs_matcher_test(
             value=str(['aes', 'mmx', 'aux']),
             req='<all-in> txt 3dnow',
-            matches=False)
+            matches=False,
+        )
 
     def test_specs_fails_match_one_with_op_allin(self):
         self._do_specs_matcher_test(
             value=str(['aes', 'mmx', 'aux']),
             req='<all-in> txt aes',
-            matches=False)
+            matches=False,
+        )
 
     def test_specs_fails_match_substr_single(self):
         self._do_specs_matcher_test(
-            value=str(['X_X']),
-            req='<all-in> _',
-            matches=False)
+            value=str(['X_X']), req='<all-in> _', matches=False
+        )
 
     def test_specs_fails_match_substr(self):
         self._do_specs_matcher_test(
-            value=str(['X___X']),
-            req='<all-in> ___',
-            matches=False)
+            value=str(['X___X']), req='<all-in> ___', matches=False
+        )
 
     def test_specs_fails_match_substr_reversed(self):
         self._do_specs_matcher_test(
             value=str(['aes', 'mmx', 'aux']),
             req='<all-in> XaesX',
-            matches=False)
+            matches=False,
+        )
 
     def test_specs_fails_onechar_with_op_allin(self):
         self.assertRaises(
             TypeError,
             specs_matcher.match,
             value=str(['aes', 'mmx', 'aux']),
-            req='<all-in> e')
+            req='<all-in> e',
+        )
 
     def test_specs_errors_list_with_op_allin(self):
         self.assertRaises(
             TypeError,
             specs_matcher.match,
             value=['aes', 'mmx', 'aux'],
-            req='<all-in> aes')
+            req='<all-in> aes',
+        )
 
     def test_specs_errors_str_with_op_allin(self):
         self.assertRaises(
-            TypeError,
-            specs_matcher.match,
-            value='aes',
-            req='<all-in> aes')
+            TypeError, specs_matcher.match, value='aes', req='<all-in> aes'
+        )
 
     def test_specs_errors_dict_literal_with_op_allin(self):
         self.assertRaises(
             TypeError,
             specs_matcher.match,
             value=str({'aes': 1}),
-            req='<all-in> aes')
+            req='<all-in> aes',
+        )
 
     def test_specs_errors_bad_literal_with_op_allin(self):
         self.assertRaises(
-            TypeError,
-            specs_matcher.match,
-            value="^&*($",
-            req='<all-in> aes')
+            TypeError, specs_matcher.match, value="^&*($", req='<all-in> aes'
+        )
 
     def test_specs_fails_not_enough_args_with_op_rangein(self):
         self.assertRaises(
-            TypeError,
-            specs_matcher.match,
-            value="23",
-            req='<range-in> [ 10 ]')
+            TypeError, specs_matcher.match, value="23", req='<range-in> [ 10 ]'
+        )
 
     def test_specs_fails_no_brackets_with_op_rangein(self):
         self.assertRaises(
-            TypeError,
-            specs_matcher.match,
-            value="23",
-            req='<range-in> 10 20')
+            TypeError, specs_matcher.match, value="23", req='<range-in> 10 20'
+        )
 
     def test_specs_fails_no_opening_bracket_with_op_rangein(self):
         self.assertRaises(
             TypeError,
             specs_matcher.match,
             value="23",
-            req='<range-in> 10 20 ]')
+            req='<range-in> 10 20 ]',
+        )
 
     def test_specs_fails_no_closing_bracket_with_op_rangein(self):
         self.assertRaises(
             TypeError,
             specs_matcher.match,
             value="23",
-            req='<range-in> [ 10 20')
+            req='<range-in> [ 10 20',
+        )
 
     def test_specs_fails_invalid_brackets_with_op_rangein(self):
         self.assertRaises(
             TypeError,
             specs_matcher.match,
             value="23",
-            req='<range-in> { 10 20 }')
+            req='<range-in> { 10 20 }',
+        )
 
     def test_specs_fails_not_opening_brackets_with_op_rangein(self):
         self.assertRaises(
             TypeError,
             specs_matcher.match,
             value="23",
-            req='<range-in> ) 10 20 )')
+            req='<range-in> ) 10 20 )',
+        )
 
     def test_specs_fails_not_closing_brackets_with_op_rangein(self):
         self.assertRaises(
             TypeError,
             specs_matcher.match,
             value="23",
-            req='<range-in> ( 10 20 (')
+            req='<range-in> ( 10 20 (',
+        )
 
     def test_specs_fails_reverse_brackets_with_op_rangein(self):
         self.assertRaises(
             TypeError,
             specs_matcher.match,
             value="23",
-            req='<range-in> ) 10 20 (')
+            req='<range-in> ) 10 20 (',
+        )
 
     def test_specs_fails_too_many_args_with_op_rangein(self):
         self.assertRaises(
             TypeError,
             specs_matcher.match,
             value="23",
-            req='<range-in> [ 10 20 30 ]')
+            req='<range-in> [ 10 20 30 ]',
+        )
 
     def test_specs_fails_bad_limits_with_op_rangein(self):
         self.assertRaises(
             TypeError,
             specs_matcher.match,
             value="23",
-            req='<range-in> [ 20 10 ]')
+            req='<range-in> [ 20 10 ]',
+        )
 
     def test_specs_fails_match_beyond_scope_with_op_rangein_le(self):
         self._do_specs_matcher_test(
-            matches=False,
-            value="23",
-            req='<range-in> [ 10 20 ]')
+            matches=False, value="23", req='<range-in> [ 10 20 ]'
+        )
 
     def test_specs_fails_match_beyond_scope_with_op_rangein_lt(self):
         self._do_specs_matcher_test(
-            matches=False,
-            value="23",
-            req='<range-in> [ 10 20 )')
+            matches=False, value="23", req='<range-in> [ 10 20 )'
+        )
 
     def test_specs_fails_match_under_scope_with_op_rangein_ge(self):
         self._do_specs_matcher_test(
-            matches=False,
-            value="5",
-            req='<range-in> [ 10 20 ]')
+            matches=False, value="5", req='<range-in> [ 10 20 ]'
+        )
 
     def test_specs_fails_match_under_scope_with_op_rangein_gt(self):
         self._do_specs_matcher_test(
-            matches=False,
-            value="5",
-            req='<range-in> ( 10 20 ]')
+            matches=False, value="5", req='<range-in> ( 10 20 ]'
+        )
 
     def test_specs_fails_match_float_beyond_scope_with_op_rangein_le(self):
         self._do_specs_matcher_test(
-            matches=False,
-            value="20.3",
-            req='<range-in> [ 10.1 20.2 ]')
+            matches=False, value="20.3", req='<range-in> [ 10.1 20.2 ]'
+        )
 
     def test_specs_fails_match_float_beyond_scope_with_op_rangein_lt(self):
         self._do_specs_matcher_test(
-            matches=False,
-            value="20.3",
-            req='<range-in> [ 10.1 20.2 )')
+            matches=False, value="20.3", req='<range-in> [ 10.1 20.2 )'
+        )
 
     def test_specs_fails_match_float_under_scope_with_op_rangein_ge(self):
         self._do_specs_matcher_test(
-            matches=False,
-            value="5.0",
-            req='<range-in> [ 5.1 20.2 ]')
+            matches=False, value="5.0", req='<range-in> [ 5.1 20.2 ]'
+        )
 
     def test_specs_fails_match_float_under_scope_with_op_rangein_gt(self):
         self._do_specs_matcher_test(
-            matches=False,
-            value="5.0",
-            req='<range-in> ( 5.1 20.2 ]')
+            matches=False, value="5.0", req='<range-in> ( 5.1 20.2 ]'
+        )
 
     def test_specs_matches_int_lower_int_range_with_op_rangein_ge(self):
         self._do_specs_matcher_test(
-            matches=True,
-            value="10",
-            req='<range-in> [ 10 20 ]')
+            matches=True, value="10", req='<range-in> [ 10 20 ]'
+        )
 
     def test_specs_fails_matchesint_lower_int_range_with_op_rangein_gt(self):
         self._do_specs_matcher_test(
-            matches=False,
-            value="10",
-            req='<range-in> ( 10 20 ]')
+            matches=False, value="10", req='<range-in> ( 10 20 ]'
+        )
 
     def test_specs_matches_float_lower_float_range_with_op_rangein_ge(self):
         self._do_specs_matcher_test(
-            matches=True,
-            value="10.1",
-            req='<range-in> [ 10.1 20 ]')
+            matches=True, value="10.1", req='<range-in> [ 10.1 20 ]'
+        )
 
     def test_specs_fails_matche_float_lower_float_range_with_op_rangein_gt(
-            self):
+        self,
+    ):
         self._do_specs_matcher_test(
-            matches=False,
-            value="10.1",
-            req='<range-in> ( 10.1 20 ]')
+            matches=False, value="10.1", req='<range-in> ( 10.1 20 ]'
+        )
 
     def test_specs_matches_int_with_int_range_with_op_rangein(self):
         self._do_specs_matcher_test(
-            matches=True,
-            value="15",
-            req='<range-in> [ 10 20 ]')
+            matches=True, value="15", req='<range-in> [ 10 20 ]'
+        )
 
     def test_specs_matches_float_with_int_limit_with_op_rangein(self):
         self._do_specs_matcher_test(
-            matches=True,
-            value="15.5",
-            req='<range-in> [ 10 20 ]')
+            matches=True, value="15.5", req='<range-in> [ 10 20 ]'
+        )
 
     def test_specs_matches_int_upper_int_range_with_op_rangein(self):
         self._do_specs_matcher_test(
-            matches=True,
-            value="20",
-            req='<range-in> [ 10 20 ]')
+            matches=True, value="20", req='<range-in> [ 10 20 ]'
+        )
 
     def test_specs_fails_matche_int_upper_int_range_with_op_rangein_lt(self):
         self._do_specs_matcher_test(
-            matches=False,
-            value="20",
-            req='<range-in> [ 10 20 )')
+            matches=False, value="20", req='<range-in> [ 10 20 )'
+        )
 
     def test_specs_matches_float_upper_mixed_range_with_op_rangein(self):
         self._do_specs_matcher_test(
-            matches=True,
-            value="20.5",
-            req='<range-in> [ 10 20.5 ]')
+            matches=True, value="20.5", req='<range-in> [ 10 20.5 ]'
+        )
 
     def test_specs_fails_matche_float_upper_mixed_range_with_op_rangein_lt(
-            self):
+        self,
+    ):
         self._do_specs_matcher_test(
-            matches=False,
-            value="20.5",
-            req='<range-in> [ 10 20.5 )')
+            matches=False, value="20.5", req='<range-in> [ 10 20.5 )'
+        )
 
     def test_specs_matches_float_with_float_limit_with_op_rangein(self):
         self._do_specs_matcher_test(
-            matches=True,
-            value="12.5",
-            req='<range-in> [ 10.1 20.1 ]')
+            matches=True, value="12.5", req='<range-in> [ 10.1 20.1 ]'
+        )
 
     def test_specs_matches_only_one_with_op_rangein(self):
         self._do_specs_matcher_test(
-            matches=True,
-            value="10.1",
-            req='<range-in> [ 10.1 10.1 ]')
+            matches=True, value="10.1", req='<range-in> [ 10.1 10.1 ]'
+        )

@@ -21,11 +21,10 @@ import testscenarios
 from oslo_utils import secretutils
 
 
-class SecretUtilsTest(testscenarios.TestWithScenarios,
-                      test_base.BaseTestCase):
-
-    _gen_digest = lambda text: hmac.new(b'foo', text.encode('utf-8'),
-                                        digestmod=hashlib.sha1).digest()
+class SecretUtilsTest(testscenarios.TestWithScenarios, test_base.BaseTestCase):
+    _gen_digest = lambda text: hmac.new(
+        b'foo', text.encode('utf-8'), digestmod=hashlib.sha1
+    ).digest()
     scenarios = [
         ('binary', {'converter': _gen_digest}),
         ('unicode', {'converter': lambda text: text}),
@@ -38,12 +37,14 @@ class SecretUtilsTest(testscenarios.TestWithScenarios,
         digest = secretutils.md5(self._test_data).digest()
         self.assertEqual(digest, self._md5_digest)
 
-        digest = secretutils.md5(self._test_data,
-                                 usedforsecurity=True).digest()
+        digest = secretutils.md5(
+            self._test_data, usedforsecurity=True
+        ).digest()
         self.assertEqual(digest, self._md5_digest)
 
-        digest = secretutils.md5(self._test_data,
-                                 usedforsecurity=False).digest()
+        digest = secretutils.md5(
+            self._test_data, usedforsecurity=False
+        ).digest()
         self.assertEqual(digest, self._md5_digest)
 
     def test_md5_without_data(self):
@@ -66,17 +67,21 @@ class SecretUtilsTest(testscenarios.TestWithScenarios,
         self.assertRaises(TypeError, hashlib.md5, 'foo')
         self.assertRaises(TypeError, secretutils.md5, 'foo')
         self.assertRaises(
-            TypeError, secretutils.md5, 'foo', usedforsecurity=True)
+            TypeError, secretutils.md5, 'foo', usedforsecurity=True
+        )
         self.assertRaises(
-            TypeError, secretutils.md5, 'foo', usedforsecurity=False)
+            TypeError, secretutils.md5, 'foo', usedforsecurity=False
+        )
 
     def test_none_data_raises_type_error(self):
         self.assertRaises(TypeError, hashlib.md5, None)
         self.assertRaises(TypeError, secretutils.md5, None)
         self.assertRaises(
-            TypeError, secretutils.md5, None, usedforsecurity=True)
+            TypeError, secretutils.md5, None, usedforsecurity=True
+        )
         self.assertRaises(
-            TypeError, secretutils.md5, None, usedforsecurity=False)
+            TypeError, secretutils.md5, None, usedforsecurity=False
+        )
 
     def test_password_mksalt(self):
         self.assertRaises(ValueError, secretutils.crypt_mksalt, 'MD5')
@@ -90,8 +95,10 @@ class SecretUtilsTest(testscenarios.TestWithScenarios,
     def test_password_crypt(self):
         self.assertEqual(
             '$5$mysalt$fcnMdhaFpUmeWtGOgVuImueZGL1v0Q1kUVbV2NbFOX4',
-            secretutils.crypt_password('mytopsecret', '$5$mysalt$'))
+            secretutils.crypt_password('mytopsecret', '$5$mysalt$'),
+        )
         self.assertEqual(
             '$6$mysalt$jTEJ24XtvcWmav/sTQb1tYqmk1kBQD/sxcMIxEPUcie'
             'J8L9AuCTWxYlxGz.XtIQYWspWkUXQz9zPIFTSKubP6.',
-            secretutils.crypt_password('mytopsecret', '$6$mysalt$'))
+            secretutils.crypt_password('mytopsecret', '$6$mysalt$'),
+        )

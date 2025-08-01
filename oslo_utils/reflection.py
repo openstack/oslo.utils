@@ -47,7 +47,7 @@ def get_members(obj, exclude_hidden=True):
 
     .. versionadded:: 2.3
     """
-    for (name, value) in inspect.getmembers(obj):
+    for name, value in inspect.getmembers(obj):
         if name.startswith("_") and exclude_hidden:
             continue
         yield (name, value)
@@ -55,8 +55,10 @@ def get_members(obj, exclude_hidden=True):
 
 def get_member_names(obj, exclude_hidden=True):
     """Get all the member names for a object."""
-    return [name for (name, _obj) in
-            get_members(obj, exclude_hidden=exclude_hidden)]
+    return [
+        name
+        for (name, _obj) in get_members(obj, exclude_hidden=exclude_hidden)
+    ]
 
 
 def get_class_name(obj, fully_qualified=True, truncate_builtins=True):
@@ -86,13 +88,14 @@ def get_class_name(obj, fully_qualified=True, truncate_builtins=True):
             if built_in:
                 return obj.__name__
     if fully_qualified and hasattr(obj, '__module__'):
-        return '{}.{}'.format(obj.__module__, obj.__name__)
+        return f'{obj.__module__}.{obj.__name__}'
     else:
         return obj.__name__
 
 
-def get_all_class_names(obj, up_to=object,
-                        fully_qualified=True, truncate_builtins=True):
+def get_all_class_names(
+    obj, up_to=object, fully_qualified=True, truncate_builtins=True
+):
     """Get class names of object parent classes.
 
     Iterate over all class names object is instance or subclass of,
@@ -103,9 +106,11 @@ def get_all_class_names(obj, up_to=object,
         obj = type(obj)
     for cls in obj.mro():
         if issubclass(cls, up_to):
-            yield get_class_name(cls,
-                                 fully_qualified=fully_qualified,
-                                 truncate_builtins=truncate_builtins)
+            yield get_class_name(
+                cls,
+                fully_qualified=fully_qualified,
+                truncate_builtins=truncate_builtins,
+            )
 
 
 def get_callable_name(function):
@@ -133,8 +138,11 @@ def get_callable_name(function):
             if hasattr(function, 'im_class'):
                 # This is a unbound method, which exists only in python 2.x
                 im_class = function.im_class
-                parts = (im_class.__module__,
-                         im_class.__name__, function.__name__)
+                parts = (
+                    im_class.__module__,
+                    im_class.__name__,
+                    function.__name__,
+                )
             else:
                 parts = (function.__module__, function.__name__)
     else:
@@ -195,8 +203,9 @@ def get_callable_args(function, required_only=False):
     sig = get_signature(function)
     function_args = list(sig.parameters.keys())
     for param_name, p in sig.parameters.items():
-        if (p.kind in (Parameter.VAR_POSITIONAL, Parameter.VAR_KEYWORD) or
-                (required_only and p.default is not Parameter.empty)):
+        if p.kind in (Parameter.VAR_POSITIONAL, Parameter.VAR_KEYWORD) or (
+            required_only and p.default is not Parameter.empty
+        ):
             function_args.remove(param_name)
     return function_args
 

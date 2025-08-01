@@ -100,20 +100,26 @@ class VersionPredicate:
 
     .. versionadded:: 7.4
     """
+
     _PREDICATE_MATCH = re.compile(r"^\s*(<=|>=|<|>|!=|==)\s*([^\s]+)\s*$")
     _COMP_MAP = {
-        "<": operator.lt, "<=": operator.le, "==": operator.eq,
-        ">": operator.gt, ">=": operator.ge, "!=": operator.ne
+        "<": operator.lt,
+        "<=": operator.le,
+        "==": operator.eq,
+        ">": operator.gt,
+        ">=": operator.ge,
+        "!=": operator.ne,
     }
 
     def __init__(self, predicate_str):
-        self.pred = [self._parse_predicate(pred) for pred
-                     in predicate_str.split(',')]
+        self.pred = [
+            self._parse_predicate(pred) for pred in predicate_str.split(',')
+        ]
 
     def _parse_predicate(self, pred):
         res = self._PREDICATE_MATCH.match(pred)
         if not res:
-            raise ValueError("bad package restriction syntax: %s" % pred)
+            raise ValueError(f"bad package restriction syntax: {pred}")
         cond, ver_str = res.groups()
         return (cond, packaging.version.Version(ver_str))
 

@@ -48,25 +48,38 @@ def main():
     parser = argparse.ArgumentParser(
         prog='oslo.utils.imageutils',
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        description=(textwrap.dedent('''\
+        description=(
+            textwrap.dedent('''\
         oslo.utils.imageutils image checking program.
           * Exit code of 0 indicates image passes safety check
           * Exit code of 1 indicates image fails safety check
-        ''')),
-        epilog=f"Testing using oslo.utils version {oslo_utils_version}")
-    parser.add_argument('-v', '--verbose',
-                        action='store_true',
-                        help=("Print detailed information about the image in "
-                              "KEY=VALUE format. Defaults to no output."))
-    parser.add_argument('-i', '--image',
-                        action='store', required=True, metavar="IMG",
-                        help="Path to an image you wish to inspect.")
+        ''')
+        ),
+        epilog=f"Testing using oslo.utils version {oslo_utils_version}",
+    )
+    parser.add_argument(
+        '-v',
+        '--verbose',
+        action='store_true',
+        help=(
+            "Print detailed information about the image in "
+            "KEY=VALUE format. Defaults to no output."
+        ),
+    )
+    parser.add_argument(
+        '-i',
+        '--image',
+        action='store',
+        required=True,
+        metavar="IMG",
+        help="Path to an image you wish to inspect.",
+    )
     args = parser.parse_args()
     image = args.image
     verbose = args.verbose
 
     if not os.path.exists(image) or not os.path.isfile(image):
-        print('Image path %s provided does not exist' % image, file=sys.stderr)
+        print(f'Image path {image} provided does not exist', file=sys.stderr)
         sys.exit(1)
 
     inspector = format_inspector.detect_file_format(image)
@@ -77,7 +90,7 @@ def main():
         safe = False
         failure_reasons = []
         for exc in e.failures.items():
-            failure_reasons.append("{}: {}".format(exc[0], exc[1]))
+            failure_reasons.append(f"{exc[0]}: {exc[1]}")
 
     virtual_size = inspector.virtual_size
     actual_size = inspector.actual_size
@@ -93,6 +106,6 @@ def main():
         sys.exit(0)
 
     if verbose:
-        print('FAILURE_REASONS=\'%s\'' % ','.join(failure_reasons))
+        print('FAILURE_REASONS=\'{}\''.format(','.join(failure_reasons)))
 
     sys.exit(1)

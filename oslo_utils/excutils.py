@@ -48,6 +48,7 @@ class CausedByException(Exception):
 
     .. versionadded:: 2.4
     """
+
     def __init__(self, message, cause=None):
         super().__init__(message)
         self.cause = cause
@@ -67,8 +68,10 @@ class CausedByException(Exception):
     def pformat(self, indent=2, indent_text=" ", show_root_class=False):
         """Pretty formats a caused exception + any connected causes."""
         if indent < 0:
-            raise ValueError("Provided 'indent' must be greater than"
-                             " or equal to zero instead of %s" % indent)
+            raise ValueError(
+                "Provided 'indent' must be greater than"
+                f" or equal to zero instead of {indent}"
+            )
         buf = io.StringIO()
         if show_root_class:
             buf.write(reflection.get_class_name(self, fully_qualified=False))
@@ -82,8 +85,9 @@ class CausedByException(Exception):
             buf.write(os.linesep)
             if isinstance(next_up, CausedByException):
                 buf.write(indent_text * active_indent)
-                buf.write(reflection.get_class_name(next_up,
-                                                    fully_qualified=False))
+                buf.write(
+                    reflection.get_class_name(next_up, fully_qualified=False)
+                )
                 buf.write(": ")
                 buf.write(next_up._get_message())
             else:
@@ -181,6 +185,7 @@ class save_and_reraise_exception:
     .. versionchanged:: 1.4
        Added *logger* optional parameter.
     """
+
     def __init__(self, reraise=True, logger=None):
         self.reraise = reraise
         if logger is None:
@@ -190,8 +195,10 @@ class save_and_reraise_exception:
 
     def force_reraise(self):
         if self.type_ is None and self.value is None:
-            raise RuntimeError("There is no (currently) captured exception"
-                               " to force the reraising of")
+            raise RuntimeError(
+                "There is no (currently) captured exception"
+                " to force the reraising of"
+            )
         try:
             if self.value is None:
                 self.value = self.type_()
@@ -218,10 +225,12 @@ class save_and_reraise_exception:
     def __exit__(self, exc_type, exc_val, exc_tb):
         if exc_type is not None:
             if self.reraise:
-                self.logger.error('Original exception being dropped: %s',
-                                  traceback.format_exception(self.type_,
-                                                             self.value,
-                                                             self.tb))
+                self.logger.error(
+                    'Original exception being dropped: %s',
+                    traceback.format_exception(
+                        self.type_, self.value, self.tb
+                    ),
+                )
             return False
         if self.reraise:
             self.force_reraise()
@@ -266,7 +275,8 @@ def forever_retry_uncaught_exceptions(*args, **kwargs):
                         # changed, so time to log it again...
                         logging.exception(
                             'Unexpected exception occurred %d time(s)... '
-                            'retrying.' % same_failure_count)
+                            'retrying.' % same_failure_count
+                        )
                         if not watch.has_started():
                             watch.start()
                         else:
@@ -274,6 +284,7 @@ def forever_retry_uncaught_exceptions(*args, **kwargs):
                         same_failure_count = 0
                         last_exc_message = this_exc_message
                     time.sleep(retry_delay)
+
         return wrapper
 
     # This is needed to handle when the decorator has args or the decorator
@@ -321,8 +332,9 @@ class exception_filter:
     def __init__(self, should_ignore_ex):
         self._should_ignore_ex = should_ignore_ex
 
-        if all(hasattr(should_ignore_ex, a)
-               for a in functools.WRAPPER_ASSIGNMENTS):
+        if all(
+            hasattr(should_ignore_ex, a) for a in functools.WRAPPER_ASSIGNMENTS
+        ):
             functools.update_wrapper(self, should_ignore_ex)
 
     def __get__(self, obj, owner):

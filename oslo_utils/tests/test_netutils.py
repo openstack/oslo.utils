@@ -26,7 +26,6 @@ from oslo_utils import netutils
 
 
 class NetworkUtilsTest(test_base.BaseTestCase):
-
     def test_no_host(self):
         result = netutils.urlsplit('http://')
         self.assertEqual('', result.netloc)
@@ -35,24 +34,27 @@ class NetworkUtilsTest(test_base.BaseTestCase):
         self.assertEqual('http', result.scheme)
 
     def test_parse_host_port(self):
-        self.assertEqual(('server01', 80),
-                         netutils.parse_host_port('server01:80'))
-        self.assertEqual(('server01', None),
-                         netutils.parse_host_port('server01'))
-        self.assertEqual(('server01', 1234),
-                         netutils.parse_host_port('server01',
-                         default_port=1234))
-        self.assertEqual(('::1', 80),
-                         netutils.parse_host_port('[::1]:80'))
-        self.assertEqual(('::1', None),
-                         netutils.parse_host_port('[::1]'))
-        self.assertEqual(('::1', 1234),
-                         netutils.parse_host_port('[::1]',
-                         default_port=1234))
-        self.assertEqual(('2001:db8:85a3::8a2e:370:7334', 1234),
-                         netutils.parse_host_port(
-                             '2001:db8:85a3::8a2e:370:7334',
-                             default_port=1234))
+        self.assertEqual(
+            ('server01', 80), netutils.parse_host_port('server01:80')
+        )
+        self.assertEqual(
+            ('server01', None), netutils.parse_host_port('server01')
+        )
+        self.assertEqual(
+            ('server01', 1234),
+            netutils.parse_host_port('server01', default_port=1234),
+        )
+        self.assertEqual(('::1', 80), netutils.parse_host_port('[::1]:80'))
+        self.assertEqual(('::1', None), netutils.parse_host_port('[::1]'))
+        self.assertEqual(
+            ('::1', 1234), netutils.parse_host_port('[::1]', default_port=1234)
+        )
+        self.assertEqual(
+            ('2001:db8:85a3::8a2e:370:7334', 1234),
+            netutils.parse_host_port(
+                '2001:db8:85a3::8a2e:370:7334', default_port=1234
+            ),
+        )
 
     def test_urlsplit(self):
         result = netutils.urlsplit('rpc://myhost?someparam#somefragment')
@@ -63,8 +65,8 @@ class NetworkUtilsTest(test_base.BaseTestCase):
         self.assertEqual(result.fragment, 'somefragment')
 
         result = netutils.urlsplit(
-            'rpc://myhost/mypath?someparam#somefragment',
-            allow_fragments=False)
+            'rpc://myhost/mypath?someparam#somefragment', allow_fragments=False
+        )
         self.assertEqual(result.scheme, 'rpc')
         self.assertEqual(result.netloc, 'myhost')
         self.assertEqual(result.path, '/mypath')
@@ -73,7 +75,8 @@ class NetworkUtilsTest(test_base.BaseTestCase):
 
         result = netutils.urlsplit(
             'rpc://user:pass@myhost/mypath?someparam#somefragment',
-            allow_fragments=False)
+            allow_fragments=False,
+        )
         self.assertEqual(result.scheme, 'rpc')
         self.assertEqual(result.netloc, 'user:pass@myhost')
         self.assertEqual(result.path, '/mypath')
@@ -130,23 +133,23 @@ class NetworkUtilsTest(test_base.BaseTestCase):
         mock_sock = mock.Mock()
         netutils.set_tcp_keepalive(mock_sock, True, 100, 10, 5)
         calls = [
-            mock.call.setsockopt(socket.SOL_SOCKET,
-                                 socket.SO_KEEPALIVE, True),
+            mock.call.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, True),
         ]
         if hasattr(socket, 'TCP_KEEPIDLE'):
             calls += [
-                mock.call.setsockopt(socket.IPPROTO_TCP,
-                                     socket.TCP_KEEPIDLE, 100)
+                mock.call.setsockopt(
+                    socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 100
+                )
             ]
         if hasattr(socket, 'TCP_KEEPINTVL'):
             calls += [
-                mock.call.setsockopt(socket.IPPROTO_TCP,
-                                     socket.TCP_KEEPINTVL, 10),
+                mock.call.setsockopt(
+                    socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 10
+                ),
             ]
         if hasattr(socket, 'TCP_KEEPCNT'):
             calls += [
-                mock.call.setsockopt(socket.IPPROTO_TCP,
-                                     socket.TCP_KEEPCNT, 5)
+                mock.call.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 5)
             ]
         mock_sock.assert_has_calls(calls)
 
@@ -169,26 +172,14 @@ class NetworkUtilsTest(test_base.BaseTestCase):
         mock_log.warning.assert_not_called()
         mock_log.reset_mock()
 
-        self.assertFalse(
-            netutils.is_valid_ipv4('10', strict=True)
-        )
-        self.assertFalse(
-            netutils.is_valid_ipv4('10.10', strict=True)
-        )
-        self.assertFalse(
-            netutils.is_valid_ipv4('10.10.10', strict=True)
-        )
+        self.assertFalse(netutils.is_valid_ipv4('10', strict=True))
+        self.assertFalse(netutils.is_valid_ipv4('10.10', strict=True))
+        self.assertFalse(netutils.is_valid_ipv4('10.10.10', strict=True))
         mock_log.warning.assert_not_called()
         mock_log.reset_mock()
-        self.assertTrue(
-            netutils.is_valid_ipv4('10', strict=False)
-        )
-        self.assertTrue(
-            netutils.is_valid_ipv4('10.10', strict=False)
-        )
-        self.assertTrue(
-            netutils.is_valid_ipv4('10.10.10', strict=False)
-        )
+        self.assertTrue(netutils.is_valid_ipv4('10', strict=False))
+        self.assertTrue(netutils.is_valid_ipv4('10.10', strict=False))
+        self.assertTrue(netutils.is_valid_ipv4('10.10.10', strict=False))
         mock_log.warning.assert_not_called()
         mock_log.reset_mock()
 
@@ -199,16 +190,20 @@ class NetworkUtilsTest(test_base.BaseTestCase):
 
         self.assertFalse(netutils.is_valid_ip('fe%80::1%eth0'))
 
-        self.assertFalse(netutils.is_valid_ipv6(
-            '1fff::a88:85a3::172.31.128.1'))
+        self.assertFalse(
+            netutils.is_valid_ipv6('1fff::a88:85a3::172.31.128.1')
+        )
 
         self.assertFalse(netutils.is_valid_ipv6(''))
 
     def test_get_noscope_ipv6(self):
-        self.assertEqual('2001:db8::ff00:42:8329',
-                         netutils.get_noscope_ipv6('2001:db8::ff00:42:8329%1'))
-        self.assertEqual('ff02::5678',
-                         netutils.get_noscope_ipv6('ff02::5678%eth0'))
+        self.assertEqual(
+            '2001:db8::ff00:42:8329',
+            netutils.get_noscope_ipv6('2001:db8::ff00:42:8329%1'),
+        )
+        self.assertEqual(
+            'ff02::5678', netutils.get_noscope_ipv6('ff02::5678%eth0')
+        )
         self.assertEqual('fe80::1', netutils.get_noscope_ipv6('fe80::1%eth0'))
         self.assertEqual('::1', netutils.get_noscope_ipv6('::1%eth0'))
         self.assertEqual('::1', netutils.get_noscope_ipv6('::1'))
@@ -248,8 +243,11 @@ class NetworkUtilsTest(test_base.BaseTestCase):
         self.assertTrue(netutils.is_valid_cidr('10.0.0.1/32'))
         self.assertTrue(netutils.is_valid_cidr('0.0.0.0/0'))
         self.assertTrue(netutils.is_valid_cidr('2600::/64'))
-        self.assertTrue(netutils.is_valid_cidr(
-                        '0000:0000:0000:0000:0000:0000:0000:0001/32'))
+        self.assertTrue(
+            netutils.is_valid_cidr(
+                '0000:0000:0000:0000:0000:0000:0000:0001/32'
+            )
+        )
 
         self.assertFalse(netutils.is_valid_cidr('10.0.0.1'))
         self.assertFalse(netutils.is_valid_cidr('10.0.0.1/33'))
@@ -257,72 +255,107 @@ class NetworkUtilsTest(test_base.BaseTestCase):
 
     def test_is_valid_ipv6_cidr(self):
         self.assertTrue(netutils.is_valid_ipv6_cidr("2600::/64"))
-        self.assertTrue(netutils.is_valid_ipv6_cidr(
-            "abcd:ef01:2345:6789:abcd:ef01:192.168.254.254/48"))
-        self.assertTrue(netutils.is_valid_ipv6_cidr(
-            "0000:0000:0000:0000:0000:0000:0000:0001/32"))
-        self.assertTrue(netutils.is_valid_ipv6_cidr(
-            "0000:0000:0000:0000:0000:0000:0000:0001"))
+        self.assertTrue(
+            netutils.is_valid_ipv6_cidr(
+                "abcd:ef01:2345:6789:abcd:ef01:192.168.254.254/48"
+            )
+        )
+        self.assertTrue(
+            netutils.is_valid_ipv6_cidr(
+                "0000:0000:0000:0000:0000:0000:0000:0001/32"
+            )
+        )
+        self.assertTrue(
+            netutils.is_valid_ipv6_cidr(
+                "0000:0000:0000:0000:0000:0000:0000:0001"
+            )
+        )
         self.assertFalse(netutils.is_valid_ipv6_cidr("foo"))
         self.assertFalse(netutils.is_valid_ipv6_cidr("127.0.0.1"))
 
     def test_valid_port(self):
-        valid_inputs = [0, '0', 1, '1', 2, '3', '5', 8, 13, 21,
-                        '80', '3246', '65535']
+        valid_inputs = [
+            0,
+            '0',
+            1,
+            '1',
+            2,
+            '3',
+            '5',
+            8,
+            13,
+            21,
+            '80',
+            '3246',
+            '65535',
+        ]
         for input_str in valid_inputs:
             self.assertTrue(netutils.is_valid_port(input_str))
 
     def test_valid_port_fail(self):
-        invalid_inputs = ['-32768', '65536', 528491, '528491',
-                          '528.491', 'thirty-seven', None]
+        invalid_inputs = [
+            '-32768',
+            '65536',
+            528491,
+            '528491',
+            '528.491',
+            'thirty-seven',
+            None,
+        ]
         for input_str in invalid_inputs:
             self.assertFalse(netutils.is_valid_port(input_str))
 
     def test_get_my_ipv4(self):
         mock_sock = mock.Mock()
         mock_sock.getsockname.return_value = ['1.2.3.4', '']
-        sock_attrs = {
-            'return_value.__enter__.return_value': mock_sock}
+        sock_attrs = {'return_value.__enter__.return_value': mock_sock}
         with mock.patch('socket.socket', **sock_attrs):
             addr = netutils.get_my_ipv4()
         self.assertEqual(addr, '1.2.3.4')
 
     def test_get_my_ipv4_disabled(self):
-        with (mock.patch('socket.socket', side_effect=socket.error()),
-              mock.patch('builtins.open', side_effect=FileNotFoundError())):
+        with (
+            mock.patch('socket.socket', side_effect=OSError()),
+            mock.patch('builtins.open', side_effect=FileNotFoundError()),
+        ):
             addr = netutils.get_my_ipv4()
         self.assertEqual(addr, '127.0.0.1')
 
     def test_get_my_ipv6(self):
         mock_sock = mock.Mock()
         mock_sock.getsockname.return_value = ['2001:db8::2', '', '', '']
-        sock_attrs = {
-            'return_value.__enter__.return_value': mock_sock}
+        sock_attrs = {'return_value.__enter__.return_value': mock_sock}
         with mock.patch('socket.socket', **sock_attrs):
             addr = netutils.get_my_ipv6()
         self.assertEqual(addr, '2001:db8::2')
 
     def test_get_my_ipv6_disabled(self):
-        with (mock.patch('socket.socket', side_effect=socket.error()),
-              mock.patch('builtins.open', side_effect=FileNotFoundError())):
+        with (
+            mock.patch('socket.socket', side_effect=OSError()),
+            mock.patch('builtins.open', side_effect=FileNotFoundError()),
+        ):
             addr = netutils.get_my_ipv6()
         self.assertEqual(addr, '::1')
 
     def test_is_int_in_range(self):
-        valid_inputs = [(1, -100, 100),
-                        ('1', -100, 100),
-                        (100, -100, 100),
-                        ('100', -100, 100),
-                        (-100, -100, 100),
-                        ('-100', -100, 100)]
+        valid_inputs = [
+            (1, -100, 100),
+            ('1', -100, 100),
+            (100, -100, 100),
+            ('100', -100, 100),
+            (-100, -100, 100),
+            ('-100', -100, 100),
+        ]
         for input_value in valid_inputs:
             self.assertTrue(netutils._is_int_in_range(*input_value))
 
     def test_is_int_not_in_range(self):
-        invalid_inputs = [(None, 1, 100),
-                          ('ten', 1, 100),
-                          (-1, 0, 255),
-                          ('None', 1, 100)]
+        invalid_inputs = [
+            (None, 1, 100),
+            ('ten', 1, 100),
+            (-1, 0, 255),
+            ('None', 1, 100),
+        ]
         for input_value in invalid_inputs:
             self.assertFalse(netutils._is_int_in_range(*input_value))
 
@@ -365,56 +398,64 @@ class NetworkUtilsTest(test_base.BaseTestCase):
     @mock.patch('builtins.open')
     @mock.patch('psutil.net_if_addrs')
     def test_get_my_ipv4_address_with_default_route(
-            self, mock_ifaddrs, mock_open):
+        self, mock_ifaddrs, mock_open
+    ):
         mock_open.return_value = io.StringIO(
             """Iface	Destination	Gateway 	Flags	RefCnt	Use	Metric	Mask		MTU	Window	IRTT
 eth0	00000000	01cc12ac	0003	0	0	600	00000000	0	0	0
 eth0	00cc12ac	00000000	0001	0	0	600	00FFFFFF	0	0	0
-eth1	00cd12ac	00000000	0001	0	0	600	00FFFFFF	0	0	0""")  # noqa : E501
+eth1	00cd12ac	00000000	0001	0	0	600	00FFFFFF	0	0	0"""
+        )  # noqa : E501
 
         addr = namedtuple('addr', ['family', 'address'])
         mock_ifaddrs.return_value = {
             'eth0': [
                 addr(family=socket.AF_INET, address='172.18.204.2'),
-                addr(family=socket.AF_INET6, address='2001:db8::2')
+                addr(family=socket.AF_INET6, address='2001:db8::2'),
             ],
             'eth1': [
                 addr(family=socket.AF_INET, address='172.18.205.2'),
-                addr(family=socket.AF_INET6, address='2001:db8::1000::2')
-            ]}
+                addr(family=socket.AF_INET6, address='2001:db8::1000::2'),
+            ],
+        }
         self.assertEqual('172.18.204.2', netutils._get_my_ipv4_address())
         mock_open.assert_called_once_with('/proc/net/route')
 
     @mock.patch('builtins.open')
     @mock.patch('psutil.net_if_addrs')
     def test_get_my_ipv6_address_with_default_route(
-            self, mock_ifaddrs, mock_open):
+        self, mock_ifaddrs, mock_open
+    ):
         mock_open.return_value = io.StringIO(
             """00000000000000000000000000000000 00 00000000000000000000000000000000 00 20010db8000000000000000000000001 00000000 00000000 00000000 08000000 eth0
 20010db8000000000000000000000000 31 00000000000000000000000000000000 00 00000000000000000000000000000000 00000000 00000000 00000000 08000000 eth0
-20010db8100000000000000000000000 31 00000000000000000000000000000000 00 00000000000000000000000000000000 00000000 00000000 00000000 08000000 eth1""")  # noqa: E501
+20010db8100000000000000000000000 31 00000000000000000000000000000000 00 00000000000000000000000000000000 00000000 00000000 00000000 08000000 eth1"""
+        )  # noqa: E501
 
         addr = namedtuple('addr', ['family', 'address'])
         mock_ifaddrs.return_value = {
             'eth0': [
                 addr(family=socket.AF_INET, address='172.18.204.2'),
-                addr(family=socket.AF_INET6, address='2001:db8::2')
+                addr(family=socket.AF_INET6, address='2001:db8::2'),
             ],
             'eth1': [
                 addr(family=socket.AF_INET, address='172.18.205.2'),
-                addr(family=socket.AF_INET6, address='2001:db8::1000::2')
-            ]}
+                addr(family=socket.AF_INET6, address='2001:db8::1000::2'),
+            ],
+        }
         self.assertEqual('2001:db8::2', netutils._get_my_ipv6_address())
         mock_open.assert_called_once_with('/proc/net/ipv6_route')
 
     @mock.patch('builtins.open')
     @mock.patch('psutil.net_if_addrs')
     def test_get_my_ipv4_address_without_default_route(
-            self, mock_ifaddrs, mock_open):
+        self, mock_ifaddrs, mock_open
+    ):
         mock_open.return_value = io.StringIO(
             """Iface	Destination	Gateway 	Flags	RefCnt	Use	Metric	Mask		MTU	Window	IRTT
 eth0	00cc12ac	00000000	0001	0	0	600	00FFFFFF	0	0	0
-eth1	00cd12ac	00000000	0001	0	0	600	00FFFFFF	0	0	0""")  # noqa : E501
+eth1	00cd12ac	00000000	0001	0	0	600	00FFFFFF	0	0	0"""
+        )  # noqa : E501
 
         self.assertEqual('127.0.0.1', netutils._get_my_ipv4_address())
         mock_open.assert_called_once_with('/proc/net/route')
@@ -423,10 +464,12 @@ eth1	00cd12ac	00000000	0001	0	0	600	00FFFFFF	0	0	0""")  # noqa : E501
     @mock.patch('builtins.open')
     @mock.patch('psutil.net_if_addrs')
     def test_get_my_ipv6_address_without_default_route(
-            self, mock_ifaddrs, mock_open):
+        self, mock_ifaddrs, mock_open
+    ):
         mock_open.return_value = io.StringIO(
             """20010db8000000000000000000000000 31 00000000000000000000000000000000 00 00000000000000000000000000000000 00000000 00000000 00000000 08000000 eth0
-20010db8100000000000000000000000 31 00000000000000000000000000000000 00 00000000000000000000000000000000 00000000 00000000 00000000 08000000 eth1""")  # noqa: E501
+20010db8100000000000000000000000 31 00000000000000000000000000000000 00 00000000000000000000000000000000 00000000 00000000 00000000 08000000 eth1"""
+        )  # noqa: E501
 
         self.assertEqual('::1', netutils._get_my_ipv6_address())
         mock_open.assert_called_once_with('/proc/net/ipv6_route')
@@ -437,39 +480,48 @@ class IPv6byEUI64TestCase(test_base.BaseTestCase):
     """Unit tests to generate IPv6 by EUI-64 operations."""
 
     def test_generate_IPv6_by_EUI64(self):
-        addr = netutils.get_ipv6_addr_by_EUI64('2001:db8::',
-                                               '00:16:3e:33:44:55')
+        addr = netutils.get_ipv6_addr_by_EUI64(
+            '2001:db8::', '00:16:3e:33:44:55'
+        )
         self.assertEqual('2001:db8::216:3eff:fe33:4455', addr.format())
 
     def test_generate_IPv6_with_IPv4_prefix(self):
         ipv4_prefix = '10.0.8'
         mac = '00:16:3e:33:44:55'
-        self.assertRaises(ValueError, lambda:
-                          netutils.get_ipv6_addr_by_EUI64(ipv4_prefix, mac))
+        self.assertRaises(
+            ValueError,
+            lambda: netutils.get_ipv6_addr_by_EUI64(ipv4_prefix, mac),
+        )
 
     def test_generate_IPv6_with_bad_mac(self):
         bad_mac = '00:16:3e:33:44:5Z'
         prefix = '2001:db8::'
-        self.assertRaises(ValueError, lambda:
-                          netutils.get_ipv6_addr_by_EUI64(prefix, bad_mac))
+        self.assertRaises(
+            ValueError,
+            lambda: netutils.get_ipv6_addr_by_EUI64(prefix, bad_mac),
+        )
 
     def test_generate_IPv6_with_bad_prefix(self):
         mac = '00:16:3e:33:44:55'
         bad_prefix = 'bb'
-        self.assertRaises(ValueError, lambda:
-                          netutils.get_ipv6_addr_by_EUI64(bad_prefix, mac))
+        self.assertRaises(
+            ValueError,
+            lambda: netutils.get_ipv6_addr_by_EUI64(bad_prefix, mac),
+        )
 
     def test_generate_IPv6_with_error_prefix_type(self):
         mac = '00:16:3e:33:44:55'
         prefix = 123
-        self.assertRaises(TypeError, lambda:
-                          netutils.get_ipv6_addr_by_EUI64(prefix, mac))
+        self.assertRaises(
+            TypeError, lambda: netutils.get_ipv6_addr_by_EUI64(prefix, mac)
+        )
 
     def test_generate_IPv6_with_empty_prefix(self):
         mac = '00:16:3e:33:44:55'
         prefix = ''
-        self.assertRaises(ValueError, lambda:
-                          netutils.get_ipv6_addr_by_EUI64(prefix, mac))
+        self.assertRaises(
+            ValueError, lambda: netutils.get_ipv6_addr_by_EUI64(prefix, mac)
+        )
 
 
 class MACbyIPv6TestCase(test_base.BaseTestCase):
@@ -479,28 +531,32 @@ class MACbyIPv6TestCase(test_base.BaseTestCase):
         self.assertEqual(
             netaddr.EUI('00:16:3e:33:44:55'),
             netutils.get_mac_addr_by_ipv6(
-                netaddr.IPAddress('2001:db8::216:3eff:fe33:4455')),
+                netaddr.IPAddress('2001:db8::216:3eff:fe33:4455')
+            ),
         )
 
     def test_random_qemu_mac(self):
         self.assertEqual(
             netaddr.EUI('52:54:00:42:02:19'),
             netutils.get_mac_addr_by_ipv6(
-                netaddr.IPAddress('fe80::5054:ff:fe42:219')),
+                netaddr.IPAddress('fe80::5054:ff:fe42:219')
+            ),
         )
 
     def test_local(self):
         self.assertEqual(
             netaddr.EUI('02:00:00:00:00:00'),
             netutils.get_mac_addr_by_ipv6(
-                netaddr.IPAddress('fe80::ff:fe00:0')),
+                netaddr.IPAddress('fe80::ff:fe00:0')
+            ),
         )
 
     def test_universal(self):
         self.assertEqual(
             netaddr.EUI('00:00:00:00:00:00'),
             netutils.get_mac_addr_by_ipv6(
-                netaddr.IPAddress('fe80::200:ff:fe00:0')),
+                netaddr.IPAddress('fe80::200:ff:fe00:0')
+            ),
         )
 
 
@@ -511,12 +567,12 @@ def mock_file_content(content):
 
 
 class TestIsIPv6Enabled(test_base.BaseTestCase):
-
     def setUp(self):
         super().setUp()
 
         def reset_detection_flag():
             netutils._IS_IPV6_ENABLED = None
+
         reset_detection_flag()
         self.addCleanup(reset_detection_flag)
 
@@ -533,8 +589,7 @@ class TestIsIPv6Enabled(test_base.BaseTestCase):
         self.assertFalse(enabled)
 
     @mock.patch('os.path.exists', return_value=False)
-    @mock.patch('builtins.open',
-                side_effect=AssertionError('should not read'))
+    @mock.patch('builtins.open', side_effect=AssertionError('should not read'))
     def test_disabled_non_exists(self, mock_open, exists):
         enabled = netutils.is_ipv6_enabled()
         self.assertFalse(enabled)
@@ -543,15 +598,17 @@ class TestIsIPv6Enabled(test_base.BaseTestCase):
     def test_memoize_enabled(self, exists):
         # Reset the flag to appear that we haven't looked for it yet.
         netutils._IS_IPV6_ENABLED = None
-        with mock.patch('builtins.open',
-                        return_value=mock_file_content('0')) as mock_open:
+        with mock.patch(
+            'builtins.open', return_value=mock_file_content('0')
+        ) as mock_open:
             enabled = netutils.is_ipv6_enabled()
             self.assertTrue(mock_open.called)
             self.assertTrue(netutils._IS_IPV6_ENABLED)
             self.assertTrue(enabled)
         # The second call should not use open again
-        with mock.patch('builtins.open',
-                        side_effect=AssertionError('should not be called')):
+        with mock.patch(
+            'builtins.open', side_effect=AssertionError('should not be called')
+        ):
             enabled = netutils.is_ipv6_enabled()
             self.assertTrue(enabled)
 
@@ -559,19 +616,18 @@ class TestIsIPv6Enabled(test_base.BaseTestCase):
     def test_memoize_disabled(self, exists):
         # Reset the flag to appear that we haven't looked for it yet.
         netutils._IS_IPV6_ENABLED = None
-        with mock.patch('builtins.open',
-                        return_value=mock_file_content('1')):
+        with mock.patch('builtins.open', return_value=mock_file_content('1')):
             enabled = netutils.is_ipv6_enabled()
             self.assertFalse(enabled)
         # The second call should not use open again
-        with mock.patch('builtins.open',
-                        side_effect=AssertionError('should not be called')):
+        with mock.patch(
+            'builtins.open', side_effect=AssertionError('should not be called')
+        ):
             enabled = netutils.is_ipv6_enabled()
             self.assertFalse(enabled)
 
     @mock.patch('os.path.exists', return_value=False)
-    @mock.patch('builtins.open',
-                side_effect=AssertionError('should not read'))
+    @mock.patch('builtins.open', side_effect=AssertionError('should not read'))
     def test_memoize_not_exists(self, mock_open, exists):
         # Reset the flag to appear that we haven't looked for it yet.
         netutils._IS_IPV6_ENABLED = None

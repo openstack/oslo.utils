@@ -27,8 +27,9 @@ import string as _string
 import debtcollector.removals
 
 
-@debtcollector.removals.remove(message='Use hashlib.md5 instead',
-                               category=DeprecationWarning)
+@debtcollector.removals.remove(
+    message='Use hashlib.md5 instead', category=DeprecationWarning
+)
 def md5(string=b'', usedforsecurity=True):
     """Return an md5 hashlib object using usedforsecurity parameter
 
@@ -61,12 +62,12 @@ def crypt_mksalt(method):
     # to engourage more secure methods.
     methods = {'SHA-512': '$6$', 'SHA-256': '$5$'}
     if method not in methods:
-        raise ValueError('Unsupported method: %s' % method)
+        raise ValueError(f'Unsupported method: {method}')
 
     salt_set = _string.ascii_letters + _string.digits + './'
     return ''.join(
-        [methods[method]] +
-        [secrets.choice(salt_set) for c in range(16)])
+        [methods[method]] + [secrets.choice(salt_set) for c in range(16)]
+    )
 
 
 def crypt_password(key, salt):

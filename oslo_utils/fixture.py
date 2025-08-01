@@ -66,6 +66,7 @@ class _UUIDSentinels:
 
         from oslo_utils.fixture import uuidsentinel as uuids
         from oslo_utils.fixture import keystoneidsentinel as keystids
+
         ...
         foo = uuids.foo
         do_a_thing(foo)
@@ -77,6 +78,7 @@ class _UUIDSentinels:
         data = create_some_data_structure(keystids.bar, var1, var2, var3)
         assert extract_bar(data) == keystids.bar
     """
+
     def __init__(self, is_dashed=True):
         self._sentinels = {}
         self._lock = threading.Lock()
@@ -88,7 +90,8 @@ class _UUIDSentinels:
         with self._lock:
             if name not in self._sentinels:
                 self._sentinels[name] = uuidutils.generate_uuid(
-                    dashed=self.is_dashed)
+                    dashed=self.is_dashed
+                )
         return self._sentinels[name]
 
 

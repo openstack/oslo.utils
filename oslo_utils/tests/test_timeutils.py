@@ -32,31 +32,34 @@ def monotonic_iter(start=0, incr=0.05):
 
 
 class TimeUtilsTest(test_base.BaseTestCase):
-
     def setUp(self):
         super().setUp()
         self.skynet_self_aware_time_str = '1997-08-29T06:14:00Z'
         self.skynet_self_aware_time_ms_str = '1997-08-29T06:14:00.000123Z'
         self.skynet_self_aware_time = datetime.datetime(1997, 8, 29, 6, 14, 0)
-        self.skynet_self_aware_ms_time = datetime.datetime(1997, 8, 29, 6, 14,
-                                                           0, 123)
+        self.skynet_self_aware_ms_time = datetime.datetime(
+            1997, 8, 29, 6, 14, 0, 123
+        )
         self.one_minute_before = datetime.datetime(1997, 8, 29, 6, 13, 0)
         self.one_minute_after = datetime.datetime(1997, 8, 29, 6, 15, 0)
         self.skynet_self_aware_time_perfect_str = '1997-08-29T06:14:00.000000'
-        self.skynet_self_aware_time_perfect = datetime.datetime(1997, 8, 29,
-                                                                6, 14, 0)
+        self.skynet_self_aware_time_perfect = datetime.datetime(
+            1997, 8, 29, 6, 14, 0
+        )
         self.addCleanup(timeutils.clear_time_override)
 
     def test_parse_isotime(self):
         expect = timeutils.parse_isotime(self.skynet_self_aware_time_str)
         skynet_self_aware_time_utc = self.skynet_self_aware_time.replace(
-            tzinfo=iso8601.iso8601.UTC)
+            tzinfo=iso8601.iso8601.UTC
+        )
         self.assertEqual(skynet_self_aware_time_utc, expect)
 
     def test_parse_isotime_micro_second_precision(self):
         expect = timeutils.parse_isotime(self.skynet_self_aware_time_ms_str)
         skynet_self_aware_time_ms_utc = self.skynet_self_aware_ms_time.replace(
-            tzinfo=iso8601.iso8601.UTC)
+            tzinfo=iso8601.iso8601.UTC
+        )
         self.assertEqual(skynet_self_aware_time_ms_utc, expect)
 
     def test_parse_strtime(self):
@@ -79,25 +82,25 @@ class TimeUtilsTest(test_base.BaseTestCase):
 
     def test_is_older_than_aware(self):
         """Tests sending is_older_than an 'aware' datetime."""
-        self._test_is_older_than(lambda x: x.replace(
-            tzinfo=iso8601.iso8601.UTC))
+        self._test_is_older_than(
+            lambda x: x.replace(tzinfo=iso8601.iso8601.UTC)
+        )
 
     def test_is_older_than_aware_no_utc(self):
-        self._test_is_older_than(lambda x: x.replace(
-            tzinfo=iso8601.iso8601.FixedOffset(1, 0, 'foo')).replace(
-                hour=7))
+        self._test_is_older_than(
+            lambda x: x.replace(
+                tzinfo=iso8601.iso8601.FixedOffset(1, 0, 'foo')
+            ).replace(hour=7)
+        )
 
     @mock.patch('datetime.datetime', wraps=datetime.datetime)
     def _test_is_newer_than(self, fn, datetime_mock):
         datetime_mock.now.return_value = self.skynet_self_aware_time
-        expect_true = timeutils.is_newer_than(fn(self.one_minute_after),
-                                              59)
+        expect_true = timeutils.is_newer_than(fn(self.one_minute_after), 59)
         self.assertTrue(expect_true)
-        expect_false = timeutils.is_newer_than(fn(self.one_minute_after),
-                                               60)
+        expect_false = timeutils.is_newer_than(fn(self.one_minute_after), 60)
         self.assertFalse(expect_false)
-        expect_false = timeutils.is_newer_than(fn(self.one_minute_after),
-                                               61)
+        expect_false = timeutils.is_newer_than(fn(self.one_minute_after), 61)
         self.assertFalse(expect_false)
 
     def test_is_newer_than_datetime(self):
@@ -105,13 +108,16 @@ class TimeUtilsTest(test_base.BaseTestCase):
 
     def test_is_newer_than_aware(self):
         """Tests sending is_newer_than an 'aware' datetime."""
-        self._test_is_newer_than(lambda x: x.replace(
-            tzinfo=iso8601.iso8601.UTC))
+        self._test_is_newer_than(
+            lambda x: x.replace(tzinfo=iso8601.iso8601.UTC)
+        )
 
     def test_is_newer_than_aware_no_utc(self):
-        self._test_is_newer_than(lambda x: x.replace(
-            tzinfo=iso8601.iso8601.FixedOffset(1, 0, 'foo')).replace(
-                hour=7))
+        self._test_is_newer_than(
+            lambda x: x.replace(
+                tzinfo=iso8601.iso8601.FixedOffset(1, 0, 'foo')
+            ).replace(hour=7)
+        )
 
     def test_set_time_override_using_default(self):
         now = timeutils.utcnow_ts()
@@ -177,10 +183,15 @@ class TimeUtilsTest(test_base.BaseTestCase):
         self.assertEqual(now.utcoffset(), backagain.utcoffset())
 
     def test_unmarshall_time_leap_second(self):
-        leap_dict = dict(day=30, month=6, year=2015,
-                         hour=23, minute=59,
-                         second=timeutils._MAX_DATETIME_SEC + 1,
-                         microsecond=0)
+        leap_dict = dict(
+            day=30,
+            month=6,
+            year=2015,
+            hour=23,
+            minute=59,
+            second=timeutils._MAX_DATETIME_SEC + 1,
+            microsecond=0,
+        )
         leap_time = timeutils.unmarshall_time(leap_dict)
 
         leap_dict.update(second=timeutils._MAX_DATETIME_SEC)
@@ -190,10 +201,12 @@ class TimeUtilsTest(test_base.BaseTestCase):
 
     def test_delta_seconds(self):
         before = timeutils.utcnow()
-        after = before + datetime.timedelta(days=7, seconds=59,
-                                            microseconds=123456)
-        self.assertAlmostEqual(604859.123456,
-                               timeutils.delta_seconds(before, after))
+        after = before + datetime.timedelta(
+            days=7, seconds=59, microseconds=123456
+        )
+        self.assertAlmostEqual(
+            604859.123456, timeutils.delta_seconds(before, after)
+        )
 
     def test_is_soon(self):
         expires = timeutils.utcnow() + datetime.timedelta(minutes=5)
@@ -208,7 +221,6 @@ class TimeUtilsTest(test_base.BaseTestCase):
 
 
 class TestIso8601Time(test_base.BaseTestCase):
-
     def _instaneous(self, timestamp, yr, mon, day, hr, minute, sec, micro):
         self.assertEqual(timestamp.year, yr)
         self.assertEqual(timestamp.month, mon)
@@ -309,7 +321,6 @@ class TestIso8601Time(test_base.BaseTestCase):
 
 
 class TimeItTest(test_base.BaseTestCase):
-
     @mock.patch('time.sleep')
     @mock.patch('oslo_utils.timeutils.now')
     def test_timed(self, mock_now, mock_sleep):
@@ -380,9 +391,9 @@ class TimeItTest(test_base.BaseTestCase):
         self.assertTrue(mock_now.called)
         self.assertTrue(mock_sleep.called)
         self.assertTrue(fake_logger.log.called)
-        fake_logger.log.assert_called_with(logging.DEBUG,
-                                           "That took a long time",
-                                           mock.ANY)
+        fake_logger.log.assert_called_with(
+            logging.DEBUG, "That took a long time", mock.ANY
+        )
 
     @mock.patch('time.sleep')
     @mock.patch('oslo_utils.timeutils.now')
@@ -524,15 +535,15 @@ class StopWatchTest(test_base.BaseTestCase):
 
         watch.split()
         self.assertEqual(1, len(watch.splits))
-        self.assertEqual(watch.splits[0].elapsed,
-                         watch.splits[0].length)
+        self.assertEqual(watch.splits[0].elapsed, watch.splits[0].length)
 
         watch.split()
         splits = watch.splits
         self.assertEqual(2, len(splits))
         self.assertNotEqual(splits[0].elapsed, splits[1].elapsed)
-        self.assertEqual(splits[1].length,
-                         splits[1].elapsed - splits[0].elapsed)
+        self.assertEqual(
+            splits[1].length, splits[1].elapsed - splits[0].elapsed
+        )
 
         watch.stop()
         self.assertEqual(2, len(watch.splits))

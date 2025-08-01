@@ -27,7 +27,8 @@ from oslo_utils import importutils
 from oslo_utils import timeutils
 
 debtcollector.deprecate(
-    "eventletutils module is deprecated and will be removed.")
+    "eventletutils module is deprecated and will be removed."
+)
 
 # These may or may not exist; so carefully import them if we can...
 _eventlet = importutils.try_import('eventlet')
@@ -40,8 +41,18 @@ EVENTLET_AVAILABLE = all((_eventlet, _patcher))
 
 # Taken from eventlet.py (v0.16.1) patcher code (it's not a accessible set
 # for some reason...)
-_ALL_PATCH = frozenset(['__builtin__', 'MySQLdb', 'os',
-                        'psycopg', 'select', 'socket', 'thread', 'time'])
+_ALL_PATCH = frozenset(
+    [
+        '__builtin__',
+        'MySQLdb',
+        'os',
+        'psycopg',
+        'select',
+        'socket',
+        'thread',
+        'time',
+    ]
+)
 
 
 def fetch_current_thread_functor():
@@ -68,8 +79,9 @@ def fetch_current_thread_functor():
             return threading.current_thread
 
 
-def warn_eventlet_not_patched(expected_patched_modules=None,
-                              what='this library'):
+def warn_eventlet_not_patched(
+    expected_patched_modules=None, what='this library'
+):
     """Warns if eventlet is being used without patching provided modules.
 
     :param expected_patched_modules: list of modules to check to ensure that
@@ -99,8 +111,9 @@ def warn_eventlet_not_patched(expected_patched_modules=None,
                 expanded_patched_modules.update(_ALL_PATCH)
             else:
                 if m not in _ALL_PATCH:
-                    raise ValueError("Unknown module '%s' requested to check"
-                                     " if patched" % m)
+                    raise ValueError(
+                        f"Unknown module '{m}' requested to check if patched"
+                    )
                 else:
                     expanded_patched_modules.add(m)
     if EVENTLET_AVAILABLE:
@@ -125,12 +138,15 @@ def warn_eventlet_not_patched(expected_patched_modules=None,
                 if not _patcher.is_monkey_patched(m):
                     not_patched.append(m)
             if not_patched:
-                warnings.warn("It is highly recommended that when eventlet"
-                              " is used that the %s modules are monkey"
-                              " patched when using %s (to avoid"
-                              " spurious or unexpected lock-ups"
-                              " and/or hangs)" % (not_patched, what),
-                              RuntimeWarning, stacklevel=3)
+                warnings.warn(
+                    "It is highly recommended that when eventlet"
+                    f" is used that the {not_patched} modules are monkey"
+                    f" patched when using {what} (to avoid"
+                    " spurious or unexpected lock-ups"
+                    " and/or hangs)",
+                    RuntimeWarning,
+                    stacklevel=3,
+                )
 
 
 def is_monkey_patched(module):
@@ -150,6 +166,7 @@ class EventletEvent:
     This wraps the eventlet.event.Event class to have the same API as
     the standard threading.Event object.
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__()
         self.clear()
@@ -173,8 +190,9 @@ class EventletEvent:
         with timeutils.StopWatch(timeout) as sw:
             while True:
                 event = self._event
-                with _eventlet.timeout.Timeout(sw.leftover(return_none=True),
-                                               False):
+                with _eventlet.timeout.Timeout(
+                    sw.leftover(return_none=True), False
+                ):
                     event.wait()
                     if event is not self._event:
                         continue

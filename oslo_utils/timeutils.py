@@ -146,9 +146,9 @@ def set_time_override(override_time=None):
     :param override_time: datetime instance or list thereof. If not
                           given, defaults to the current UTC time.
     """
-    utcnow.override_time = (
-        override_time or
-        datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None))
+    utcnow.override_time = override_time or datetime.datetime.now(
+        datetime.timezone.utc
+    ).replace(tzinfo=None)
 
 
 def advance_time_delta(timedelta):
@@ -191,9 +191,15 @@ def marshall_now(now=None):
     """
     if not now:
         now = utcnow()
-    d = dict(day=now.day, month=now.month, year=now.year, hour=now.hour,
-             minute=now.minute, second=now.second,
-             microsecond=now.microsecond)
+    d = dict(
+        day=now.day,
+        month=now.month,
+        year=now.year,
+        hour=now.hour,
+        minute=now.minute,
+        second=now.second,
+        microsecond=now.microsecond,
+    )
     if now.tzinfo:
         # Need to handle either iso8601 or python UTC format
         tzname = now.tzinfo.tzname(None)
@@ -215,13 +221,15 @@ def unmarshall_time(tyme):
     # so the best thing we can do for now is dropping them
     # http://bugs.python.org/issue23574
     second = min(tyme['second'], _MAX_DATETIME_SEC)
-    dt = datetime.datetime(day=tyme['day'],
-                           month=tyme['month'],
-                           year=tyme['year'],
-                           hour=tyme['hour'],
-                           minute=tyme['minute'],
-                           second=second,
-                           microsecond=tyme['microsecond'])
+    dt = datetime.datetime(
+        day=tyme['day'],
+        month=tyme['month'],
+        year=tyme['year'],
+        hour=tyme['hour'],
+        minute=tyme['minute'],
+        second=second,
+        microsecond=tyme['microsecond'],
+    )
     tzname = tyme.get('tzname')
     if tzname:
         # Need to handle either iso8601 or python UTC format
@@ -250,7 +258,7 @@ def is_soon(dt, window):
 
     :return: True if expiration is within the given duration
     """
-    soon = (utcnow() + datetime.timedelta(seconds=window))
+    soon = utcnow() + datetime.timedelta(seconds=window)
     return normalize_time(dt) <= soon
 
 
@@ -280,14 +288,17 @@ class Split:
 
     def __repr__(self):
         r = reflection.get_class_name(self, fully_qualified=False)
-        r += "(elapsed={}, length={})".format(self._elapsed, self._length)
+        r += f"(elapsed={self._elapsed}, length={self._length})"
         return r
 
 
-def time_it(logger, log_level=logging.DEBUG,
-            message="It took %(seconds).02f seconds to"
-                    " run function '%(func_name)s'",
-            enabled=True, min_duration=0.01):
+def time_it(
+    logger,
+    log_level=logging.DEBUG,
+    message="It took %(seconds).02f seconds to run function '%(func_name)s'",
+    enabled=True,
+    min_duration=0.01,
+):
     """Decorator that will log how long its decorated function takes to run.
 
     This does **not** output a log if the decorated function fails
@@ -321,9 +332,14 @@ def time_it(logger, log_level=logging.DEBUG,
                 result = func(*args, **kwargs)
             time_taken = w.elapsed()
             if min_duration is None or time_taken >= min_duration:
-                logger.log(log_level, message,
-                           {'seconds': time_taken,
-                            'func_name': reflection.get_callable_name(func)})
+                logger.log(
+                    log_level,
+                    message,
+                    {
+                        'seconds': time_taken,
+                        'func_name': reflection.get_callable_name(func),
+                    },
+                )
             return result
 
         return wrapper
@@ -343,13 +359,15 @@ class StopWatch:
 
     .. versionadded:: 1.4
     """
+
     _STARTED = 'STARTED'
     _STOPPED = 'STOPPED'
 
     def __init__(self, duration=None):
         if duration is not None and duration < 0:
-            raise ValueError("Duration must be greater or equal to"
-                             " zero and not %s" % duration)
+            raise ValueError(
+                f"Duration must be greater or equal to zero and not {duration}"
+            )
         self._duration = duration
         self._started_at = None
         self._stopped_at = None
@@ -385,9 +403,11 @@ class StopWatch:
             self._splits = self._splits + (Split(elapsed, length),)
             return self._splits[-1]
         else:
-            raise RuntimeError("Can not create a split time of a stopwatch"
-                               " if it has not been started or if it has been"
-                               " stopped")
+            raise RuntimeError(
+                "Can not create a split time of a stopwatch"
+                " if it has not been started or if it has been"
+                " stopped"
+            )
 
     def restart(self):
         """Restarts the watch from a started/stopped state."""
@@ -404,8 +424,10 @@ class StopWatch:
     def elapsed(self, maximum=None):
         """Returns how many seconds have elapsed."""
         if self._state not in (self._STARTED, self._STOPPED):
-            raise RuntimeError("Can not get the elapsed time of a stopwatch"
-                               " if it has not been started/stopped")
+            raise RuntimeError(
+                "Can not get the elapsed time of a stopwatch"
+                " if it has not been started/stopped"
+            )
         if self._state == self._STOPPED:
             elapsed = self._delta_seconds(self._started_at, self._stopped_at)
         else:
@@ -435,20 +457,26 @@ class StopWatch:
         :type return_none: boolean
         """
         if self._state != self._STARTED:
-            raise RuntimeError("Can not get the leftover time of a stopwatch"
-                               " that has not been started")
+            raise RuntimeError(
+                "Can not get the leftover time of a stopwatch"
+                " that has not been started"
+            )
         if self._duration is None:
             if not return_none:
-                raise RuntimeError("Can not get the leftover time of a watch"
-                                   " that has no duration")
+                raise RuntimeError(
+                    "Can not get the leftover time of a watch"
+                    " that has no duration"
+                )
             return None
         return max(0.0, self._duration - self.elapsed())
 
     def expired(self):
         """Returns if the watch has expired (ie, duration provided elapsed)."""
         if self._state not in (self._STARTED, self._STOPPED):
-            raise RuntimeError("Can not check if a stopwatch has expired"
-                               " if it has not been started/stopped")
+            raise RuntimeError(
+                "Can not check if a stopwatch has expired"
+                " if it has not been started/stopped"
+            )
         if self._duration is None:
             return False
         return self.elapsed() > self._duration
@@ -467,16 +495,18 @@ class StopWatch:
             self._state = self._STARTED
             return self
         else:
-            raise RuntimeError("Can not resume a stopwatch that has not been"
-                               " stopped")
+            raise RuntimeError(
+                "Can not resume a stopwatch that has not been stopped"
+            )
 
     def stop(self):
         """Stops the watch."""
         if self._state == self._STOPPED:
             return self
         if self._state != self._STARTED:
-            raise RuntimeError("Can not stop a stopwatch that has not been"
-                               " started")
+            raise RuntimeError(
+                "Can not stop a stopwatch that has not been started"
+            )
         self._stopped_at = now()
         self._state = self._STOPPED
         return self

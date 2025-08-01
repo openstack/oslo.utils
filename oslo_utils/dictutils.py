@@ -22,8 +22,9 @@ def flatten_dict_to_keypairs(d, separator=':'):
     """
     for name, value in sorted(d.items()):
         if isinstance(value, dict):
-            for subname, subvalue in flatten_dict_to_keypairs(value,
-                                                              separator):
-                yield '{}{}{}'.format(name, separator, subname), subvalue
+            for subname, subvalue in flatten_dict_to_keypairs(
+                value, separator
+            ):
+                yield f'{name}{separator}{subname}', subvalue
         else:
             yield name, value

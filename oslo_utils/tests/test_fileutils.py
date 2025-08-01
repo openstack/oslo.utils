@@ -36,11 +36,12 @@ class EnsureTree(test_base.BaseTestCase):
     def test_ensure_tree(self):
         tmpdir = tempfile.mkdtemp()
         try:
-            testdir = '{}/foo/bar/baz'.format(tmpdir)
+            testdir = f'{tmpdir}/foo/bar/baz'
             fileutils.ensure_tree(testdir, TEST_PERMISSIONS)
             self.assertTrue(os.path.isdir(testdir))
-            self.assertEqual(os.stat(testdir).st_mode,
-                             TEST_PERMISSIONS | stat.S_IFDIR)
+            self.assertEqual(
+                os.stat(testdir).st_mode, TEST_PERMISSIONS | stat.S_IFDIR
+            )
         finally:
             if os.path.exists(tmpdir):
                 shutil.rmtree(tmpdir)
@@ -115,8 +116,8 @@ class RemovePathOnError(test_base.BaseTestCase):
 
         try:
             with fileutils.remove_path_on_error(
-                    tmpdir,
-                    lambda path: fileutils.delete_if_exists(path, os.rmdir)):
+                tmpdir, lambda path: fileutils.delete_if_exists(path, os.rmdir)
+            ):
                 raise Exception
         except Exception:
             self.assertFalse(os.path.exists(tmpdir))
@@ -144,7 +145,7 @@ class WriteToTempfileTestCase(test_base.BaseTestCase):
 
     def test_file_with_not_existing_path(self):
         random_dir = uuid.uuid4().hex
-        path = '/tmp/%s/test1' % random_dir
+        path = f'/tmp/{random_dir}/test1'
         res = fileutils.write_to_tempfile(self.content, path=path)
         self.assertTrue(os.path.exists(res))
         (basepath, tmpfile) = os.path.split(res)
@@ -169,10 +170,10 @@ class WriteToTempfileTestCase(test_base.BaseTestCase):
     def test_file_with_not_existing_path_and_not_default_suffix(self):
         suffix = '.txt'
         random_dir = uuid.uuid4().hex
-        path = '/tmp/%s/test2' % random_dir
-        res = fileutils.write_to_tempfile(self.content,
-                                          path=path,
-                                          suffix=suffix)
+        path = f'/tmp/{random_dir}/test2'
+        res = fileutils.write_to_tempfile(
+            self.content, path=path, suffix=suffix
+        )
         self.assertTrue(os.path.exists(res))
         (basepath, tmpfile) = os.path.split(res)
         self.assertTrue(tmpfile.startswith('tmp'))
@@ -195,7 +196,6 @@ class WriteToTempfileTestCase(test_base.BaseTestCase):
 
 
 class TestComputeFileChecksum(test_base.BaseTestCase):
-
     def setUp(self):
         super().setUp()
         self.content = b'fake_content'
@@ -227,7 +227,8 @@ class TestComputeFileChecksum(test_base.BaseTestCase):
 
         with mock.patch.object(time, "sleep") as sleep_mock:
             actual_checksum = fileutils.compute_file_checksum(
-                path, read_chunksize=4)
+                path, read_chunksize=4
+            )
 
         sleep_mock.assert_has_calls([mock.call(0)] * 3)
         # Just to make sure that there were exactly 3 calls
@@ -242,8 +243,9 @@ class TestComputeFileChecksum(test_base.BaseTestCase):
         expected_checksum = hashlib.sha512()
         expected_checksum.update(self.content)
 
-        actual_checksum = fileutils.compute_file_checksum(path,
-                                                          algorithm='sha512')
+        actual_checksum = fileutils.compute_file_checksum(
+            path, algorithm='sha512'
+        )
 
         self.assertEqual(expected_checksum.hexdigest(), actual_checksum)
 
@@ -252,8 +254,9 @@ class TestComputeFileChecksum(test_base.BaseTestCase):
         self.assertTrue(os.path.exists(path))
         self.check_file_content(self.content, path)
 
-        self.assertRaises(ValueError, fileutils.compute_file_checksum,
-                          path, algorithm='foo')
+        self.assertRaises(
+            ValueError, fileutils.compute_file_checksum, path, algorithm='foo'
+        )
 
     def test_file_does_not_exist(self):
         random_file_name = uuid.uuid4().hex
@@ -287,8 +290,9 @@ class LastBytesTestCase(test_base.BaseTestCase):
         self.assertEqual(0, unread_bytes)
 
     def test_non_exist_file(self):
-        self.assertRaises(IOError, fileutils.last_bytes,
-                          'non_exist_file', 1000)
+        self.assertRaises(
+            IOError, fileutils.last_bytes, 'non_exist_file', 1000
+        )
 
 
 class FileTypeTestCase(test_base.BaseTestCase):
@@ -296,10 +300,7 @@ class FileTypeTestCase(test_base.BaseTestCase):
 
     def setUp(self):
         super().setUp()
-        data = {
-            'name': 'test',
-            'website': 'example.com'
-        }
+        data = {'name': 'test', 'website': 'example.com'}
         temp_dir = tempfile.mkdtemp()
         self.json_file = tempfile.mktemp(dir=temp_dir)
         self.yaml_file = tempfile.mktemp(dir=temp_dir)

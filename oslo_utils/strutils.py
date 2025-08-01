@@ -53,8 +53,10 @@ UNIT_PREFIX_EXPONENT = {
 UNIT_SYSTEM_INFO = {
     'IEC': (1024, re.compile(r'(^[-+]?\d*\.?\d+)([KMGTPEZYRQ]i?)?(b|bit|B)$')),
     'SI': (1000, re.compile(r'(^[-+]?\d*\.?\d+)([kMGTPEZYRQ])?(b|bit|B)$')),
-    'mixed': (None, re.compile(
-        r'(^[-+]?\d*\.?\d+)([kKMGTPEZYRQ]i?)?(b|bit|B)$')),
+    'mixed': (
+        None,
+        re.compile(r'(^[-+]?\d*\.?\d+)([kKMGTPEZYRQ]i?)?(b|bit|B)$'),
+    ),
 }
 
 TRUE_STRINGS = ('1', 't', 'true', 'on', 'y', 'yes')
@@ -66,17 +68,43 @@ SLUGIFY_HYPHENATE_RE = re.compile(r"[-\s]+")
 
 # NOTE(flaper87): The following globals are used by `mask_password` and
 #                 `mask_dict_password`. They must all be lowercase.
-_SANITIZE_KEYS = ['adminpass', 'admin_pass', 'password', 'admin_password',
-                  'auth_token', 'new_pass', 'auth_password', 'secret_uuid',
-                  'secret', 'sys_pswd', 'token', 'configdrive',
-                  'chappassword', 'encrypted_key', 'private_key',
-                  'fernetkey', 'sslkey', 'passphrase',
-                  'cephclusterfsid', 'octaviaheartbeatkey', 'rabbitcookie',
-                  'cephmanilaclientkey', 'pacemakerremoteauthkey',
-                  'designaterndckey', 'cephadminkey', 'heatauthencryptionkey',
-                  'cephclientkey', 'keystonecredential',
-                  'barbicansimplecryptokek', 'cephrgwkey', 'swifthashsuffix',
-                  'migrationsshkey', 'cephmdskey', 'cephmonkey', 'chapsecret']
+_SANITIZE_KEYS = [
+    'adminpass',
+    'admin_pass',
+    'password',
+    'admin_password',
+    'auth_token',
+    'new_pass',
+    'auth_password',
+    'secret_uuid',
+    'secret',
+    'sys_pswd',
+    'token',
+    'configdrive',
+    'chappassword',
+    'encrypted_key',
+    'private_key',
+    'fernetkey',
+    'sslkey',
+    'passphrase',
+    'cephclusterfsid',
+    'octaviaheartbeatkey',
+    'rabbitcookie',
+    'cephmanilaclientkey',
+    'pacemakerremoteauthkey',
+    'designaterndckey',
+    'cephadminkey',
+    'heatauthencryptionkey',
+    'cephclientkey',
+    'keystonecredential',
+    'barbicansimplecryptokek',
+    'cephrgwkey',
+    'swifthashsuffix',
+    'migrationsshkey',
+    'cephmdskey',
+    'cephmonkey',
+    'chapsecret',
+]
 
 # NOTE(ldbragst): Let's build a list of regex objects using the list of
 # _SANITIZE_KEYS we already have. This way, we only have to add the new key
@@ -89,20 +117,24 @@ _SANITIZE_PATTERNS_WILDCARD = {}
 # NOTE(amrith): Some regular expressions have only one parameter, some
 # have two parameters. Use different lists of patterns here.
 _FORMAT_PATTERNS_1 = [r'(%(key)s[0-9]*\s*[=]\s*)[^\s^\'^\"]+']
-_FORMAT_PATTERNS_2 = [r'(%(key)s[0-9]*\s*[=]\s*[\"\'])[^\"\']*([\"\'])',
-                      r'(%(key)s[0-9]*\s*[=]\s*[\"])[^\"]*([\"])',
-                      r'(%(key)s[0-9]*\s*[=]\s*[\'])[^\']*([\'])',
-                      r'(%(key)s[0-9]*\s+[\"\'])[^\"\']*([\"\'])',
-                      r'([-]{2}%(key)s[0-9]*\s+)[^\'^\"^=^\s]+([\s]*)',
-                      r'(<%(key)s[0-9]*>)[^<]*(</%(key)s[0-9]*>)',
-                      r'([\"\']%(key)s[0-9]*[\"\']\s*:\s*[\"\'])[^\"\']*'
-                      r'([\"\'])',
-                      r'([\'"][^"\']*%(key)s[0-9]*[\'"]\s*:\s*u?[\'"])[^\"\']*'
-                      r'([\'"])',
-                      r'([\'"][^\'"]*%(key)s[0-9]*[\'"]\s*,\s*\'--?[A-z]+'
-                      r'\'\s*,\s*u?[\'"])[^\"\']*([\'"])',
-                      r'(%(key)s[0-9]*\s*--?[A-z]+\s*)\S+(\s*)']
-_FORMAT_PATTERNS_WILDCARD = [r'([\'\"][^\"\']*%(key)s[0-9]*[\'\"]\s*:\s*u?[\'\"].*[\'\"])[^\"\']*([\'\"])']  # noqa: E501
+_FORMAT_PATTERNS_2 = [
+    r'(%(key)s[0-9]*\s*[=]\s*[\"\'])[^\"\']*([\"\'])',
+    r'(%(key)s[0-9]*\s*[=]\s*[\"])[^\"]*([\"])',
+    r'(%(key)s[0-9]*\s*[=]\s*[\'])[^\']*([\'])',
+    r'(%(key)s[0-9]*\s+[\"\'])[^\"\']*([\"\'])',
+    r'([-]{2}%(key)s[0-9]*\s+)[^\'^\"^=^\s]+([\s]*)',
+    r'(<%(key)s[0-9]*>)[^<]*(</%(key)s[0-9]*>)',
+    r'([\"\']%(key)s[0-9]*[\"\']\s*:\s*[\"\'])[^\"\']*'
+    r'([\"\'])',
+    r'([\'"][^"\']*%(key)s[0-9]*[\'"]\s*:\s*u?[\'"])[^\"\']*'
+    r'([\'"])',
+    r'([\'"][^\'"]*%(key)s[0-9]*[\'"]\s*,\s*\'--?[A-z]+'
+    r'\'\s*,\s*u?[\'"])[^\"\']*([\'"])',
+    r'(%(key)s[0-9]*\s*--?[A-z]+\s*)\S+(\s*)',
+]
+_FORMAT_PATTERNS_WILDCARD = [
+    r'([\'\"][^\"\']*%(key)s[0-9]*[\'\"]\s*:\s*u?[\'\"].*[\'\"])[^\"\']*([\'\"])'
+]  # noqa: E501
 
 # NOTE(dhellmann): Keep a separate list of patterns by key so we only
 # need to apply the substitutions for keys we find using a quick "in"
@@ -168,10 +200,12 @@ def bool_from_string(subject, strict=False, default=False):
         return False
     elif strict:
         acceptable = ', '.join(
-            "'%s'" % s for s in sorted(TRUE_STRINGS + FALSE_STRINGS))
-        msg = _("Unrecognized value '%(val)s', acceptable values are:"
-                " %(acceptable)s") % {'val': subject,
-                                      'acceptable': acceptable}
+            f"'{s}'" for s in sorted(TRUE_STRINGS + FALSE_STRINGS)
+        )
+        msg = _(
+            "Unrecognized value '%(val)s', acceptable values are:"
+            " %(acceptable)s"
+        ) % {'val': subject, 'acceptable': acceptable}
         raise ValueError(msg)
     else:
         return default
@@ -195,16 +229,58 @@ def string_to_bytes(text, unit_system='IEC', return_int=False):
 
     The units supported for IEC / mixed::
 
-        Kb(it), Kib(it), Mb(it), Mib(it), Gb(it), Gib(it), Tb(it), Tib(it),
-        Pb(it), Pib(it), Eb(it), Eib(it), Zb(it), Zib(it), Yb(it), Yib(it),
+        (
+            Kb(it),
+            Kib(it),
+            Mb(it),
+            Mib(it),
+            Gb(it),
+            Gib(it),
+            Tb(it),
+            Tib(it),
+        )
+        (
+            Pb(it),
+            Pib(it),
+            Eb(it),
+            Eib(it),
+            Zb(it),
+            Zib(it),
+            Yb(it),
+            Yib(it),
+        )
         Rb(it), Rib(it), Qb(it), Qib(it)
 
-        KB, KiB, MB, MiB, GB, GiB, TB, TiB, PB, PiB, EB, EiB, ZB, ZiB,
+        (
+            KB,
+            KiB,
+            MB,
+            MiB,
+            GB,
+            GiB,
+            TB,
+            TiB,
+            PB,
+            PiB,
+            EB,
+            EiB,
+            ZB,
+            ZiB,
+        )
         YB, YiB, RB, RiB, QB, QiB
 
     The units supported for SI ::
 
-        kb(it), Mb(it), Gb(it), Tb(it), Pb(it), Eb(it), Zb(it), Yb(it),
+        (
+            kb(it),
+            Mb(it),
+            Gb(it),
+            Tb(it),
+            Pb(it),
+            Eb(it),
+            Zb(it),
+            Yb(it),
+        )
         Rb(it), Qb(it)
 
         kB, MB, GB, TB, PB, EB, ZB, YB, RB, QB
@@ -284,8 +360,11 @@ def to_slug(value, incoming=None, errors="strict"):
     # NOTE(aababilov): no need to use safe_(encode|decode) here:
     # encodings are always "ascii", error handling is always "ignore"
     # and types are always known (first: unicode; second: str)
-    value = unicodedata.normalize("NFKD", value).encode(
-        "ascii", "ignore").decode("ascii")
+    value = (
+        unicodedata.normalize("NFKD", value)
+        .encode("ascii", "ignore")
+        .decode("ascii")
+    )
     value = SLUGIFY_STRIP_RE.sub("", value).strip().lower()
     return SLUGIFY_HYPHENATE_RE.sub("-", value)
 
@@ -430,8 +509,7 @@ def mask_dict_password(dictionary, secret="***"):  # nosec
     """
 
     if not isinstance(dictionary, collections.abc.Mapping):
-        raise TypeError("Expected a Mapping, got %s instead."
-                        % type(dictionary))
+        raise TypeError(f"Expected a Mapping, got {type(dictionary)} instead.")
     out = {}
     for k, v in dictionary.items():
         if isinstance(v, collections.abc.Mapping):
@@ -492,15 +570,15 @@ def check_string_length(value, name=None, min_length=0, max_length=None):
 
     length = len(value)
     if length < min_length:
-        msg = _("%(name)s has %(length)s characters, less than "
-                "%(min_length)s.") % {'name': name, 'length': length,
-                                      'min_length': min_length}
+        msg = _(
+            "%(name)s has %(length)s characters, less than %(min_length)s."
+        ) % {'name': name, 'length': length, 'min_length': min_length}
         raise ValueError(msg)
 
     if max_length and length > max_length:
-        msg = _("%(name)s has %(length)s characters, more than "
-                "%(max_length)s.") % {'name': name, 'length': length,
-                                      'max_length': max_length}
+        msg = _(
+            "%(name)s has %(length)s characters, more than %(max_length)s."
+        ) % {'name': name, 'length': length, 'max_length': max_length}
         raise ValueError(msg)
 
 
@@ -519,18 +597,21 @@ def validate_integer(value, name, min_value=None, max_value=None):
     try:
         value = int(str(value))
     except (ValueError, UnicodeEncodeError):
-        msg = _('%(value_name)s must be an integer'
-                ) % {'value_name': name}
+        msg = _('%(value_name)s must be an integer') % {'value_name': name}
         raise ValueError(msg)
 
     if min_value is not None and value < min_value:
-        msg = _('%(value_name)s must be >= %(min_value)d'
-                ) % {'value_name': name, 'min_value': min_value}
+        msg = _('%(value_name)s must be >= %(min_value)d') % {
+            'value_name': name,
+            'min_value': min_value,
+        }
         raise ValueError(msg)
 
     if max_value is not None and value > max_value:
-        msg = _('%(value_name)s must be <= %(max_value)d'
-                ) % {'value_name': name, 'max_value': max_value}
+        msg = _('%(value_name)s must be <= %(max_value)d') % {
+            'value_name': name,
+            'max_value': max_value,
+        }
         raise ValueError(msg)
 
     return value
@@ -561,24 +642,34 @@ def split_path(path, minsegs=1, maxsegs=None, rest_with_last=False):
     if not maxsegs:
         maxsegs = minsegs
     if minsegs > maxsegs:
-        raise ValueError(_('minsegs > maxsegs: %(min)d > %(max)d)') %
-                         {'min': minsegs, 'max': maxsegs})
+        raise ValueError(
+            _('minsegs > maxsegs: %(min)d > %(max)d)')
+            % {'min': minsegs, 'max': maxsegs}
+        )
     if rest_with_last:
         segs = path.split('/', maxsegs)
         minsegs += 1
         maxsegs += 1
         count = len(segs)
-        if (segs[0] or count < minsegs or count > maxsegs or
-                '' in segs[1:minsegs]):
+        if (
+            segs[0]
+            or count < minsegs
+            or count > maxsegs
+            or '' in segs[1:minsegs]
+        ):
             raise ValueError(_('Invalid path: %s') % urllib.parse.quote(path))
     else:
         minsegs += 1
         maxsegs += 1
         segs = path.split('/', maxsegs)
         count = len(segs)
-        if (segs[0] or count < minsegs or count > maxsegs + 1 or
-                '' in segs[1:minsegs] or
-                (count == maxsegs + 1 and segs[maxsegs])):
+        if (
+            segs[0]
+            or count < minsegs
+            or count > maxsegs + 1
+            or '' in segs[1:minsegs]
+            or (count == maxsegs + 1 and segs[maxsegs])
+        ):
             raise ValueError(_('Invalid path: %s') % urllib.parse.quote(path))
     segs = segs[1:maxsegs]
     segs.extend([None] * (maxsegs - 1 - len(segs)))
@@ -595,13 +686,12 @@ def split_by_commas(value):
     # pyparsing is a slow import; defer loading until we need it
     import pyparsing as pp
 
-    word = (
-        pp.QuotedString(quoteChar='"', escChar='\\') |
-        pp.Word(pp.printables, excludeChars='",')
+    word = pp.QuotedString(quoteChar='"', escChar='\\') | pp.Word(
+        pp.printables, excludeChars='",'
     )
     grammar = pp.stringStart + pp.delimitedList(word) + pp.stringEnd
 
     try:
         return list(grammar.parseString(value))
     except pp.ParseException:
-        raise ValueError("Invalid value: %s" % value)
+        raise ValueError(f"Invalid value: {value}")
