@@ -23,6 +23,7 @@ complex-format images.
 
 import abc
 import struct
+from typing import cast, TypedDict
 
 import logging
 from oslo_utils._i18n import _
@@ -492,6 +493,15 @@ class RawFileInspector(FileInspector):
 #  72  0x48   Incompatible features bitfield (6 bytes)
 #
 # https://gitlab.com/qemu-project/qemu/-/blob/master/docs/interop/qcow2.txt
+class QEMUHeader(TypedDict, total=False):
+    magic: bytes
+    version: int
+    bf_offset: int
+    bf_sz: int
+    cluster_bits: int
+    size: int
+
+
 class QcowInspector(FileInspector):
     """QEMU QCOW Format
 
@@ -511,7 +521,7 @@ class QcowInspector(FileInspector):
     I_FEATURES_MAX_BIT = 4
 
     def _initialize(self):
-        self.qemu_header_info = {}
+        self.qemu_header_info: QEMUHeader = {}
         self.new_region('header', CaptureRegion(0, 512))
         self.add_safety_check(
             SafetyCheck('backing_file', self.check_backing_file)
@@ -522,18 +532,21 @@ class QcowInspector(FileInspector):
         )
 
     def region_complete(self, region):
-        self.qemu_header_info = dict(
-            zip(
-                (
-                    'magic',
-                    'version',
-                    'bf_offset',
-                    'bf_sz',
-                    'cluster_bits',
-                    'size',
-                ),
-                struct.unpack('>4sIQIIQ', self.region('header').data[:32]),
-            )
+        self.qemu_header_info = cast(
+            QEMUHeader,
+            dict(
+                zip(
+                    (
+                        'magic',
+                        'version',
+                        'bf_offset',
+                        'bf_sz',
+                        'cluster_bits',
+                        'size',
+                    ),
+                    struct.unpack('>4sIQIIQ', self.region('header').data[:32]),
+                )
+            ),
         )
         if not self.format_match:
             self.qemu_header_info = {}
@@ -1384,6 +1397,15 @@ class GPTInspector(FileInspector):
 # https://gitlab.com/cryptsetup/cryptsetup/-/wikis/LUKS-standard/on-disk-format.pdf
 # LUKSv2 is a different but similar spec, which is not yet covered here (or
 # in qemu).
+class LUKSHeader(TypedDict, total=False):
+    magic: bytes
+    version: int
+    cipher_alg: bytes
+    cipher_mode: bytes
+    hash: bytes
+    payload_offset: int
+
+
 class LUKSInspector(FileInspector):
     NAME = 'luks'
 
@@ -1396,7 +1418,7 @@ class LUKSInspector(FileInspector):
         return self.region('header').data[:6] == b'LUKS\xba\xbe'
 
     @property
-    def header_items(self):
+    def header_items(self) -> LUKSHeader:
         fields = struct.unpack(
             '>6sh32s32s32sI', self.region('header').data[:108]
         )
@@ -1408,7 +1430,7 @@ class LUKSInspector(FileInspector):
             'hash',
             'payload_offset',
         ]
-        return dict(zip(names, fields))
+        return cast(LUKSHeader, dict(zip(names, fields)))
 
     def check_version(self):
         header = self.header_items
