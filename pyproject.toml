@@ -28,7 +28,7 @@ classifiers = [
 
 [project.urls]
 Homepage = "https://docs.openstack.org/oslo.utils"
-Repository = "https://opendev.org/openstack/oslo.utils/"
+Repository = "https://opendev.org/openstack/oslo.utils"
 
 [tool.setuptools]
 packages = [
