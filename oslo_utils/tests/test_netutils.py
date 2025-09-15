@@ -251,7 +251,7 @@ class NetworkUtilsTest(test_base.BaseTestCase):
 
         self.assertFalse(netutils.is_valid_cidr('10.0.0.1'))
         self.assertFalse(netutils.is_valid_cidr('10.0.0.1/33'))
-        self.assertFalse(netutils.is_valid_cidr(10))
+        self.assertFalse(netutils.is_valid_cidr(10))  # type: ignore
 
     def test_is_valid_ipv6_cidr(self):
         self.assertTrue(netutils.is_valid_ipv6_cidr("2600::/64"))
@@ -290,7 +290,7 @@ class NetworkUtilsTest(test_base.BaseTestCase):
             '65535',
         ]
         for input_str in valid_inputs:
-            self.assertTrue(netutils.is_valid_port(input_str))
+            self.assertTrue(netutils.is_valid_port(input_str))  # type: ignore
 
     def test_valid_port_fail(self):
         invalid_inputs = [
@@ -303,7 +303,7 @@ class NetworkUtilsTest(test_base.BaseTestCase):
             None,
         ]
         for input_str in invalid_inputs:
-            self.assertFalse(netutils.is_valid_port(input_str))
+            self.assertFalse(netutils.is_valid_port(input_str))  # type: ignore
 
     def test_get_my_ipv4(self):
         mock_sock = mock.Mock()
@@ -347,7 +347,7 @@ class NetworkUtilsTest(test_base.BaseTestCase):
             ('-100', -100, 100),
         ]
         for input_value in valid_inputs:
-            self.assertTrue(netutils._is_int_in_range(*input_value))
+            self.assertTrue(netutils._is_int_in_range(*input_value))  # type: ignore
 
     def test_is_int_not_in_range(self):
         invalid_inputs = [
@@ -357,27 +357,27 @@ class NetworkUtilsTest(test_base.BaseTestCase):
             ('None', 1, 100),
         ]
         for input_value in invalid_inputs:
-            self.assertFalse(netutils._is_int_in_range(*input_value))
+            self.assertFalse(netutils._is_int_in_range(*input_value))  # type: ignore
 
     def test_valid_icmp_type(self):
         valid_inputs = [1, '1', 0, '0', 255, '255']
         for input_value in valid_inputs:
-            self.assertTrue(netutils.is_valid_icmp_type(input_value))
+            self.assertTrue(netutils.is_valid_icmp_type(input_value))  # type: ignore
 
     def test_invalid_icmp_type(self):
         invalid_inputs = [-1, '-1', 256, '256', None, 'None', 'five']
         for input_value in invalid_inputs:
-            self.assertFalse(netutils.is_valid_icmp_type(input_value))
+            self.assertFalse(netutils.is_valid_icmp_type(input_value))  # type: ignore
 
     def test_valid_icmp_code(self):
         valid_inputs = [1, '1', 0, '0', 255, '255', None]
         for input_value in valid_inputs:
-            self.assertTrue(netutils.is_valid_icmp_code(input_value))
+            self.assertTrue(netutils.is_valid_icmp_code(input_value))  # type: ignore
 
     def test_invalid_icmp_code(self):
         invalid_inputs = [-1, '-1', 256, '256', 'None', 'zero']
         for input_value in invalid_inputs:
-            self.assertFalse(netutils.is_valid_icmp_code(input_value))
+            self.assertFalse(netutils.is_valid_icmp_code(input_value))  # type: ignore
 
     @mock.patch('socket.socket')
     @mock.patch('oslo_utils.netutils._get_my_ipv4_address')
@@ -513,7 +513,8 @@ class IPv6byEUI64TestCase(test_base.BaseTestCase):
         mac = '00:16:3e:33:44:55'
         prefix = 123
         self.assertRaises(
-            TypeError, lambda: netutils.get_ipv6_addr_by_EUI64(prefix, mac)
+            TypeError,
+            lambda: netutils.get_ipv6_addr_by_EUI64(prefix, mac),  # type: ignore
         )
 
     def test_generate_IPv6_with_empty_prefix(self):

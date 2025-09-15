@@ -716,12 +716,12 @@ class MaskPasswordTestCase(test_base.BaseTestCase):
         self.assertEqual(expected, strutils.mask_password(payload))
 
 
-class TestMapping(collections.abc.Mapping):
+class TestMapping(collections.abc.Mapping[str, Any]):
     """Test class for non-dict mappings"""
 
     def __init__(self):
         super().__init__()
-        self.data = {
+        self.data: dict[str, Any] = {
             'password': 'shhh',
             'foo': 'bar',
         }
@@ -793,9 +793,7 @@ class MaskDictionaryPasswordTestCase(test_base.BaseTestCase):
         self.assertEqual(expected, strutils.mask_dict_password(payload))
 
     def test_do_no_harm(self):
-        payload = {}
-        expected = {}
-        self.assertEqual(expected, strutils.mask_dict_password(payload))
+        self.assertEqual({}, strutils.mask_dict_password({}))
 
         payload = {'somekey': 'somevalue', 'anotherkey': 'anothervalue'}
         expected = {'somekey': 'somevalue', 'anotherkey': 'anothervalue'}
@@ -901,7 +899,7 @@ class IsIntLikeTestCase(test_base.BaseTestCase):
 class StringLengthTestCase(test_base.BaseTestCase):
     def test_check_string_length(self):
         self.assertIsNone(
-            strutils.check_string_length('test', 'name', max_length=255)
+            strutils.check_string_length('test', 'name', max_length=255)  # type: ignore
         )
         self.assertRaises(
             ValueError, strutils.check_string_length, '', 'name', min_length=1
@@ -925,7 +923,7 @@ class StringLengthTestCase(test_base.BaseTestCase):
         )
 
     def test_check_string_length_noname(self):
-        self.assertIsNone(strutils.check_string_length('test', max_length=255))
+        self.assertIsNone(strutils.check_string_length('test', max_length=255))  # type: ignore
         self.assertRaises(
             ValueError, strutils.check_string_length, '', min_length=1
         )

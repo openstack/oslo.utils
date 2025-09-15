@@ -235,7 +235,9 @@ class TestIso8601Time(test_base.BaseTestCase):
         DAY_SECONDS = 24 * 60 * 60
         timestamp = timeutils.parse_isotime(time_str)
         self._instaneous(timestamp, yr, mon, day, hr, minute, sec, micro)
+        assert timestamp.tzinfo is not None
         offset = timestamp.tzinfo.utcoffset(None)
+        assert offset is not None
         self.assertEqual(offset.seconds + offset.days * DAY_SECONDS, shift)
 
     def test_zulu(self):

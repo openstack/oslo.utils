@@ -85,7 +85,7 @@ class EncodeUtilsTest(test_base.BaseTestCase):
                 encodeutils.safe_encode(utf8, 'UTF-8', 'utf-8'),
                 encodeutils.safe_encode(utf8, 'utf-8', 'utf-8'),
             )
-            encodeutils.safe_decode.assert_has_calls([])
+            encodeutils.safe_decode.assert_has_calls([])  # type: ignore
 
     def test_safe_encode_different_encodings(self):
         text = 'foo\xc3\xb1bar'
