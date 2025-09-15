@@ -232,8 +232,8 @@ class FileInspector(abc.ABC):
         # retain all that work and assist in future debug, we have a separate
         # debug flag that can be passed from a manual tool to turn it on.
         self._tracing = tracing
-        self._capture_regions = {}
-        self._safety_checks = {}
+        self._capture_regions: dict[str, CaptureRegion] = {}
+        self._safety_checks: dict[str, SafetyCheck] = {}
         self._finished = False
         self._initialize()
         if not self._safety_checks:
@@ -455,7 +455,7 @@ class FileInspector(abc.ABC):
             try:
                 check()
             except SafetyViolation as exc:
-                exc.check = check
+                exc.check = check  # type: ignore[attr-defined]
                 failures[check.name] = exc
                 LOG.warning(
                     'Safety check %s on %s failed because %s',
@@ -1614,7 +1614,7 @@ class InspectWrapper:
                 )
 
 
-ALL_FORMATS = {
+ALL_FORMATS: dict[str, type[FileInspector]] = {
     'raw': RawFileInspector,
     'qcow2': QcowInspector,
     'vhd': VHDInspector,

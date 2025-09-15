@@ -23,6 +23,7 @@ import ctypes.util
 import hashlib
 import secrets
 import string as _string
+from typing import Any, cast
 
 import debtcollector.removals
 
@@ -30,7 +31,7 @@ import debtcollector.removals
 @debtcollector.removals.remove(
     message='Use hashlib.md5 instead', category=DeprecationWarning
 )
-def md5(string=b'', usedforsecurity=True):
+def md5(string: bytes | bytearray = b'', usedforsecurity: bool = True) -> Any:
     """Return an md5 hashlib object using usedforsecurity parameter
 
     For python distributions that support the usedforsecurity keyword
@@ -40,6 +41,7 @@ def md5(string=b'', usedforsecurity=True):
     return hashlib.md5(string, usedforsecurity=usedforsecurity)  # noqa: S324
 
 
+_crypt: Any
 if ctypes.util.find_library("crypt"):
     _libcrypt = ctypes.CDLL(ctypes.util.find_library("crypt"), use_errno=True)
     _crypt = _libcrypt.crypt
@@ -49,7 +51,7 @@ else:
     _crypt = None
 
 
-def crypt_mksalt(method):
+def crypt_mksalt(method: str) -> str:
     """Make salt to encrypt password string
 
     This is provided as a replacement of crypt.mksalt method because crypt
@@ -70,7 +72,7 @@ def crypt_mksalt(method):
     )
 
 
-def crypt_password(key, salt):
+def crypt_password(key: str, salt: str) -> str:
     """Encrtpt password string and generate the value in /etc/shadow format
 
     This is provided as a replacement of crypt.crypt method because crypt
@@ -80,4 +82,6 @@ def crypt_password(key, salt):
     """
     if _crypt is None:
         raise RuntimeError('libcrypt is not available')
-    return _crypt(key.encode('utf-8'), salt.encode('utf-8')).decode('utf-8')
+    return cast(
+        bytes, _crypt(key.encode('utf-8'), salt.encode('utf-8'))
+    ).decode('utf-8')

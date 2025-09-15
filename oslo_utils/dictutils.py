@@ -13,8 +13,13 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from collections.abc import Generator
+from typing import Any
 
-def flatten_dict_to_keypairs(d, separator=':'):
+
+def flatten_dict_to_keypairs(
+    d: dict[str, Any], separator: str = ':'
+) -> Generator[tuple[str, Any], None, None]:
     """Generator that produces sequence of keypairs for nested dictionaries.
 
     :param d: dictionaries which may be nested

@@ -14,12 +14,14 @@
 #    under the License.
 
 import ast
+from collections.abc import Callable
 import operator
+from typing import Any
 
 import pyparsing
 
 
-def _all_in(x, *y):
+def _all_in(x: str, *y: str) -> bool:
     x = ast.literal_eval(x)
     if not isinstance(x, list):
         raise TypeError(
@@ -29,7 +31,7 @@ def _all_in(x, *y):
     return all(val in x for val in y)
 
 
-def _range_in(x, *y):
+def _range_in(x: str, *y: str) -> bool:
     x = ast.literal_eval(x)
     if len(y) != 4:
         raise TypeError(
@@ -67,7 +69,7 @@ def _range_in(x, *y):
     return lower and upper
 
 
-op_methods = {
+op_methods: dict[str, Callable[..., bool]] = {
     # This one is special/odd,
     # TODO(harlowja): fix it so that it's not greater than or
     # equal, see here for the original @ https://review.openstack.org/#/c/8089/
@@ -95,7 +97,7 @@ op_methods = {
 }
 
 
-def make_grammar():
+def make_grammar() -> pyparsing.ParserElement:
     """Creates the grammar to be used by a spec matcher.
 
     The grammar created supports the following operations.
@@ -189,7 +191,7 @@ def make_grammar():
     return expr
 
 
-def match(cmp_value, spec):
+def match(cmp_value: Any, spec: str) -> bool:
     """Match a given value to a given spec DSL.
 
     This uses the grammar defined by make_grammar()
@@ -201,6 +203,7 @@ def match(cmp_value, spec):
     :returns: True if cmp_value is a match for spec. False otherwise.
     """
     expr = make_grammar()
+    tree: pyparsing.ParseResults | list[str]
     try:
         # As of 2018-01-29 documentation on parseString()
         # https://pythonhosted.org/pyparsing/pyparsing.ParserElement-class.html#parseString
@@ -212,7 +215,7 @@ def match(cmp_value, spec):
         # If an exception then we will just check if the value matches the spec
         tree = [spec]
     if len(tree) == 1:
-        return tree[0] == cmp_value
+        return bool(tree[0] == cmp_value)
 
     # tree[0] will contain a string representation of a comparison operation
     # such as '>=', we then convert that string to a comparison function

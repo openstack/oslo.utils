@@ -22,9 +22,11 @@ import inspect
 import logging
 import operator
 import types
+from typing import Any
+from collections.abc import Generator, Sequence
 
 try:
-    _TYPE_TYPE = types.TypeType
+    _TYPE_TYPE = types.TypeType  # type: ignore
 except AttributeError:
     _TYPE_TYPE = type
 
@@ -42,7 +44,9 @@ Signature = inspect.Signature
 get_signature = inspect.signature
 
 
-def get_members(obj, exclude_hidden=True):
+def get_members(
+    obj: Any, exclude_hidden: bool = True
+) -> Generator[tuple[str, Any], None, None]:
     """Yields the members of an object, filtering by hidden/not hidden.
 
     .. versionadded:: 2.3
@@ -53,7 +57,7 @@ def get_members(obj, exclude_hidden=True):
         yield (name, value)
 
 
-def get_member_names(obj, exclude_hidden=True):
+def get_member_names(obj: Any, exclude_hidden: bool = True) -> list[str]:
     """Get all the member names for a object."""
     return [
         name
@@ -61,7 +65,9 @@ def get_member_names(obj, exclude_hidden=True):
     ]
 
 
-def get_class_name(obj, fully_qualified=True, truncate_builtins=True):
+def get_class_name(
+    obj: Any, fully_qualified: bool = True, truncate_builtins: bool = True
+) -> str:
     """Get class name for object.
 
     If object is a type, returns name of the type. If object is a bound
@@ -86,16 +92,19 @@ def get_class_name(obj, fully_qualified=True, truncate_builtins=True):
             pass
         else:
             if built_in:
-                return obj.__name__
+                return str(obj.__name__)
     if fully_qualified and hasattr(obj, '__module__'):
         return f'{obj.__module__}.{obj.__name__}'
     else:
-        return obj.__name__
+        return str(obj.__name__)
 
 
 def get_all_class_names(
-    obj, up_to=object, fully_qualified=True, truncate_builtins=True
-):
+    obj: Any,
+    up_to: type = object,
+    fully_qualified: bool = True,
+    truncate_builtins: bool = True,
+) -> Generator[str, None, None]:
     """Get class names of object parent classes.
 
     Iterate over all class names object is instance or subclass of,
@@ -113,12 +122,13 @@ def get_all_class_names(
             )
 
 
-def get_callable_name(function):
+def get_callable_name(function: Any) -> str:
     """Generate a name from callable.
 
     Tries to do the best to guess fully qualified callable name.
     """
     method_self = get_method_self(function)
+    parts: Sequence[str]
     if method_self is not None:
         # This is a bound method.
         if isinstance(method_self, type):
@@ -156,7 +166,7 @@ def get_callable_name(function):
     return '.'.join(parts)
 
 
-def get_method_self(method):
+def get_method_self(method: Any) -> Any:
     """Gets the ``self`` object attached to this method (or none)."""
     if not inspect.ismethod(method):
         return None
@@ -166,7 +176,7 @@ def get_method_self(method):
         return None
 
 
-def is_same_callback(callback1, callback2):
+def is_same_callback(callback1: Any, callback2: Any) -> bool:
     """Returns if the two callbacks are the same."""
     if callback1 is callback2:
         # This happens when plain methods are given (or static/non-bound
@@ -181,17 +191,17 @@ def is_same_callback(callback1, callback2):
     return False
 
 
-def is_bound_method(method):
+def is_bound_method(method: Any) -> bool:
     """Returns if the given method is bound to an object."""
     return get_method_self(method) is not None
 
 
-def is_subclass(obj, cls):
+def is_subclass(obj: Any, cls: type) -> bool:
     """Returns if the object is class and it is subclass of a given class."""
     return inspect.isclass(obj) and issubclass(obj, cls)
 
 
-def get_callable_args(function, required_only=False):
+def get_callable_args(function: Any, required_only: bool = False) -> list[str]:
     """Get names of callable arguments.
 
     Special arguments (like ``*args`` and ``**kwargs``) are not included into
@@ -210,7 +220,7 @@ def get_callable_args(function, required_only=False):
     return function_args
 
 
-def accepts_kwargs(function):
+def accepts_kwargs(function: Any) -> bool:
     """Returns ``True`` if function accepts kwargs otherwise ``False``."""
     sig = get_signature(function)
     return any(

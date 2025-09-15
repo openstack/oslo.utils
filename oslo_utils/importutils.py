@@ -19,9 +19,10 @@ Import related utilities and helper functions.
 
 import sys
 import traceback
+from typing import Any
 
 
-def import_class(import_str):
+def import_class(import_str: str) -> Any:
     """Returns a class from a string including module and class.
 
     .. versionadded:: 0.3
@@ -36,7 +37,7 @@ def import_class(import_str):
         )
 
 
-def import_object(import_str, *args, **kwargs):
+def import_object(import_str: str, *args: Any, **kwargs: Any) -> Any:
     """Import a class and return an instance of it.
 
     .. versionadded:: 0.3
@@ -44,7 +45,9 @@ def import_object(import_str, *args, **kwargs):
     return import_class(import_str)(*args, **kwargs)
 
 
-def import_object_ns(name_space, import_str, *args, **kwargs):
+def import_object_ns(
+    name_space: str, import_str: str, *args: Any, **kwargs: Any
+) -> Any:
     """Tries to import object from default namespace.
 
     Imports a class and return an instance of it, first by trying
@@ -65,7 +68,7 @@ def import_object_ns(name_space, import_str, *args, **kwargs):
     return cls(*args, **kwargs)
 
 
-def import_module(import_str):
+def import_module(import_str: str) -> Any:
     """Import a module.
 
     .. versionadded:: 0.3
@@ -74,7 +77,9 @@ def import_module(import_str):
     return sys.modules[import_str]
 
 
-def import_versioned_module(module, version, submodule=None):
+def import_versioned_module(
+    module: str, version: str | int, submodule: str | None = None
+) -> Any:
     """Import a versioned module in format {module}.v{version][.{submodule}].
 
     :param module: the module name.
@@ -97,7 +102,7 @@ def import_versioned_module(module, version, submodule=None):
     return import_module(module_str)
 
 
-def try_import(import_str, default=None):
+def try_import(import_str: str, default: Any = None) -> Any:
     """Try to import a module and if it fails return default."""
     try:
         return import_module(import_str)
@@ -105,7 +110,7 @@ def try_import(import_str, default=None):
         return default
 
 
-def import_any(module, *modules):
+def import_any(module: str, *modules: str) -> Any:
     """Try to import a module from a list of modules.
 
     :param modules: A list of modules to try and import

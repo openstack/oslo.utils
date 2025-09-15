@@ -17,6 +17,7 @@
 Exception related utilities.
 """
 
+from collections.abc import Callable
 import functools
 import io
 import logging
@@ -24,7 +25,8 @@ import os
 import sys
 import time
 import traceback
-
+import types
+from typing import Any
 
 from oslo_utils import encodeutils
 from oslo_utils import reflection
@@ -49,23 +51,28 @@ class CausedByException(Exception):
     .. versionadded:: 2.4
     """
 
-    def __init__(self, message, cause=None):
+    def __init__(self, message: str, cause: Exception | None = None) -> None:
         super().__init__(message)
         self.cause = cause
 
-    def __bytes__(self):
+    def __bytes__(self) -> bytes:
         return self.pformat().encode("utf8")
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.pformat()
 
-    def _get_message(self):
+    def _get_message(self) -> Any:
         # We must *not* call into the ``__str__`` method as that will
         # reactivate the pformat method, which will end up badly (and doesn't
         # look pretty at all); so be careful...
         return self.args[0]
 
-    def pformat(self, indent=2, indent_text=" ", show_root_class=False):
+    def pformat(
+        self,
+        indent: int = 2,
+        indent_text: str = " ",
+        show_root_class: bool = False,
+    ) -> str:
         """Pretty formats a caused exception + any connected causes."""
         if indent < 0:
             raise ValueError(
@@ -109,7 +116,9 @@ class CausedByException(Exception):
         return buf.getvalue()
 
 
-def raise_with_cause(exc_cls, message, *args, **kwargs):
+def raise_with_cause(
+    exc_cls: type[Exception], message: str, *args: Any, **kwargs: Any
+) -> None:
     """Helper to raise + chain exceptions (when able) and associate a *cause*.
 
     NOTE(harlowja): Since in py3.x exceptions can be chained (due to
@@ -186,43 +195,54 @@ class save_and_reraise_exception:
        Added *logger* optional parameter.
     """
 
-    def __init__(self, reraise=True, logger=None):
+    def __init__(
+        self, reraise: bool = True, logger: logging.Logger | None = None
+    ) -> None:
         self.reraise = reraise
         if logger is None:
             logger = logging.getLogger()
         self.logger = logger
-        self.type_, self.value, self.tb = (None, None, None)
+        self.type_: type[BaseException] | None = None
+        self.value: BaseException | None = None
+        self.tb: types.TracebackType | None = None
 
-    def force_reraise(self):
+    def force_reraise(self) -> None:
         if self.type_ is None and self.value is None:
             raise RuntimeError(
                 "There is no (currently) captured exception"
                 " to force the reraising of"
             )
         try:
-            if self.value is None:
+            if self.value is None and self.type_ is not None:
                 self.value = self.type_()
-            if self.value.__traceback__ is not self.tb:
-                raise self.value.with_traceback(self.tb)
-            raise self.value
+
+            if self.value is not None:
+                if self.value.__traceback__ is not self.tb:
+                    raise self.value.with_traceback(self.tb)
+                raise self.value
         finally:
             self.value = None
             self.tb = None
 
-    def capture(self, check=True):
-        (type_, value, tb) = sys.exc_info()
+    def capture(self, check: bool = True) -> 'save_and_reraise_exception':
+        type_, value, tb = sys.exc_info()
         if check and type_ is None and value is None:
             raise RuntimeError("There is no active exception to capture")
         self.type_, self.value, self.tb = (type_, value, tb)
         return self
 
-    def __enter__(self):
+    def __enter__(self) -> 'save_and_reraise_exception':
         # TODO(harlowja): perhaps someday in the future turn check here
         # to true, because that is likely the desired intention, and doing
         # so ensures that people are actually using this correctly.
         return self.capture(check=False)
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: types.TracebackType | None,
+    ) -> bool | None:
         if exc_type is not None:
             if self.reraise:
                 self.logger.error(
@@ -234,9 +254,12 @@ class save_and_reraise_exception:
             return False
         if self.reraise:
             self.force_reraise()
+        return None
 
 
-def forever_retry_uncaught_exceptions(*args, **kwargs):
+def forever_retry_uncaught_exceptions(
+    *args: Any, **kwargs: Any
+) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """Decorates provided function with infinite retry behavior.
 
     The function retry delay is **always** one second unless
@@ -252,12 +275,12 @@ def forever_retry_uncaught_exceptions(*args, **kwargs):
     automatically changed to be 0.0.
     """
 
-    def decorator(infunc):
+    def decorator(infunc: Callable[..., Any]) -> Callable[..., Any]:
         retry_delay = max(0.0, float(kwargs.get('retry_delay', 1.0)))
         same_log_delay = max(0.0, float(kwargs.get('same_log_delay', 60.0)))
 
         @functools.wraps(infunc)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             last_exc_message = None
             same_failure_count = 0
             watch = timeutils.StopWatch(duration=same_log_delay)
@@ -329,7 +352,9 @@ class exception_filter:
     except in cases where the ignored exception affects control flow.
     """
 
-    def __init__(self, should_ignore_ex):
+    def __init__(
+        self, should_ignore_ex: Callable[[BaseException], bool]
+    ) -> None:
         self._should_ignore_ex = should_ignore_ex
 
         if all(
@@ -337,17 +362,23 @@ class exception_filter:
         ):
             functools.update_wrapper(self, should_ignore_ex)
 
-    def __get__(self, obj, owner):
+    def __get__(self, obj: Any, owner: Any) -> 'exception_filter':
         return type(self)(self._should_ignore_ex.__get__(obj, owner))
 
-    def __enter__(self):
+    def __enter__(self) -> 'exception_filter':
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: types.TracebackType | None,
+    ) -> bool | None:
         if exc_val is not None:
             return self._should_ignore_ex(exc_val)
+        return False
 
-    def __call__(self, ex):
+    def __call__(self, ex: BaseException) -> None:
         """Re-raise any exception value not being filtered out.
 
         If the exception was the last to be raised, it will be re-raised with

@@ -27,6 +27,9 @@ import os
 import stat
 import tempfile
 import time
+from typing import Any
+from collections.abc import Callable, Generator
+
 import yaml
 
 from oslo_utils import excutils
@@ -34,7 +37,7 @@ from oslo_utils import excutils
 _DEFAULT_MODE = stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO
 
 
-def ensure_tree(path, mode=_DEFAULT_MODE):
+def ensure_tree(path: str, mode: int = _DEFAULT_MODE) -> None:
     """Create a directory (and any ancestor directories required)
 
     :param path: Directory to create
@@ -50,7 +53,9 @@ def ensure_tree(path, mode=_DEFAULT_MODE):
             raise
 
 
-def delete_if_exists(path, remove=os.unlink):
+def delete_if_exists(
+    path: str, remove: Callable[[str], Any] = os.unlink
+) -> None:
     """Delete a file, but ignore file not found error.
 
     :param path: File to delete
@@ -65,7 +70,9 @@ def delete_if_exists(path, remove=os.unlink):
 
 
 @contextlib.contextmanager
-def remove_path_on_error(path, remove=delete_if_exists):
+def remove_path_on_error(
+    path: str, remove: Callable[[str], Any] = delete_if_exists
+) -> Generator[None, None, None]:
     """Protect code that wants to operate on PATH atomically.
     Any exception will cause PATH to be removed.
 
@@ -80,7 +87,12 @@ def remove_path_on_error(path, remove=delete_if_exists):
             remove(path)
 
 
-def write_to_tempfile(content, path=None, suffix='', prefix='tmp'):
+def write_to_tempfile(
+    content: bytes | bytearray,
+    path: str | None = None,
+    suffix: str = '',
+    prefix: str = 'tmp',
+) -> str:
     """Create a temporary file containing data.
 
     Create a temporary file containing specified content, with a specified
@@ -101,7 +113,7 @@ def write_to_tempfile(content, path=None, suffix='', prefix='tmp'):
     if path:
         ensure_tree(path)
 
-    (fd, path) = tempfile.mkstemp(suffix=suffix, dir=path, prefix=prefix)
+    fd, path = tempfile.mkstemp(suffix=suffix, dir=path, prefix=prefix)
     try:
         os.write(fd, content)
     finally:
@@ -109,7 +121,9 @@ def write_to_tempfile(content, path=None, suffix='', prefix='tmp'):
     return path
 
 
-def compute_file_checksum(path, read_chunksize=65536, algorithm='sha256'):
+def compute_file_checksum(
+    path: str, read_chunksize: int = 65536, algorithm: str = 'sha256'
+) -> str:
     """Compute checksum of a file's contents.
 
     :param path: Path to the file
@@ -131,7 +145,7 @@ def compute_file_checksum(path, read_chunksize=65536, algorithm='sha256'):
     return checksum.hexdigest()
 
 
-def last_bytes(path, num):
+def last_bytes(path: str, num: int) -> tuple[bytes, int]:
     """Return num bytes from the end of the file and unread byte count.
 
     Returns a tuple containing some content from the file and the
@@ -162,7 +176,7 @@ def last_bytes(path, num):
         return (fp.read(), unread_bytes)
 
 
-def is_json(file_path):
+def is_json(file_path: str) -> bool:
     """Check if file is of json type or not.
 
     This function try to load the input file using json.loads()
@@ -182,7 +196,7 @@ def is_json(file_path):
         return False
 
 
-def is_yaml(file_path):
+def is_yaml(file_path: str) -> bool:
     """Check if file is of yaml type or not.
 
     This function try to load the input file using yaml.safe_load()

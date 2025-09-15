@@ -29,3 +29,20 @@ repos:
     hooks:
       - id: hacking
         additional_dependencies: []
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.17.1
+    hooks:
+      - id: mypy
+        additional_dependencies:
+          - iso8601
+          - packaging
+          - pyparsing
+          - types-PyYAML
+          - types-greenlet
+          - types-netaddr
+          - types-psutil
+        exclude: |
+          (?x)(
+            doc/.*
+            | releasenotes/.*
+          )

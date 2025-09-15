@@ -19,10 +19,11 @@ UUID related utilities and helper functions.
 .. versionadded:: 1.1
 """
 
+from typing import Any
 import uuid
 
 
-def generate_uuid(dashed=True):
+def generate_uuid(dashed: bool = True) -> str:
     """Creates a random uuid string.
 
     :param dashed: Generate uuid with dashes or not
@@ -34,7 +35,7 @@ def generate_uuid(dashed=True):
     return uuid.uuid4().hex
 
 
-def _format_uuid_string(string):
+def _format_uuid_string(string: str) -> str:
     return (
         string.replace('urn:', '')
         .replace('uuid:', '')
@@ -44,7 +45,7 @@ def _format_uuid_string(string):
     )
 
 
-def is_uuid_like(val):
+def is_uuid_like(val: Any) -> bool:
     """Returns validation of a value as a UUID.
 
     :param val: Value to verify
