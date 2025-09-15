@@ -27,6 +27,7 @@ Helper methods to deal with images.
 
 import json
 import re
+from typing import Any
 
 import debtcollector
 
@@ -61,7 +62,14 @@ class QemuImgInfo:
         re.I,
     )
 
-    def __init__(self, cmd_output=None, format='human'):
+    def __init__(
+        self,
+        cmd_output: str | bytes | bytearray | None = None,
+        format: str = 'human',
+    ) -> None:
+        if isinstance(cmd_output, bytes | bytearray):
+            cmd_output = cmd_output.decode()
+
         if format == 'json':
             details = json.loads(cmd_output or '{}')
             self.image = details.get('filename')
@@ -94,7 +102,7 @@ class QemuImgInfo:
             self.encrypted = details.get('encrypted')
             self.format_specific = None
 
-    def __str__(self):
+    def __str__(self) -> str:
         lines = [
             f'image: {self.image}',
             f'file_format: {self.file_format}',
@@ -112,7 +120,7 @@ class QemuImgInfo:
             lines.append(f"format_specific: {self.format_specific}")
         return "\n".join(lines)
 
-    def _canonicalize(self, field):
+    def _canonicalize(self, field: str) -> str:
         # Standardize on underscores/lc/no dash and no spaces
         # since qemu seems to have mixed outputs here... and
         # this format allows for better integration with python
@@ -122,7 +130,7 @@ class QemuImgInfo:
             field = field.replace(c, '_')
         return field
 
-    def _extract_bytes(self, details):
+    def _extract_bytes(self, details: str) -> int:
         # Replace it with the byte amount
         real_size = self.SIZE_RE.search(details)
         if not real_size:
@@ -139,12 +147,16 @@ class QemuImgInfo:
         # Allow abbreviated unit such as K to mean KB for compatibility.
         if len(unit_of_measure) == 1 and unit_of_measure != 'B':
             unit_of_measure += 'B'
-        return strutils.string_to_bytes(
-            f'{magnitude}{unit_of_measure}', return_int=True
+        return int(
+            strutils.string_to_bytes(
+                f'{magnitude}{unit_of_measure}', return_int=True
+            )
         )
 
-    def _extract_details(self, root_cmd, root_details, lines_after):
-        real_details = root_details
+    def _extract_details(
+        self, root_cmd: str, root_details: str, lines_after: list[str]
+    ) -> str | int | list[dict[str, str]]:
+        real_details: str | int | list[dict[str, str]] = root_details
         if root_cmd == 'backing_file':
             # Replace it with the real backing file
             backing_match = self.BACKING_FILE_RE.match(root_details)
@@ -157,7 +169,7 @@ class QemuImgInfo:
             else:
                 real_details = self._extract_bytes(root_details)
         elif root_cmd == 'file_format':
-            real_details = real_details.strip().lower()
+            real_details = root_details.strip().lower()
         elif root_cmd == 'snapshot_list':
             # Next line should be a header, starting with 'ID'
             if not lines_after or not lines_after.pop(0).startswith("ID"):
@@ -189,7 +201,7 @@ class QemuImgInfo:
                 )
         return real_details
 
-    def _parse(self, cmd_output):
+    def _parse(self, cmd_output: str) -> dict[str, Any]:
         # Analysis done of qemu-img.c to figure out what is going on here
         # Find all points start with some chars and then a ':' then a newline
         # and then handle the results of those 'top level' items in a separate

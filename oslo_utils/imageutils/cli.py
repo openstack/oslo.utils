@@ -21,7 +21,7 @@ from oslo_utils.imageutils import format_inspector
 from oslo_utils.version import version_info
 
 
-def main():
+def main() -> None:
     """Run image security checks and give feedback.
 
     Runs the image format detector and related security checks against
@@ -83,6 +83,10 @@ def main():
         sys.exit(1)
 
     inspector = format_inspector.detect_file_format(image)
+    if inspector is None:
+        print('Could not find format inspector for image', file=sys.stderr)
+        sys.exit(1)
+
     safe = True
     try:
         inspector.safety_check()
