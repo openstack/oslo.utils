@@ -132,11 +132,11 @@ class SafetyCheck:
     def __init__(self, name, target_fn, description=None):
         """A safety check, it's meta info, and result.
 
-        @name should be a short name of the check (ideally no spaces)
-        @target_fn is the implementation we run (no args) which returns either
-                   None if the check passes, or a string reason why it failed.
-        @description is a optional longer-format human-readable string that
-                     describes the check.
+        :param name: Should be a short name of the check (ideally no spaces)
+        :param target_fn: The implementation we run (no args) which returns
+            either None if the check passes, or a string reason why it failed.
+        :param description: An optional longer-format human-readable string
+            that describes the check.
         """
         self.name = name
         self.target_fn = target_fn
@@ -145,8 +145,7 @@ class SafetyCheck:
     def __call__(self):
         """Executes the target check function, records the result.
 
-        Returns True if the check succeeded (i.e. no failure reason) or
-        False if it did not.
+        :raises SafetyViolation: If an error check fails
         """
         try:
             self.target_fn()
@@ -417,7 +416,7 @@ class FileInspector(abc.ABC):
         actual_size property will not reflect the size of the file, but the
         amount of data we read before we satisfied the inspector.
 
-        Raises ImageFormatError if we cannot parse the file.
+        :raises ImageFormatError: If we cannot parse the file.
         """
         inspector = cls()
         with open(filename, 'rb') as f:
@@ -434,9 +433,9 @@ class FileInspector(abc.ABC):
     def safety_check(self):
         """Perform all checks to determine if this file is safe.
 
-        Returns if safe, raises otherwise. It may raise ImageFormatError
-        if safety cannot be guaranteed because of parsing or other errors.
-        It will raise SafetyCheckFailed if one or more checks fails.
+        :raises ImageFormatError: If safety cannot be guaranteed because of
+            parsing or other errors.
+        :raises SafetyCheckFailed: If one or more checks fails.
         """
         if not self.complete:
             raise ImageFormatError(
@@ -453,9 +452,7 @@ class FileInspector(abc.ABC):
         failures = {}
         for check in self._safety_checks.values():
             try:
-                result = check()
-                if result is not None:
-                    raise RuntimeError('check returned result')
+                check()
             except SafetyViolation as exc:
                 exc.check = check
                 failures[check.name] = exc
