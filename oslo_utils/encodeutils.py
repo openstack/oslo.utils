@@ -15,8 +15,7 @@
 
 import sys
 from typing import Any
-
-import debtcollector.removals
+import warnings
 
 
 def safe_decode(
@@ -126,9 +125,6 @@ def to_utf8(text: str | bytes) -> bytes:
         )
 
 
-@debtcollector.removals.remove(  # type: ignore
-    message='Use str(exc) instead', category=DeprecationWarning
-)
 def exception_to_unicode(exc: Any) -> str:
     """Get the message of an exception as a Unicode string.
 
@@ -136,4 +132,10 @@ def exception_to_unicode(exc: Any) -> str:
 
     .. versionadded:: 1.6
     """
+    warnings.warn(
+        "Using function/method 'exception_to_unicode()' is deprecated: "
+        "Use str(exc) instead",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     return str(exc)
