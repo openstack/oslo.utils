@@ -397,7 +397,7 @@ def to_slug(
 # this file or, even better, pick an existing pattern or key to use in
 # your application to ensure that the value is masked by this
 # function.
-def mask_password(message: str, secret: str = "***") -> str:  # noqa: S107
+def mask_password(message: object, secret: str = "***") -> str:  # noqa: S107
     """Replace password with *secret* in message.
 
     :param message: The string which includes security information.
@@ -440,12 +440,10 @@ def mask_password(message: str, secret: str = "***") -> str:  # noqa: S107
        Replace also ``'CHAPPASSWORD'`` key.
     """
 
-    try:
+    if isinstance(message, bytes):
+        message = message.decode(errors='ignore')
+    else:
         message = str(message)
-    except UnicodeDecodeError:  # nosec
-        # NOTE(jecarey): Temporary fix to handle cases where message is a
-        # byte string. A better solution will be provided in Kilo.
-        pass
 
     substitute1 = r'\g<1>' + secret
     substitute2 = r'\g<1>' + secret + r'\g<2>'
