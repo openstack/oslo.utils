@@ -25,7 +25,7 @@ import datetime
 import functools
 import logging
 import time
-from typing import Any
+from typing import Any, Literal, overload
 import zoneinfo
 
 import iso8601
@@ -472,6 +472,12 @@ class StopWatch:
             self.stop()
         except RuntimeError:  # nosec: errors are meant to be ignored
             pass
+
+    @overload
+    def leftover(self, return_none: Literal[False] = False) -> float: ...
+
+    @overload
+    def leftover(self, return_none: Literal[True]) -> float | None: ...
 
     def leftover(self, return_none: bool = False) -> float | None:
         """Returns how many seconds are left until the watch expires.
