@@ -34,6 +34,7 @@ repos:
     hooks:
       - id: mypy
         additional_dependencies:
+          - fixtures
           - iso8601
           - packaging
           - pyparsing

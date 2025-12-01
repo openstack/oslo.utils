@@ -19,6 +19,7 @@ Test fixtures.
 .. versionadded:: 1.3
 """
 
+import datetime
 import threading
 
 import fixtures
@@ -31,24 +32,23 @@ class TimeFixture(fixtures.Fixture):
     """A fixture for overriding the time returned by timeutils.utcnow().
 
     :param override_time: datetime instance or list thereof. If not given,
-                          defaults to the current UTC time.
-
+        defaults to the current UTC time.
     """
 
-    def __init__(self, override_time=None):
+    def __init__(self, override_time: datetime.datetime | None = None) -> None:
         super().__init__()
         self._override_time = override_time
 
-    def setUp(self):
+    def setUp(self) -> None:
         super().setUp()
         timeutils.set_time_override(self._override_time)
         self.addCleanup(timeutils.clear_time_override)
 
-    def advance_time_delta(self, timedelta):
+    def advance_time_delta(self, timedelta: datetime.timedelta) -> None:
         """Advance overridden time using a datetime.timedelta."""
         timeutils.advance_time_delta(timedelta)
 
-    def advance_time_seconds(self, seconds):
+    def advance_time_seconds(self, seconds: int | float) -> None:
         """Advance overridden time by seconds."""
         timeutils.advance_time_seconds(seconds)
 
@@ -79,12 +79,12 @@ class _UUIDSentinels:
         assert extract_bar(data) == keystids.bar
     """
 
-    def __init__(self, is_dashed=True):
-        self._sentinels = {}
+    def __init__(self, is_dashed: bool = True) -> None:
+        self._sentinels: dict[str, str] = {}
         self._lock = threading.Lock()
         self.is_dashed = is_dashed
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> str:
         if name.startswith('_'):
             raise AttributeError('Sentinels must not start with _')
         with self._lock:
