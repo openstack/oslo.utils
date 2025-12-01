@@ -21,11 +21,11 @@ import tempfile
 from unittest import mock
 
 import ddt
-from oslo_utils import units
 
 from oslo_utils.imageutils import format_inspector
 from oslo_utils.imageutils import QemuImgInfo
-from oslotest import base as test_base
+from oslo_utils.tests import base as test_base
+from oslo_utils import units
 
 
 TEST_IMAGE_PREFIX = 'oslo-unittest-formatinspector-'

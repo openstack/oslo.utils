@@ -18,9 +18,9 @@ import warnings
 
 import eventlet
 from eventlet import greenthread
-from oslotest import base as test_base
 
 from oslo_utils import eventletutils
+from oslo_utils.tests import base as test_base
 
 
 class EventletUtilsTest(test_base.BaseTestCase):

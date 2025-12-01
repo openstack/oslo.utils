@@ -16,9 +16,8 @@
 import datetime
 import sys
 
-from oslotest import base as test_base
-
 from oslo_utils import importutils
+from oslo_utils.tests import base as test_base
 
 
 class ImportUtilsTest(test_base.BaseTestCase):

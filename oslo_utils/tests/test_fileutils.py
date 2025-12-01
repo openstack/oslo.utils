@@ -25,9 +25,8 @@ from unittest import mock
 import uuid
 import yaml
 
-from oslotest import base as test_base
-
 from oslo_utils import fileutils
+from oslo_utils.tests import base as test_base
 
 TEST_PERMISSIONS = stat.S_IRWXU
 

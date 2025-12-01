@@ -15,10 +15,10 @@
 import hashlib
 import hmac
 
-from oslotest import base as test_base
 import testscenarios
 
 from oslo_utils import secretutils
+from oslo_utils.tests import base as test_base
 
 
 def _gen_digest(text):

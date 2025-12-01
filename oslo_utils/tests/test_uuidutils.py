@@ -15,8 +15,7 @@
 
 import uuid
 
-from oslotest import base as test_base
-
+from oslo_utils.tests import base as test_base
 from oslo_utils import uuidutils
 
 

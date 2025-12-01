@@ -16,9 +16,9 @@
 from unittest import mock
 
 from oslo_i18n import fixture as oslo_i18n_fixture
-from oslotest import base as test_base
 
 from oslo_utils import encodeutils
+from oslo_utils.tests import base as test_base
 
 
 class EncodeUtilsTest(test_base.BaseTestCase):

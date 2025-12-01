@@ -13,14 +13,14 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from unittest import mock
 import warnings
 
-from oslotest import base as test_base
 import testscenarios
 
 from oslo_utils import imageutils
+from oslo_utils.tests import base as test_base
 
-from unittest import mock
 
 load_tests = testscenarios.load_tests_apply_scenarios
 

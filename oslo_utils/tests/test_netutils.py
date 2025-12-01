@@ -20,9 +20,9 @@ import socket
 from unittest import mock
 
 import netaddr
-from oslotest import base as test_base
 
 from oslo_utils import netutils
+from oslo_utils.tests import base as test_base
 
 
 class NetworkUtilsTest(test_base.BaseTestCase):

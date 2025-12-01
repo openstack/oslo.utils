@@ -20,11 +20,12 @@ from typing import Any
 from unittest import mock
 
 import ddt
-from oslotest import base as test_base
 import testscenarios
 
 from oslo_utils import strutils
+from oslo_utils.tests import base as test_base
 from oslo_utils import units
+
 
 load_tests = testscenarios.load_tests_apply_scenarios
 

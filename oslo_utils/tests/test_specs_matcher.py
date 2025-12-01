@@ -10,9 +10,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from oslotest import base as test_base
-
 from oslo_utils import specs_matcher
+from oslo_utils.tests import base as test_base
 
 
 class SpecsMatcherTestCase(test_base.BaseTestCase):
