@@ -42,21 +42,14 @@ show_error_context = true
 strict = true
 # debtcollector is untyped (for now)
 disallow_untyped_decorators = false
-exclude = '''
-(?x)(
-    doc
-    | releasenotes
-  )
-'''
+exclude = '(?x)(doc | releasenotes)'
 
 [[tool.mypy.overrides]]
-module = [
-    "oslo_utils.fixture",
-    "oslo_utils.tests.*",
-]
+module = ["oslo_utils.tests.*"]
 disallow_untyped_calls = false
 disallow_untyped_defs = false
 disallow_subclassing_any = false
+ignore_missing_imports = true
 
 [tool.ruff]
 line-length = 79

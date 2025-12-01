@@ -20,7 +20,7 @@ import subprocess
 import tempfile
 from unittest import mock
 
-import ddt
+import ddt  # type: ignore
 
 from oslo_utils.imageutils import format_inspector
 from oslo_utils.imageutils import QemuImgInfo
@@ -1161,7 +1161,7 @@ class TestFormatInspectorInfra(test_base.BaseTestCase):
         # Test with an expected format, but not the one we're going to
         # intentionally fail to make sure that we do not log failures
         # for non-expected formats.
-        self.test_wrapper_iter_like_eats_error(expected='vhd')  # type: ignore
+        self.test_wrapper_iter_like_eats_error(expected='vhd')
 
     def test_wrapper_aborts_early(self):
         # Run the InspectWrapper with non-qcow2 data, expecting qcow2, first

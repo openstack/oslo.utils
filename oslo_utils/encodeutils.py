@@ -16,7 +16,7 @@
 import sys
 from typing import Any
 
-import debtcollector.removals
+import debtcollector.removals  # type: ignore
 
 
 def safe_decode(

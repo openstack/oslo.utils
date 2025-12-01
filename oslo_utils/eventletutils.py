@@ -25,7 +25,7 @@ import threading
 from typing import TYPE_CHECKING
 import warnings
 
-import debtcollector
+import debtcollector  # type: ignore
 
 from oslo_utils import importutils
 from oslo_utils import timeutils

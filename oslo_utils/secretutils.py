@@ -25,7 +25,7 @@ import secrets
 import string as _string
 from typing import Any, cast
 
-import debtcollector.removals
+import debtcollector.removals  # type: ignore
 
 
 @debtcollector.removals.remove(

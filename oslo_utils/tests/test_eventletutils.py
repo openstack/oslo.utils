@@ -16,7 +16,7 @@ import threading
 from unittest import mock
 import warnings
 
-import eventlet
+import eventlet  # type: ignore
 from eventlet import greenthread
 
 from oslo_utils import eventletutils
