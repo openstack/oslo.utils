@@ -15,7 +15,7 @@
 import hashlib
 import hmac
 
-import testscenarios
+import testscenarios  # type: ignore
 
 from oslo_utils import secretutils
 from oslo_utils.tests import base as test_base

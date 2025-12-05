@@ -19,7 +19,7 @@ import time
 from unittest import mock
 
 import iso8601
-from testtools import matchers
+from testtools import matchers  # type: ignore
 
 from oslo_utils.tests import base as test_base
 from oslo_utils import timeutils
