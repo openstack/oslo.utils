@@ -76,7 +76,7 @@ class _UTCNow:
 
         .. versionchanged:: 1.6
            Added *with_timezone* parameter.
-        """
+        """  # noqa: E501
         if self.override_time:
             if isinstance(self.override_time, datetime.datetime):
                 return self.override_time
@@ -313,7 +313,9 @@ class Split:
 def time_it(
     logger: logging.Logger,
     log_level: int = logging.DEBUG,
-    message: str = "It took %(seconds).02f seconds to run function '%(func_name)s'",
+    message: str = (
+        "It took %(seconds).02f seconds to run function '%(func_name)s'"
+    ),
     enabled: bool = True,
     min_duration: float = 0.01,
 ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:

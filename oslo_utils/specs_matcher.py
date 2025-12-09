@@ -143,7 +143,7 @@ def make_grammar() -> pyparsing.ParserElement:
 
     :returns: A pyparsing.MatchFirst object. See
               https://pythonhosted.org/pyparsing/ for details on pyparsing.
-    """
+    """  # noqa: E501
     # This is apparently how pyparsing recommends to be used,
     # as http://pyparsing.wikispaces.com/share/view/644825 states that
     # it is not thread-safe to use a parser across threads.

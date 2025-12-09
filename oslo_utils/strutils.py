@@ -470,7 +470,8 @@ def mask_password(message: object, secret: str = "***") -> str:  # noqa: S107
 # TODO(stephenfin): The types aren't great for this. We want to indicate that
 # the types of values in the returned dict are always identical to those of the
 # input collection except if the value was a non-dict collection. It would be
-# better if we returned the same type of Mapping here that we received on input.
+# better if we returned the same type of Mapping here that we received on
+# input.
 def mask_dict_password(
     dictionary: collections.abc.Mapping[Any, Any],
     secret: str = "***",  # noqa: S107
