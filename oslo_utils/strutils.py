@@ -20,7 +20,7 @@ System-level utilities and helper functions.
 import collections.abc
 import math
 import re
-from typing import Any
+from typing import Any, Literal, overload
 import unicodedata
 import urllib.parse
 
@@ -225,6 +225,24 @@ def is_valid_boolstr(value: Any) -> bool:
     """
     boolstrs = TRUE_STRINGS + FALSE_STRINGS
     return str(value).lower() in boolstrs
+
+
+@overload
+def string_to_bytes(
+    text: str, unit_system: str = 'IEC', return_int: Literal[True] = ...
+) -> int: ...
+
+
+@overload
+def string_to_bytes(
+    text: str, unit_system: str = 'IEC', return_int: Literal[False] = ...
+) -> float: ...
+
+
+@overload
+def string_to_bytes(
+    text: str, unit_system: str = 'IEC', return_int: bool = False
+) -> int | float: ...
 
 
 def string_to_bytes(
