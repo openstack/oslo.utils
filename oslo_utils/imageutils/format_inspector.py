@@ -797,9 +797,10 @@ class VHDXInspector(FileInspector):
     def _guid(buf: bytes | bytearray) -> str:
         """Format a MSFT GUID from the 16-byte input buffer."""
         guid_format = '<IHHBBBBBBBB'
-        return '{:08X}-{:04X}-{:04X}-{:02X}{:02X}-{:02X}{:02X}{:02X}{:02X}{:02X}{:02X}'.format(
-            *struct.unpack(guid_format, buf)
-        )
+        return (
+            '{:08X}-{:04X}-{:04X}-{:02X}{:02X}-'
+            '{:02X}{:02X}{:02X}{:02X}{:02X}{:02X}'
+        ).format(*struct.unpack(guid_format, buf))
 
     def _find_meta_region(self) -> CaptureRegion | None:
         # The region table entries start after a 16-byte table header
@@ -1552,7 +1553,8 @@ class InspectWrapper:
                     and not inspector.format_match
                 ):
                     raise ImageFormatError(
-                        f'Content does not match expected format {inspector.NAME!r}'
+                        'Content does not match expected format '
+                        f'{inspector.NAME!r}'
                     )
 
     def __next__(self) -> bytes:

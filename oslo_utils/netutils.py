@@ -260,7 +260,8 @@ def get_mac_addr_by_ipv6(
         int(
             # out of the lowest 8 bytes (byte positions 8-1)
             # delete the middle 2 bytes (5-4, 0xff_fe)
-            # by shifting the highest 3 bytes to the right by 2 bytes (8-6 -> 6-4)
+            # by shifting the highest 3 bytes to the right by 2 bytes
+            # (8-6 -> 6-4)
             (
                 ((ipv6 & 0xFF_FF_FF_00_00_00_00_00) >> 16)
                 +

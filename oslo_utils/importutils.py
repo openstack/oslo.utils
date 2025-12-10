@@ -33,7 +33,8 @@ def import_class(import_str: str) -> Any:
         return getattr(sys.modules[mod_str], class_str)
     except AttributeError:
         raise ImportError(
-            f'Class {class_str} cannot be found ({traceback.format_exception(*sys.exc_info())})'
+            f'Class {class_str} cannot be found '
+            f'({traceback.format_exception(*sys.exc_info())})'
         )
 
 
