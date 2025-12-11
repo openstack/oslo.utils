@@ -33,6 +33,9 @@ from oslo_utils import reflection
 from oslo_utils import timeutils
 
 
+LOG = logging.getLogger(__name__)
+
+
 class CausedByException(Exception):
     """Base class for exceptions which have associated causes.
 
@@ -199,9 +202,7 @@ class save_and_reraise_exception:
         self, reraise: bool = True, logger: logging.Logger | None = None
     ) -> None:
         self.reraise = reraise
-        if logger is None:
-            logger = logging.getLogger()
-        self.logger = logger
+        self.logger = logger or LOG
         self.type_: type[BaseException] | None = None
         self.value: BaseException | None = None
         self.tb: types.TracebackType | None = None
@@ -296,9 +297,10 @@ def forever_retry_uncaught_exceptions(
                     if this_exc_message != last_exc_message or watch.expired():
                         # The watch has expired or the exception message
                         # changed, so time to log it again...
-                        logging.exception(
-                            f'Unexpected exception occurred '
-                            f'{same_failure_count} time(s)... retrying.'
+                        LOG.exception(
+                            'Unexpected exception occurred %d time(s)... '
+                            'retrying.',
+                            same_failure_count,
                         )
                         if not watch.has_started():
                             watch.start()

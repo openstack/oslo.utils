@@ -12,7 +12,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import logging
 from unittest import mock
 
 import fixtures
@@ -104,9 +103,8 @@ class SaveAndReraiseTest(test_base.BaseTestCase):
 
         self.assertEqual(str(e), msg)
 
-    @mock.patch('logging.getLogger')
-    def test_save_and_reraise_exception_dropped(self, get_logger_mock):
-        logger = get_logger_mock()
+    @mock.patch.object(excutils, 'LOG')
+    def test_save_and_reraise_exception_dropped(self, mock_log):
         e = None
         msg = 'second exception'
         try:
@@ -118,7 +116,7 @@ class SaveAndReraiseTest(test_base.BaseTestCase):
         except Exception as _e:
             e = _e
         self.assertEqual(str(e), msg)
-        self.assertTrue(logger.error.called)
+        self.assertTrue(mock_log.error.called)
 
     def test_save_and_reraise_exception_no_reraise(self):
         """Test that suppressing the reraise works."""
@@ -128,11 +126,8 @@ class SaveAndReraiseTest(test_base.BaseTestCase):
             with excutils.save_and_reraise_exception() as ctxt:
                 ctxt.reraise = False
 
-    @mock.patch('logging.getLogger')
-    def test_save_and_reraise_exception_dropped_no_reraise(
-        self, get_logger_mock
-    ):
-        logger = get_logger_mock()
+    @mock.patch.object(excutils, 'LOG')
+    def test_save_and_reraise_exception_dropped_no_reraise(self, mock_log):
         e = None
         msg = 'second exception'
         try:
@@ -144,7 +139,7 @@ class SaveAndReraiseTest(test_base.BaseTestCase):
         except Exception as _e:
             e = _e
         self.assertEqual(str(e), msg)
-        self.assertFalse(logger.error.called)
+        self.assertFalse(mock_log.error.called)
 
     def test_save_and_reraise_exception_provided_logger(self):
         fake_logger = mock.MagicMock()
@@ -172,7 +167,7 @@ class ForeverRetryUncaughtExceptionsTest(test_base.BaseTestCase):
         while self._exceptions:
             raise self._exceptions.pop(0)
 
-    @mock.patch.object(logging, 'exception')
+    @mock.patch.object(excutils, 'LOG')
     @mock.patch.object(timeutils, 'now')
     def test_exc_retrier_1exc_gives_1log(self, mock_now, mock_log):
         self._exceptions = [Exception('unexpected 1')]
@@ -182,8 +177,8 @@ class ForeverRetryUncaughtExceptionsTest(test_base.BaseTestCase):
 
         self.assertEqual([], self._exceptions)
         # log should only be called once
-        mock_log.assert_called_once_with(
-            'Unexpected exception occurred 1 time(s)... retrying.'
+        mock_log.exception.assert_called_once_with(
+            'Unexpected exception occurred %d time(s)... retrying.', 1
         )
         mock_now.assert_has_calls(
             [
@@ -191,7 +186,7 @@ class ForeverRetryUncaughtExceptionsTest(test_base.BaseTestCase):
             ]
         )
 
-    @mock.patch.object(logging, 'exception')
+    @mock.patch.object(excutils, 'LOG')
     @mock.patch.object(timeutils, 'now')
     def test_exc_retrier_same_10exc_1min_gives_1log(self, mock_now, mock_log):
         self._exceptions = [
@@ -215,15 +210,15 @@ class ForeverRetryUncaughtExceptionsTest(test_base.BaseTestCase):
         self.assertEqual([], self._exceptions)
         self.assertEqual(10, len(mock_now.mock_calls))
         self.assertEqual(1, len(mock_log.mock_calls))
-        mock_log.assert_has_calls(
+        mock_log.exception.assert_has_calls(
             [
                 mock.call(
-                    'Unexpected exception occurred 1 time(s)... retrying.'
+                    'Unexpected exception occurred %d time(s)... retrying.', 1
                 ),
             ]
         )
 
-    @mock.patch.object(logging, 'exception')
+    @mock.patch.object(excutils, 'LOG')
     @mock.patch.object(timeutils, 'now')
     def test_exc_retrier_same_2exc_2min_gives_2logs(self, mock_now, mock_log):
         self._exceptions = [
@@ -249,18 +244,18 @@ class ForeverRetryUncaughtExceptionsTest(test_base.BaseTestCase):
         self.assertEqual([], self._exceptions)
         self.assertEqual(4, len(mock_now.mock_calls))
         self.assertEqual(2, len(mock_log.mock_calls))
-        mock_log.assert_has_calls(
+        mock_log.exception.assert_has_calls(
             [
                 mock.call(
-                    'Unexpected exception occurred 1 time(s)... retrying.'
+                    'Unexpected exception occurred %d time(s)... retrying.', 1
                 ),
                 mock.call(
-                    'Unexpected exception occurred 1 time(s)... retrying.'
+                    'Unexpected exception occurred %d time(s)... retrying.', 1
                 ),
             ]
         )
 
-    @mock.patch.object(logging, 'exception')
+    @mock.patch.object(excutils, 'LOG')
     @mock.patch.object(timeutils, 'now')
     def test_exc_retrier_same_10exc_2min_gives_2logs(self, mock_now, mock_log):
         self._exceptions = [
@@ -305,18 +300,18 @@ class ForeverRetryUncaughtExceptionsTest(test_base.BaseTestCase):
         self.assertEqual([], self._exceptions)
         self.assertEqual(12, len(mock_now.mock_calls))
         self.assertEqual(2, len(mock_log.mock_calls))
-        mock_log.assert_has_calls(
+        mock_log.exception.assert_has_calls(
             [
                 mock.call(
-                    'Unexpected exception occurred 1 time(s)... retrying.'
+                    'Unexpected exception occurred %d time(s)... retrying.', 1
                 ),
                 mock.call(
-                    'Unexpected exception occurred 5 time(s)... retrying.'
+                    'Unexpected exception occurred %d time(s)... retrying.', 5
                 ),
             ]
         )
 
-    @mock.patch.object(logging, 'exception')
+    @mock.patch.object(excutils, 'LOG')
     @mock.patch.object(timeutils, 'now')
     def test_exc_retrier_mixed_4exc_1min_gives_2logs(self, mock_now, mock_log):
         # The stop watch will be started, which will consume one timestamp
@@ -356,18 +351,18 @@ class ForeverRetryUncaughtExceptionsTest(test_base.BaseTestCase):
         self.assertEqual([], self._exceptions)
         self.assertEqual(5, len(mock_now.mock_calls))
         self.assertEqual(2, len(mock_log.mock_calls))
-        mock_log.assert_has_calls(
+        mock_log.exception.assert_has_calls(
             [
                 mock.call(
-                    'Unexpected exception occurred 1 time(s)... retrying.'
+                    'Unexpected exception occurred %d time(s)... retrying.', 1
                 ),
                 mock.call(
-                    'Unexpected exception occurred 1 time(s)... retrying.'
+                    'Unexpected exception occurred %d time(s)... retrying.', 1
                 ),
             ]
         )
 
-    @mock.patch.object(logging, 'exception')
+    @mock.patch.object(excutils, 'LOG')
     @mock.patch.object(timeutils, 'now')
     def test_exc_retrier_mixed_4exc_2min_gives_2logs(self, mock_now, mock_log):
         self._exceptions = [
@@ -401,18 +396,18 @@ class ForeverRetryUncaughtExceptionsTest(test_base.BaseTestCase):
         self.assertEqual([], self._exceptions)
         self.assertEqual(5, len(mock_now.mock_calls))
         self.assertEqual(2, len(mock_log.mock_calls))
-        mock_log.assert_has_calls(
+        mock_log.exception.assert_has_calls(
             [
                 mock.call(
-                    'Unexpected exception occurred 1 time(s)... retrying.'
+                    'Unexpected exception occurred %d time(s)... retrying.', 1
                 ),
                 mock.call(
-                    'Unexpected exception occurred 1 time(s)... retrying.'
+                    'Unexpected exception occurred %d time(s)... retrying.', 1
                 ),
             ]
         )
 
-    @mock.patch.object(logging, 'exception')
+    @mock.patch.object(excutils, 'LOG')
     @mock.patch.object(timeutils, 'now')
     def test_exc_retrier_mixed_4exc_2min_gives_3logs(self, mock_now, mock_log):
         self._exceptions = [
@@ -443,16 +438,16 @@ class ForeverRetryUncaughtExceptionsTest(test_base.BaseTestCase):
         self.assertEqual([], self._exceptions)
         self.assertEqual(7, len(mock_now.mock_calls))
         self.assertEqual(3, len(mock_log.mock_calls))
-        mock_log.assert_has_calls(
+        mock_log.exception.assert_has_calls(
             [
                 mock.call(
-                    'Unexpected exception occurred 1 time(s)... retrying.'
+                    'Unexpected exception occurred %d time(s)... retrying.', 1
                 ),
                 mock.call(
-                    'Unexpected exception occurred 2 time(s)... retrying.'
+                    'Unexpected exception occurred %d time(s)... retrying.', 2
                 ),
                 mock.call(
-                    'Unexpected exception occurred 1 time(s)... retrying.'
+                    'Unexpected exception occurred %d time(s)... retrying.', 1
                 ),
             ]
         )
