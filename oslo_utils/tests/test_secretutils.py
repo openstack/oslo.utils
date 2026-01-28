@@ -13,26 +13,12 @@
 #    under the License.
 
 import hashlib
-import hmac
-
-import testscenarios  # type: ignore
 
 from oslo_utils import secretutils
 from oslo_utils.tests import base as test_base
 
 
-def _gen_digest(text):
-    return hmac.new(
-        b'foo', text.encode('utf-8'), digestmod=hashlib.sha1
-    ).digest()
-
-
-class SecretUtilsTest(testscenarios.TestWithScenarios, test_base.BaseTestCase):
-    scenarios = [
-        ('binary', {'converter': _gen_digest}),
-        ('unicode', {'converter': lambda text: text}),
-    ]
-
+class SecretUtilsTest(test_base.BaseTestCase):
     _test_data = b"Openstack forever"
     _md5_digest = hashlib.md5(_test_data).digest()
 
