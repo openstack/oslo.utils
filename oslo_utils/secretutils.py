@@ -20,25 +20,9 @@ Secret utilities.
 
 import ctypes
 import ctypes.util
-import hashlib
 import secrets
 import string as _string
 from typing import Any, cast
-
-import debtcollector.removals  # type: ignore
-
-
-@debtcollector.removals.remove(
-    message='Use hashlib.md5 instead', category=DeprecationWarning
-)
-def md5(string: bytes | bytearray = b'', usedforsecurity: bool = True) -> Any:
-    """Return an md5 hashlib object using usedforsecurity parameter
-
-    For python distributions that support the usedforsecurity keyword
-    parameter, this passes the parameter through as expected.
-    See https://bugs.python.org/issue9216
-    """
-    return hashlib.md5(string, usedforsecurity=usedforsecurity)  # noqa: S324
 
 
 _crypt: Any
