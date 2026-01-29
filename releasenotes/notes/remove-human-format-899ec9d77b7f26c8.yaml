@@ -1,0 +1,5 @@
+---
+upgrade:
+  - |
+    The ``QemuImgInfo`` no longer supports ``format='human'` and uses
+    ``format='json'`` by default.

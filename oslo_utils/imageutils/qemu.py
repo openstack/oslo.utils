@@ -29,8 +29,6 @@ import json
 import re
 from typing import Any
 
-import debtcollector
-
 from oslo_utils._i18n import _
 from oslo_utils import strutils
 
@@ -41,11 +39,6 @@ class QemuImgInfo:
     The instance of :class:`QemuImgInfo` has properties: `image`,
     `backing_file`, `file_format`, `virtual_size`, `cluster_size`,
     `disk_size`, `snapshots` and `encrypted`.
-
-    The parameter format can be set to 'json' or 'human'. With 'json' format
-    output, qemu image information will be parsed more easily and readable.
-    However 'human' format support will be dropped in next cycle and only
-    'json' format will be supported. Prefer to use 'json' instead of 'human'.
     """
 
     BACKING_FILE_RE = re.compile(
@@ -65,42 +58,30 @@ class QemuImgInfo:
     def __init__(
         self,
         cmd_output: str | bytes | bytearray | None = None,
-        format: str = 'human',
+        format: str = 'json',
     ) -> None:
         if isinstance(cmd_output, bytes | bytearray):
             cmd_output = cmd_output.decode()
 
-        if format == 'json':
-            details = json.loads(cmd_output or '{}')
-            self.image = details.get('filename')
-            self.backing_file = details.get('backing-filename')
-            self.backing_file_format = details.get('backing-filename-format')
-            self.file_format = details.get('format')
-            self.virtual_size = details.get('virtual-size')
-            self.cluster_size = details.get('cluster-size')
-            self.disk_size = details.get('actual-size')
-            self.snapshots = details.get('snapshots', [])
-            self.encrypted = 'yes' if details.get('encrypted') else None
-            self.format_specific = details.get('format-specific')
-        else:
-            if cmd_output is not None:
-                debtcollector.deprecate(
-                    'The human format is deprecated and the format parameter '
-                    'will be removed. Use explicitly json instead',
-                    version="xena",
-                    category=FutureWarning,
-                )
-            details = self._parse(cmd_output or '')
-            self.image = details.get('image')
-            self.backing_file = details.get('backing_file')
-            self.backing_file_format = details.get('backing_file_format')
-            self.file_format = details.get('file_format')
-            self.virtual_size = details.get('virtual_size')
-            self.cluster_size = details.get('cluster_size')
-            self.disk_size = details.get('disk_size')
-            self.snapshots = details.get('snapshot_list', [])
-            self.encrypted = details.get('encrypted')
-            self.format_specific = None
+        if format != 'json':
+            raise ValueError(
+                f'Unsupported format: {format}. Only \'json\' is supported'
+            )
+
+        details = json.loads(cmd_output or '{}')
+
+        self.image = details.get('filename')
+        self.backing_file = details.get('backing-filename')
+        self.backing_file_format = details.get('backing-filename-format')
+        self.file_format = details.get('format')
+        self.virtual_size = details.get('virtual-size')
+        self.cluster_size = details.get('cluster-size')
+        self.disk_size = details.get('actual-size')
+        self.snapshots = details.get('snapshots', [])
+        # NOTE(tkajinam) Preserve compatibility with the 'human' format, which
+        # is the previous default and was removed.
+        self.encrypted = 'yes' if details.get('encrypted') else None
+        self.format_specific = details.get('format-specific')
 
     def __str__(self) -> str:
         lines = [
