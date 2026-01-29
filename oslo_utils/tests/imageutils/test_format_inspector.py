@@ -156,6 +156,9 @@ class TestFormatInspectors(test_base.BaseTestCase):
         :param options: A dictionary of options to pass to the format
         :param backing_file: The backing file to use, if any
         """
+        # some CI nodes mount /tmp using tmpfs, which can cause memory
+        # exhaustion for larger images: ensure that doesn't happen
+        assert size <= 256 * units.Mi, f'disk too big: {size / units.Mi} MiB'
 
         if fmt == 'iso':
             return self._create_iso(size, subformat)
@@ -313,7 +316,7 @@ class TestFormatInspectors(test_base.BaseTestCase):
     def _test_format(self, format_name, subformat=None):
         # Try a few different image sizes, including some odd and very small
         # sizes
-        for image_size in (512, 513, 2057, 7):
+        for image_size in (128, 129, 7):
             self._test_format_at_image_size(
                 format_name,
                 image_size * units.Mi,
@@ -342,7 +345,7 @@ class TestFormatInspectors(test_base.BaseTestCase):
         #   dd if=orig.qcow2 of=outcome bs=32K count=1
         #   dd if=orig.iso of=outcome bs=32K skip=1 seek=1
 
-        qcow = self._create_img('qcow2', 10 * units.Mi)
+        qcow = self._create_img('qcow2', 5 * units.Mi)
         iso = self._create_iso(64 * units.Mi, subformat='9660')
         # first ensure the files are valid
         iso_fmt = self._test_format_at_block_size('iso', iso, 4 * units.Ki)
@@ -401,7 +404,7 @@ class TestFormatInspectors(test_base.BaseTestCase):
         self.assertEqual(['iso', 'qcow2'], sorted(x.NAME for x in formats))
 
     def test_from_file_reads_minimum(self):
-        img = self._create_img('qcow2', 10 * units.Mi)
+        img = self._create_img('qcow2', 5 * units.Mi)
         file_size = os.stat(img).st_size
         fmt = format_inspector.QcowInspector.from_file(img)
         # We know everything we need from the first 512 bytes of a QCOW image,
@@ -410,7 +413,7 @@ class TestFormatInspectors(test_base.BaseTestCase):
         self.assertLess(fmt.actual_size, file_size)
 
     def test_qed_always_unsafe(self):
-        img = self._create_img('qed', 10 * units.Mi)
+        img = self._create_img('qed', 5 * units.Mi)
         inspector = format_inspector.get_inspector('qed')
         assert inspector is not None
         fmt = inspector.from_file(img)
@@ -419,7 +422,7 @@ class TestFormatInspectors(test_base.BaseTestCase):
 
     def test_vmdk_non_sparse_unsafe(self):
         img = self._create_img(
-            'vmdk', 10 * units.Mi, subformat='monolithicFlat'
+            'vmdk', 5 * units.Mi, subformat='monolithicFlat'
         )
         fmt = format_inspector.detect_file_format(img)
         assert fmt is not None
@@ -431,7 +434,7 @@ class TestFormatInspectors(test_base.BaseTestCase):
 
     def _test_vmdk_bad_descriptor_offset(self, subformat=None):
         format_name = 'vmdk'
-        image_size = 10 * units.Mi
+        image_size = 5 * units.Mi
         descriptorOffsetAddr = 0x1C
         BAD_ADDRESS = 0x400
         img = self._create_img(format_name, image_size, subformat=subformat)
@@ -701,7 +704,7 @@ class TestFormatInspectors(test_base.BaseTestCase):
 
     def test_vmdk_with_footer(self):
         img_fn = self._create_img(
-            'vmdk', 10 * units.Mi, subformat='streamOptimized'
+            'vmdk', 5 * units.Mi, subformat='streamOptimized'
         )
 
         # Make the file signal that there is a footer, add a footer, but with
