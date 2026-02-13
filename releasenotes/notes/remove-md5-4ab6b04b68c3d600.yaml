@@ -1,0 +1,4 @@
+---
+upgrade:
+  - |
+    The ``oslo_utils.secretutils.md5`` function has been removed.

@@ -12,66 +12,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import hashlib
-
 from oslo_utils import secretutils
 from oslo_utils.tests import base as test_base
 
 
 class SecretUtilsTest(test_base.BaseTestCase):
-    _test_data = b"Openstack forever"
-    _md5_digest = hashlib.md5(_test_data).digest()
-
-    def test_md5_with_data(self):
-        digest = secretutils.md5(self._test_data).digest()
-        self.assertEqual(digest, self._md5_digest)
-
-        digest = secretutils.md5(
-            self._test_data, usedforsecurity=True
-        ).digest()
-        self.assertEqual(digest, self._md5_digest)
-
-        digest = secretutils.md5(
-            self._test_data, usedforsecurity=False
-        ).digest()
-        self.assertEqual(digest, self._md5_digest)
-
-    def test_md5_without_data(self):
-        md5 = secretutils.md5()
-        md5.update(self._test_data)
-        digest = md5.digest()
-        self.assertEqual(digest, self._md5_digest)
-
-        md5 = secretutils.md5(usedforsecurity=True)
-        md5.update(self._test_data)
-        digest = md5.digest()
-        self.assertEqual(digest, self._md5_digest)
-
-        md5 = secretutils.md5(usedforsecurity=False)
-        md5.update(self._test_data)
-        digest = md5.digest()
-        self.assertEqual(digest, self._md5_digest)
-
-    def test_string_data_raises_type_error(self):
-        self.assertRaises(TypeError, hashlib.md5, 'foo')
-        self.assertRaises(TypeError, secretutils.md5, 'foo')
-        self.assertRaises(
-            TypeError, secretutils.md5, 'foo', usedforsecurity=True
-        )
-        self.assertRaises(
-            TypeError, secretutils.md5, 'foo', usedforsecurity=False
-        )
-
-    def test_none_data_raises_type_error(self):
-        self.assertRaises(TypeError, hashlib.md5, None)
-        self.assertRaises(TypeError, secretutils.md5, None)
-        self.assertRaises(
-            TypeError, secretutils.md5, None, usedforsecurity=True
-        )
-        self.assertRaises(
-            TypeError, secretutils.md5, None, usedforsecurity=False
-        )
-
     def test_password_mksalt(self):
         self.assertRaises(ValueError, secretutils.crypt_mksalt, 'MD5')
         salt = secretutils.crypt_mksalt('SHA-256')
