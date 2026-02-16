@@ -1,0 +1,11 @@
+---
+fixes:
+  - |
+    `Bug #1638124 <https://bugs.launchpad.net/oslo.utils/+bug/1638124>`_:
+    The ``parse_isotime()`` function's docstring now clearly documents that
+    datetime strings without explicit timezone designators (Z, +HH:MM, -HH:MM)
+    are treated as UTC timestamps rather than naive/local time as specified
+    by ISO 8601. This behavior exists for historical reasons and backward
+    compatibility. The documentation now points users to alternatives
+    (``datetime.fromisoformat()`` or the ``iso8601`` library directly with
+    ``default_timezone=None``) for ISO 8601 compliant parsing.
