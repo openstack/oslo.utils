@@ -26,11 +26,19 @@ import sys
 import time
 import traceback
 import types
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 from oslo_utils import encodeutils
 from oslo_utils import reflection
 from oslo_utils import timeutils
+
+if TYPE_CHECKING:
+    # Needed until we bump our minimum to Python 3.11
+    #
+    # https://github.com/python/typeshed/issues/7855
+    _LoggerAdapter = logging.LoggerAdapter[logging.Logger]
+else:
+    _LoggerAdapter = logging.LoggerAdapter
 
 
 LOG = logging.getLogger(__name__)
@@ -199,7 +207,9 @@ class save_and_reraise_exception:
     """
 
     def __init__(
-        self, reraise: bool = True, logger: logging.Logger | None = None
+        self,
+        reraise: bool = True,
+        logger: logging.Logger | _LoggerAdapter | None = None,
     ) -> None:
         self.reraise = reraise
         self.logger = logger or LOG
