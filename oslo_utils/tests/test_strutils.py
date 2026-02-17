@@ -19,8 +19,8 @@ import math
 from typing import Any
 from unittest import mock
 
-import ddt  # type: ignore
-import testscenarios  # type: ignore
+import ddt
+import testscenarios
 
 from oslo_utils import strutils
 from oslo_utils.tests import base as test_base

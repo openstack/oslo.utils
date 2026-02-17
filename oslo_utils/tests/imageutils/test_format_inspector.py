@@ -20,7 +20,7 @@ import subprocess
 import tempfile
 from unittest import mock
 
-import ddt  # type: ignore
+import ddt
 
 from oslo_utils.imageutils import format_inspector
 from oslo_utils.imageutils import QemuImgInfo

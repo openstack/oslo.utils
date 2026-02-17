@@ -13,7 +13,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from oslotest import base  # type: ignore
+from oslotest import base
 
 
 class BaseTestCase(base.BaseTestCase): ...

@@ -16,7 +16,7 @@
 from unittest import mock
 import warnings
 
-import testscenarios  # type: ignore
+import testscenarios
 
 from oslo_utils import imageutils
 from oslo_utils.tests import base as test_base

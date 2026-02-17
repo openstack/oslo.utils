@@ -29,7 +29,7 @@ import json
 import re
 from typing import Any
 
-import debtcollector  # type: ignore
+import debtcollector
 
 from oslo_utils._i18n import _
 from oslo_utils import strutils
