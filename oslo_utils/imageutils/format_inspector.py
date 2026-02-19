@@ -1497,6 +1497,7 @@ class InspectWrapper:
                             objects that will be used. This may be a security
                             hole if used improperly, but may be used to limit
                             the detected formats to some smaller scope.
+    :param tracing: Enable debug logging
     """
 
     def __init__(
@@ -1504,12 +1505,13 @@ class InspectWrapper:
         source: IO[bytes],
         expected_format: str | None = None,
         allowed_formats: list[str] | None = None,
+        tracing: bool = False,
     ) -> None:
         self._source = source
         self._expected_format = expected_format
         self._errored_inspectors: set[FileInspector] = set()
         self._inspectors = {
-            v()
+            v(tracing=tracing)
             for k, v in ALL_FORMATS.items()
             if not allowed_formats or k in allowed_formats
         }
@@ -1675,7 +1677,9 @@ def get_inspector(format_name: str) -> type[FileInspector] | None:
     return ALL_FORMATS.get(format_name)
 
 
-def detect_file_format(filename: str) -> FileInspector | None:
+def detect_file_format(
+    filename: str, tracing: bool = False
+) -> FileInspector | None:
     """Attempts to detect the format of a file.
 
     This runs through a file one time, running all the known inspectors in
@@ -1683,11 +1687,12 @@ def detect_file_format(filename: str) -> FileInspector | None:
     them are sure they don't match.
 
     :param filename: The path to the file to inspect.
+    :param tracing: Enable debug logging
     :returns: A FormatInspector instance matching the file.
     :raises: ImageFormatError if multiple formats are detected.
     """
     with open(filename, 'rb') as f:
-        wrapper = InspectWrapper(f)
+        wrapper = InspectWrapper(f, tracing=tracing)
         try:
             for _chunk in _chunked_reader(wrapper, 4096):
                 if wrapper.format:
