@@ -1,0 +1,11 @@
+---
+features:
+  - |
+    The format_inspector module can now decrypt and inspect inside LUKS images,
+    determine the contained format, and provide access to the inner inspector
+    for safety checking.
+upgrade:
+  - |
+    Note that the format_inspector module now requires the `cryptography`
+    library. This is only installed when specifying the `image-inspection`
+    extra when requiring oslo.utils.
