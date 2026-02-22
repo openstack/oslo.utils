@@ -26,7 +26,7 @@ import sys
 import time
 import traceback
 import types
-from typing import Any, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING, NoReturn
 
 from oslo_utils import encodeutils
 from oslo_utils import reflection
@@ -217,7 +217,7 @@ class save_and_reraise_exception:
         self.value: BaseException | None = None
         self.tb: types.TracebackType | None = None
 
-    def force_reraise(self) -> None:
+    def force_reraise(self) -> NoReturn:
         if self.type_ is None and self.value is None:
             raise RuntimeError(
                 "There is no (currently) captured exception"
@@ -231,6 +231,10 @@ class save_and_reraise_exception:
                 if self.value.__traceback__ is not self.tb:
                     raise self.value.with_traceback(self.tb)
                 raise self.value
+            raise RuntimeError(
+                "There is no (currently) captured exception"
+                " to force the reraising of"
+            )
         finally:
             self.value = None
             self.tb = None
