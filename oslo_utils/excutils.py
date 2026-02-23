@@ -218,23 +218,18 @@ class save_and_reraise_exception:
         self.tb: types.TracebackType | None = None
 
     def force_reraise(self) -> NoReturn:
-        if self.type_ is None and self.value is None:
-            raise RuntimeError(
-                "There is no (currently) captured exception"
-                " to force the reraising of"
-            )
-        try:
-            if self.value is None and self.type_ is not None:
-                self.value = self.type_()
+        if self.value is None:
+            if self.type_ is None:
+                raise RuntimeError(
+                    "There is no (currently) captured exception"
+                    " to force the reraising of"
+                )
+            self.value = self.type_()
 
-            if self.value is not None:
-                if self.value.__traceback__ is not self.tb:
-                    raise self.value.with_traceback(self.tb)
-                raise self.value
-            raise RuntimeError(
-                "There is no (currently) captured exception"
-                " to force the reraising of"
-            )
+        try:
+            if self.value.__traceback__ is not self.tb:
+                raise self.value.with_traceback(self.tb)
+            raise self.value
         finally:
             self.value = None
             self.tb = None
