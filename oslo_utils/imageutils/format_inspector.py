@@ -160,10 +160,13 @@ class SafetyCheck:
         """Executes the target check function, records the result.
 
         :raises SafetyViolation: If an error check fails
+        :raises SafetyCheckFailed: If a nested set of safety checks fail
         """
         try:
             self.target_fn()
         except SafetyViolation:
+            raise
+        except SafetyCheckFailed:
             raise
         except Exception as e:
             LOG.error(
@@ -476,8 +479,49 @@ class FileInspector(abc.ABC):
                     self,
                     exc,
                 )
+            except SafetyCheckFailed as exc:
+                # This can happen if one of our safety checks is running
+                # safety_check() on a nested inspector. In this case, we
+                # just copy all the failures as if they were our own, but
+                # with a prefix to set them apart.
+                for name, failure in exc.failures.items():
+                    failures['inner_' + name] = failure
+                    LOG.warning(
+                        'Inner safety check %s on %s failed because %s',
+                        name,
+                        self,
+                        failure,
+                    )
         if failures:
             raise SafetyCheckFailed(failures)
+
+
+class ContainerFileInspector(FileInspector):
+    """A file inspector for formats that can wrap other formats.
+
+    This is used to wrap other formats that are contained within a
+    container format. For example, LUKS is basically always used to
+    wrap/encrypt another format such as gpt. A safety check of
+    'inner_safety' is added which runs safety_check() on the inner
+    inspector.
+    """
+
+    def __init__(self, tracing: bool = False) -> None:
+        self._inner_format: FileInspector | None = None
+        super().__init__(tracing=tracing)
+        self.add_safety_check(
+            SafetyCheck('inner_safety', self.check_inner_safety)
+        )
+
+    @property
+    def inner_format(self) -> FileInspector | None:
+        """Returns the inner format of the container."""
+        return self._inner_format
+
+    def check_inner_safety(self) -> None:
+        """Runs safety_check() on the inner format."""
+        if self._inner_format is not None:
+            self._inner_format.safety_check()
 
 
 class RawFileInspector(FileInspector):

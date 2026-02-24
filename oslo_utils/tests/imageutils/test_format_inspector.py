@@ -1297,3 +1297,60 @@ class TestFormatInspectorsTargeted(test_base.BaseTestCase):
         assert new_region is not None
         # Table size was under the limit, make sure we get it back
         self.assertEqual(16 * 2048, new_region.length)
+
+
+class TestContainerFileInspector(test_base.BaseTestCase):
+    class DummyContainer(format_inspector.ContainerFileInspector):
+        NAME = 'dummy_container'
+
+        def _initialize(self):
+            # Zero-length region is immediately complete; add a no-op safety
+            # check
+            self.new_region('header', format_inspector.CaptureRegion(0, 0))
+            self.add_safety_check(format_inspector.SafetyCheck.null())
+
+        @property
+        def format_match(self):
+            # Pretend we always match once initialized
+            return True
+
+    def _new_container(self):
+        ins = self.DummyContainer()
+        # With zero-length region, it's already complete; still, mark finished
+        ins.finish()
+        return ins
+
+    def test_adds_inner_safety_check(self):
+        ins = self._new_container()
+        # ContainerFileInspector should always add 'inner_safety'
+        self.assertIn('inner_safety', ins._safety_checks)
+
+    def test_inner_safety_noop_without_inner(self):
+        ins = self._new_container()
+        # No inner set; safety_check should pass (only null + inner_safety
+        #  which no-ops)
+        ins.safety_check()
+
+    def test_inner_safety_invokes_inner_safety_check(self):
+        ins = self._new_container()
+        inner = mock.MagicMock()
+        ins._inner_format = inner
+        ins.safety_check()
+        inner.safety_check.assert_called_once_with()
+
+    def test_inner_safety_failure_is_recorded(self):
+        ins = self._new_container()
+
+        # Make the inner raise a SafetyViolation so it is captured and reported
+        def fail():
+            raise format_inspector.SafetyViolation('boom')
+
+        inner = mock.MagicMock()
+        inner.safety_check.side_effect = fail
+        ins._inner_format = inner
+
+        exc = self.assertRaises(
+            format_inspector.SafetyCheckFailed, ins.safety_check
+        )
+        self.assertIn('inner_safety', exc.failures)
+        self.assertIn('boom', str(exc.failures['inner_safety']))

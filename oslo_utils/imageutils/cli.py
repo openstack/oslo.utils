@@ -106,6 +106,11 @@ def main() -> None:
     virtual_size = inspector.virtual_size
     actual_size = inspector.actual_size
     fmt = str(inspector)
+    inner_inspector = (
+        inspector.inner_format
+        if isinstance(inspector, format_inspector.ContainerFileInspector)
+        else None
+    )
 
     if verbose:
         print(f"SAFETY_CHECK_PASSED={safe}")
@@ -113,6 +118,9 @@ def main() -> None:
         print(f"ACTUAL_SIZE={actual_size}")
         print(f"IMAGE_FORMAT=\"{fmt}\"")
         print(f"OSLO_UTILS_VERSION=\"{oslo_utils_version}\"")
+        if inner_inspector:
+            print(f"INNER_IMAGE_FORMAT=\"{str(inner_inspector)}\"")
+
     if safe:
         sys.exit(0)
 
