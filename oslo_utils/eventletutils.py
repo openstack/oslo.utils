@@ -25,16 +25,15 @@ import threading
 from typing import TYPE_CHECKING
 import warnings
 
-import debtcollector
-
 from oslo_utils import importutils
 from oslo_utils import timeutils
 
 if TYPE_CHECKING:
     import greenlet
 
-debtcollector.deprecate(
-    "eventletutils module is deprecated and will be removed."
+warnings.warn(
+    "eventletutils module is deprecated and will be removed.",
+    DeprecationWarning,
 )
 
 # These may or may not exist; so carefully import them if we can...
