@@ -485,6 +485,19 @@ def mask_password(message: object, secret: str = "***") -> str:  # noqa: S107
     return message
 
 
+def _deep_mask(value: object, secret: str) -> object:
+    if isinstance(value, collections.abc.Mapping):
+        return mask_dict_password(value, secret=secret)
+
+    if isinstance(value, str):
+        return mask_password(value, secret=secret)
+
+    if isinstance(value, collections.abc.Collection):
+        items = [_deep_mask(v, secret=secret) for v in value]
+        return items if isinstance(value, list) else tuple(items)
+    return value
+
+
 # TODO(stephenfin): The types aren't great for this. We want to indicate that
 # the types of values in the returned dict are always identical to those of the
 # input collection except if the value was a non-dict collection. It would be
@@ -567,6 +580,8 @@ def mask_dict_password(
             # _SANITIZE_KEYS, so we fall through to here
             if isinstance(v, str):
                 out[k] = mask_password(v, secret=secret)
+            elif isinstance(v, collections.abc.Collection):
+                out[k] = _deep_mask(v, secret=secret)
             else:
                 # Just leave it alone.
                 out[k] = v

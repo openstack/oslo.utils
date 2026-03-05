@@ -869,6 +869,41 @@ class MaskDictionaryPasswordTestCase(test_base.BaseTestCase):
         payload = NestedMapping()
         self.assertEqual(expected, strutils.mask_dict_password(payload))
 
+    def test_deep_mask_list_of_strings(self):
+        payload = {'args': ['--password secret', 'safe']}
+        expected = {'args': ['--password ***', 'safe']}
+        self.assertEqual(expected, strutils.mask_dict_password(payload))
+
+    def test_deep_mask_list_of_dicts(self):
+        payload = {
+            'servers': [
+                {'password': 'abc', 'host': 'h1'},
+                {'password': 'xyz', 'host': 'h2'},
+            ]
+        }
+        expected = {
+            'servers': [
+                {'password': '***', 'host': 'h1'},
+                {'password': '***', 'host': 'h2'},
+            ]
+        }
+        self.assertEqual(expected, strutils.mask_dict_password(payload))
+
+    def test_deep_mask_tuple(self):
+        payload = {'creds': ('--password foo', 'bar')}
+        expected = {'creds': ('--password ***', 'bar')}
+        self.assertEqual(expected, strutils.mask_dict_password(payload))
+
+    def test_deep_mask_nested_list_in_list(self):
+        payload = {'data': [['--password inner'], 'plain']}
+        expected = {'data': [['--password ***'], 'plain']}
+        self.assertEqual(expected, strutils.mask_dict_password(payload))
+
+    def test_deep_mask_leaves_non_secret_values(self):
+        payload = {'items': [1, 2.0, None, True, 'no secrets here']}
+        expected = {'items': [1, 2.0, None, True, 'no secrets here']}
+        self.assertEqual(expected, strutils.mask_dict_password(payload))
+
 
 class IsIntLikeTestCase(test_base.BaseTestCase):
     def test_is_int_like_true(self):
