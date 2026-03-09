@@ -25,12 +25,16 @@ import datetime
 import functools
 import logging
 import time
-from typing import Any, Literal, overload
+import types
+from typing import TYPE_CHECKING, Any, Literal, overload
 import zoneinfo
 
 import iso8601
 
 from oslo_utils import reflection
+
+if TYPE_CHECKING:
+    from typing_extensions import Self
 
 # ISO 8601 extended time format with microseconds
 PERFECT_TIME_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'
@@ -492,12 +496,17 @@ class StopWatch:
             elapsed = max(0.0, maximum)
         return elapsed
 
-    def __enter__(self) -> StopWatch:
+    def __enter__(self) -> Self:
         """Starts the watch."""
         self.start()
         return self
 
-    def __exit__(self, type: Any, value: Any, traceback: Any) -> None:
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: types.TracebackType | None,
+    ) -> None:
         """Stops the watch (ignoring errors if stop fails)."""
         try:
             self.stop()
