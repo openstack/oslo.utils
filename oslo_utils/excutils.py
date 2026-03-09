@@ -129,7 +129,7 @@ class CausedByException(Exception):
 
 def raise_with_cause(
     exc_cls: type[Exception], message: str, *args: Any, **kwargs: Any
-) -> None:
+) -> NoReturn:
     """Helper to raise + chain exceptions (when able) and associate a *cause*.
 
     NOTE(harlowja): Since in py3.x exceptions can be chained (due to
