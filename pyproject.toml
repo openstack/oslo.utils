@@ -9,14 +9,13 @@ authors = [
     {name = "OpenStack", email = "openstack-discuss@lists.openstack.org"},
 ]
 readme = {file = "README.rst", content-type = "text/x-rst"}
-license = {text = "Apache-2.0"}
+license = "Apache-2.0"
 dynamic = ["version", "dependencies"]
 requires-python = ">=3.10"
 classifiers = [
     "Environment :: OpenStack",
     "Intended Audience :: Information Technology",
     "Intended Audience :: System Administrators",
-    "License :: OSI Approved :: Apache Software License",
     "Operating System :: POSIX :: Linux",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -31,10 +30,8 @@ classifiers = [
 Homepage = "https://docs.openstack.org/oslo.utils"
 Repository = "https://opendev.org/openstack/oslo.utils"
 
-[tool.setuptools]
-packages = [
-    "oslo_utils"
-]
+[tool.setuptools.packages.find]
+include = ["oslo_utils"]
 
 [tool.mypy]
 python_version = "3.10"
