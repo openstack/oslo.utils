@@ -43,7 +43,7 @@ def main() -> None:
       - OSLO_UTILS_VERSION (version of oslo_utils currently in use)
       - FAILURE_REASONS (reasons for failure, if failed safety check)
     """
-    logging.basicConfig(level=logging.CRITICAL)
+    logging.basicConfig(level=logging.DEBUG)
     oslo_utils_version = str(version_info)
     parser = argparse.ArgumentParser(
         prog='oslo.utils.imageutils',
@@ -67,6 +67,11 @@ def main() -> None:
         ),
     )
     parser.add_argument(
+        '--debug',
+        action='store_true',
+        help="Enable debug logging output.",
+    )
+    parser.add_argument(
         '-i',
         '--image',
         action='store',
@@ -77,12 +82,14 @@ def main() -> None:
     args = parser.parse_args()
     image = args.image
     verbose = args.verbose
+    if args.debug:
+        logging.getLogger().setLevel(logging.DEBUG)
 
     if not os.path.exists(image) or not os.path.isfile(image):
         print(f'Image path {image} provided does not exist', file=sys.stderr)
         sys.exit(1)
 
-    inspector = format_inspector.detect_file_format(image)
+    inspector = format_inspector.detect_file_format(image, tracing=args.debug)
     if inspector is None:
         print('Could not find format inspector for image', file=sys.stderr)
         sys.exit(1)
