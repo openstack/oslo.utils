@@ -22,7 +22,7 @@ import logging
 import os
 import re
 import socket
-from typing import cast, Any
+from typing import cast
 from urllib import parse
 
 import netaddr
@@ -527,7 +527,7 @@ def _get_my_ipv6_address() -> str:
     return LOCALHOST
 
 
-class _ModifiedSplitResult(parse.SplitResult):
+class SplitResult(parse.SplitResult):
     """Split results class for urlsplit."""
 
     def params(self, collapse: bool = True) -> dict[str, list[str] | str]:
@@ -537,12 +537,13 @@ class _ModifiedSplitResult(parse.SplitResult):
         names and values that were provided in the url.
 
         :param collapse: Boolean, turn on or off collapsing of query values
-        with the same name. Since a url can contain the same query parameter
-        name with different values it may or may not be useful for users to
-        care that this has happened. This parameter when True uses the
-        last value that was given for a given name, while if False it will
-        retain all values provided by associating the query parameter name with
-        a list of values instead of a single (non-list) value.
+            with the same name. Since a url can contain the same query
+            parameter name with different values it may or may not be useful
+            for users to care that this has happened. This parameter when True
+            uses the last value that was given for a given name, while if False
+            it will retain all values provided by associating the query
+            parameter name with a list of values instead of a single (non-list)
+            value.
         """
         if self.query:
             if collapse:
@@ -563,8 +564,11 @@ class _ModifiedSplitResult(parse.SplitResult):
             return {}
 
 
-def urlsplit(url: str, scheme: str = '', allow_fragments: bool = True) -> Any:
+def urlsplit(
+    url: str, scheme: str = '', allow_fragments: bool = True
+) -> SplitResult:
     """Parse a URL using urlparse.urlsplit(), splitting query and fragments.
+
     This function papers over Python issue9374_ when needed.
 
     .. _issue9374: http://bugs.python.org/issue9374
@@ -578,7 +582,7 @@ def urlsplit(url: str, scheme: str = '', allow_fragments: bool = True) -> Any:
         path, fragment = path.split('#', 1)
     if '?' in path:
         path, query = path.split('?', 1)
-    return _ModifiedSplitResult(scheme, netloc, path, query, fragment)
+    return SplitResult(scheme, netloc, path, query, fragment)
 
 
 def set_tcp_keepalive(
