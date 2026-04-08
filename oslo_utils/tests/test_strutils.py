@@ -188,6 +188,15 @@ class StrUtilsTest(test_base.BaseTestCase):
 
 
 class StringToBytesTest(test_base.BaseTestCase):
+    # Type annotations for testscenarios-injected attributes
+    scenarios: list[tuple[str, dict[str, Any]]]
+    sign: str
+    magnitude: str
+    unit_prefix: str
+    unit_suffix: str
+    unit_system: str
+    return_int: bool
+
     _unit_system = [
         ('si', dict(unit_system='SI')),
         ('iec', dict(unit_system='IEC')),
