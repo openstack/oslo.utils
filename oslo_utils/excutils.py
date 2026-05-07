@@ -26,7 +26,7 @@ import sys
 import time
 import traceback
 import types
-from typing import Any, TYPE_CHECKING, NoReturn
+from typing import Any, overload, NoReturn, TYPE_CHECKING, TypeVar
 
 from oslo_utils import encodeutils
 from oslo_utils import reflection
@@ -267,9 +267,24 @@ class save_and_reraise_exception:
         return None
 
 
+_CallableT = TypeVar('_CallableT', bound=Callable[..., Any])
+
+
+@overload
 def forever_retry_uncaught_exceptions(
-    *args: Any, **kwargs: Any
-) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+    __func: _CallableT,
+) -> _CallableT: ...
+
+
+@overload
+def forever_retry_uncaught_exceptions(
+    *,
+    retry_delay: float = ...,
+    same_log_delay: float = ...,
+) -> Callable[[_CallableT], _CallableT]: ...
+
+
+def forever_retry_uncaught_exceptions(*args: Any, **kwargs: Any) -> Any:
     """Decorates provided function with infinite retry behavior.
 
     The function retry delay is **always** one second unless
