@@ -328,7 +328,7 @@ def string_to_bytes(
 
     Mixed units interpret the "i" to mean IEC, and no "i" to mean SI
     (e.g. 1kb = 1000b, 1kib == 1024b).  Additionaly, mixed units
-    interpret 'K' as power-of-ten.  This mode is not particuarly
+    interpret 'K' as power-of-ten.  This mode is not particularly
     useful for new code, but can help with compatability for parsers
     such as GNU parted.
 
