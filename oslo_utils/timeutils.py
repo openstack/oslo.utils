@@ -27,6 +27,7 @@ import logging
 import time
 import types
 from typing import TYPE_CHECKING, Any, Literal, overload
+import warnings
 import zoneinfo
 
 import iso8601
@@ -192,7 +193,17 @@ def set_time_override(override_time: datetime.datetime | None = None) -> None:
 
     :param override_time: datetime instance or list thereof. If not
                           given, defaults to the current UTC time.
+
+    .. deprecated::
+       Use unittest.mock.patch() to mock timeutils.utcnow instead.
+       This function will be removed in a future release.
     """
+    warnings.warn(
+        "set_time_override is deprecated. Use unittest.mock.patch() "
+        "to mock timeutils.utcnow instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     utcnow.override_time = override_time or datetime.datetime.now(
         datetime.timezone.utc
     ).replace(tzinfo=None)
@@ -203,7 +214,16 @@ def advance_time_delta(timedelta: datetime.timedelta) -> None:
 
     See :py:class:`oslo_utils.fixture.TimeFixture`.
 
+    .. deprecated::
+       Use unittest.mock.patch() to mock timeutils.utcnow instead.
+       This function will be removed in a future release.
     """
+    warnings.warn(
+        "advance_time_delta is deprecated. Use unittest.mock.patch() "
+        "to mock timeutils.utcnow instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     if utcnow.override_time is None:
         raise RuntimeError('override_time must be configured')
 
@@ -219,7 +239,16 @@ def advance_time_seconds(seconds: int | float) -> None:
 
     See :py:class:`oslo_utils.fixture.TimeFixture`.
 
+    .. deprecated::
+       Use unittest.mock.patch() to mock timeutils.utcnow instead.
+       This function will be removed in a future release.
     """
+    warnings.warn(
+        "advance_time_seconds is deprecated. Use unittest.mock.patch() "
+        "to mock timeutils.utcnow instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     advance_time_delta(datetime.timedelta(0, seconds))
 
 
@@ -228,7 +257,16 @@ def clear_time_override() -> None:
 
     See :py:class:`oslo_utils.fixture.TimeFixture`.
 
+    .. deprecated::
+       Use unittest.mock.patch() to mock timeutils.utcnow instead.
+       This function will be removed in a future release.
     """
+    warnings.warn(
+        "clear_time_override is deprecated. Use unittest.mock.patch() "
+        "to mock timeutils.utcnow instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     utcnow.override_time = None
 
 

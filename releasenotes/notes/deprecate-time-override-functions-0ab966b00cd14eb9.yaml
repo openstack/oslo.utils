@@ -1,0 +1,10 @@
+---
+deprecations:
+  - |
+    The following time-mocking functions in ``oslo_utils.timeutils`` have been
+    deprecated: ``set_time_override()``, ``clear_time_override()``,
+    ``advance_time_delta()``, and ``advance_time_seconds()``.
+
+    These functions manipulate global state and were created before modern
+    mocking libraries became standard in Python. Use ``unittest.mock.patch()``
+    to mock ``timeutils.utcnow()`` instead.
