@@ -22,7 +22,7 @@ import logging
 import os
 import re
 import socket
-from typing import cast
+from typing import cast, overload
 from urllib import parse
 
 import netaddr
@@ -37,8 +37,26 @@ LOG = logging.getLogger(__name__)
 _IS_IPV6_ENABLED = None
 
 
+@overload
+def parse_host_port(
+    address: str, default_port: int = ...
+) -> tuple[str, int]: ...
+
+
+@overload
 def parse_host_port(
     address: str, default_port: int | None = None
+) -> tuple[str, int | None]: ...
+
+
+@overload
+def parse_host_port(
+    address: None, default_port: int | None = None
+) -> tuple[None, None]: ...
+
+
+def parse_host_port(
+    address: str | None, default_port: int | None = None
 ) -> tuple[str | None, int | None]:
     """Interpret a string as a host:port pair.
 
