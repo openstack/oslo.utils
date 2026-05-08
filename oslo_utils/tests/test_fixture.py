@@ -29,10 +29,10 @@ class TimeFixtureTest(test_base.BaseTestCase):
         # override_time is set to the current timestamp.
         # Also, when the fixture is cleaned up, the override_time is reset.
 
-        self.assertIsNone(timeutils.utcnow.override_time)
+        self.assertIsNone(timeutils._override_time)
         with fixture.TimeFixture():
-            self.assertIsNotNone(timeutils.utcnow.override_time)
-        self.assertIsNone(timeutils.utcnow.override_time)
+            self.assertIsNotNone(timeutils._override_time)
+        self.assertIsNone(timeutils._override_time)
 
     def test_set_time_override(self):
         # When the fixture is used to set a time, utcnow returns that time.
