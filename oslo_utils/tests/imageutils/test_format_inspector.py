@@ -1043,6 +1043,17 @@ class TestFormatInspectors(test_base.BaseTestCase):
         for key, inspector_cls in format_inspector.ALL_FORMATS.items():
             self.assertEqual(key, inspector_cls.NAME)
 
+    def test_params_passed_to_inspector(self):
+        img = self._create_img('raw', 1024)
+        inspector = format_inspector.detect_file_format(
+            img, params={'foo': 'bar'}
+        )
+        self.assertIsNotNone(inspector)
+        # This makes sure we passed the "data" through detect, InspectWrapper,
+        # and to the actual inspector objects themselves.
+        assert inspector is not None
+        self.assertEqual('bar', inspector._params['foo'])
+
 
 class TestFormatInspectorInfra(test_base.BaseTestCase):
     def _test_capture_region_bs(self, bs):

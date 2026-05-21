@@ -79,9 +79,17 @@ def main() -> None:
         metavar="IMG",
         help="Path to an image you wish to inspect.",
     )
+    parser.add_argument(
+        '--param',
+        action='append',
+        metavar='KEY=VALUE',
+        help='Additional parameter to pass to the inspector.',
+        default=[],
+    )
     args = parser.parse_args()
     image = args.image
     verbose = args.verbose
+    params = {k: v for k, v in [arg.split('=', 1) for arg in args.param]}
     if args.debug:
         logging.getLogger().setLevel(logging.DEBUG)
 
@@ -89,7 +97,9 @@ def main() -> None:
         print(f'Image path {image} provided does not exist', file=sys.stderr)
         sys.exit(1)
 
-    inspector = format_inspector.detect_file_format(image, tracing=args.debug)
+    inspector = format_inspector.detect_file_format(
+        image, tracing=args.debug, params=params
+    )
     if inspector is None:
         print('Could not find format inspector for image', file=sys.stderr)
         sys.exit(1)

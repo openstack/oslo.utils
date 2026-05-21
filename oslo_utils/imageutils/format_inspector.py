@@ -235,12 +235,22 @@ class FileInspector(abc.ABC):
     one chunk at a time, during read processing and will only store
     as much data as necessary to determine required attributes of
     the file.
+
+    :param tracing: Enable debug logging
+    :param params: Additional parameters to pass to the inspector
+
+    The data is passed to the inspector and can be used to pass additional
+    information to the inspector. For example, the LUKSInspector uses the
+    params to pass the key to decrypt the data. Other uses may be providing
+    boundary conditions, allowable ciphers, etc.
     """
 
     # This should match what qemu-img thinks this format is
     NAME = ''
 
-    def __init__(self, tracing: bool = False) -> None:
+    def __init__(
+        self, tracing: bool = False, params: dict[str, str] | None = None
+    ) -> None:
         self._total_count = 0
 
         # NOTE(danms): The logging in here is extremely verbose for a reason,
@@ -251,6 +261,7 @@ class FileInspector(abc.ABC):
         self._capture_regions: dict[str, CaptureRegion] = {}
         self._safety_checks: dict[str, SafetyCheck] = {}
         self._finished = False
+        self._params = params or {}
         self._initialize()
         if not self._safety_checks:
             # Make sure we actively declare some safety check, even if it
@@ -506,9 +517,11 @@ class ContainerFileInspector(FileInspector):
     inspector.
     """
 
-    def __init__(self, tracing: bool = False) -> None:
+    def __init__(
+        self, tracing: bool = False, params: dict[str, str] | None = None
+    ) -> None:
         self._inner_format: FileInspector | None = None
-        super().__init__(tracing=tracing)
+        super().__init__(tracing=tracing, params=params)
         self.add_safety_check(
             SafetyCheck('inner_safety', self.check_inner_safety)
         )
@@ -1542,6 +1555,7 @@ class InspectWrapper:
                             hole if used improperly, but may be used to limit
                             the detected formats to some smaller scope.
     :param tracing: Enable debug logging
+    :param params: Additional parameters to pass to the inspectors
     """
 
     def __init__(
@@ -1550,12 +1564,13 @@ class InspectWrapper:
         expected_format: str | None = None,
         allowed_formats: list[str] | None = None,
         tracing: bool = False,
+        params: dict[str, str] | None = None,
     ) -> None:
         self._source = source
         self._expected_format = expected_format
         self._errored_inspectors: set[FileInspector] = set()
         self._inspectors = {
-            v(tracing=tracing)
+            v(tracing=tracing, params=params)
             for k, v in ALL_FORMATS.items()
             if not allowed_formats or k in allowed_formats
         }
@@ -1722,7 +1737,7 @@ def get_inspector(format_name: str) -> type[FileInspector] | None:
 
 
 def detect_file_format(
-    filename: str, tracing: bool = False
+    filename: str, tracing: bool = False, params: dict[str, str] | None = None
 ) -> FileInspector | None:
     """Attempts to detect the format of a file.
 
@@ -1732,11 +1747,12 @@ def detect_file_format(
 
     :param filename: The path to the file to inspect.
     :param tracing: Enable debug logging
+    :param params: Additional data to pass to the inspectors
     :returns: A FormatInspector instance matching the file.
     :raises: ImageFormatError if multiple formats are detected.
     """
     with open(filename, 'rb') as f:
-        wrapper = InspectWrapper(f, tracing=tracing)
+        wrapper = InspectWrapper(f, tracing=tracing, params=params)
         try:
             for _chunk in _chunked_reader(wrapper, 4096):
                 if wrapper.format:
