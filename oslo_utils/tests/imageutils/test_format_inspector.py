@@ -129,7 +129,15 @@ class TestFormatInspectors(test_base.BaseTestCase):
         return fn
 
     def _create_luks(self, image_size, subformat):
+        try:
+            subprocess.check_output('qemu-img --help | grep luks', shell=True)
+        except Exception:
+            self.skipTest(
+                'qemu-img not installed or does not support luks format'
+            )
+
         fn = tempfile.mktemp(suffix='.luks')
+        self._created_files.append(fn)
         cmd = [
             'qemu-img',
             'create',
@@ -142,7 +150,9 @@ class TestFormatInspectors(test_base.BaseTestCase):
             fn,
             f'{int(image_size)}',
         ]
-        subprocess.check_output(' '.join(cmd), shell=True)
+        subprocess.check_output(
+            ' '.join(cmd), shell=True, stderr=subprocess.STDOUT
+        )
         return fn
 
     def _create_img(
