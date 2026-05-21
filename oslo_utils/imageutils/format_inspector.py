@@ -22,6 +22,7 @@ complex-format images.
 """
 
 import abc
+import io
 from collections.abc import Callable, Generator
 import struct
 from typing import cast, Any, IO, TypedDict
@@ -29,6 +30,7 @@ from collections.abc import Iterator
 
 import logging
 from oslo_utils._i18n import _
+from oslo_utils.imageutils import _luks
 from oslo_utils import units
 
 LOG = logging.getLogger(__name__)
@@ -1485,30 +1487,46 @@ class GPTInspector(FileInspector):
 # https://gitlab.com/cryptsetup/cryptsetup/-/wikis/LUKS-standard/on-disk-format.pdf
 # LUKSv2 is a different but similar spec, which is not yet covered here (or
 # in qemu).
-class LUKSHeader(TypedDict, total=False):
-    magic: bytes
-    version: int
-    cipher_alg: bytes
-    cipher_mode: bytes
-    hash: bytes
-    payload_offset: int
+class LUKSInspector(ContainerFileInspector):
+    """A LUKS format inspector that can decrypt the first block of data.
 
+    If the passphrase is provided (as "luks_passphrase" in the data), this
+    inspector will decrypt the first block of data and attempt to detect the
+    format of the image contained within.
 
-class LUKSInspector(FileInspector):
+    In order to eliminate the possibility of an attack that consumes a large
+    amount of CPU time with a full set of keys with a large number of hash
+    iterations, only the first active key is used and a limit on iterations
+    should be provided.
+
+    parameters:
+    - luks_passphrase: The passphrase to use to decrypt the data
+    - luks_iter_limit: The maximum number of iterations to allow for the PBKDF2
+      hash function. Defaults to 12,000,000; zero means no limit.
+    """
+
     NAME = 'luks'
 
     def _initialize(self) -> None:
+        # NOTE, this will be a string but we will need it to be bytes later
+        self._passphrase = self._params.get('luks_passphrase')
+        self._iter_limit = int(self._params.get('luks_iter_limit', 12000000))
+        self._master_key: bytes | None = None
+        self._key_material_captured = False
+        # Capture the full header including key slots
+        # Header: 592 bytes total (208 bytes + 8 key slots of 48 bytes each)
         self.new_region('header', CaptureRegion(0, 592))
         self.add_safety_check(SafetyCheck('version', self.check_version))
+        self.add_safety_check(SafetyCheck('passphrase', self.check_passphrase))
 
     @property
     def format_match(self) -> bool:
         return self.region('header').data[:6] == b'LUKS\xba\xbe'
 
     @property
-    def header_items(self) -> LUKSHeader:
+    def header_items(self) -> _luks.LUKSHeader:
         fields = struct.unpack(
-            '>6sh32s32s32sI', self.region('header').data[:108]
+            '>6sH32s32s32sII20s32sI', self.region('header').data[:168]
         )
         names = [
             'magic',
@@ -1517,8 +1535,12 @@ class LUKSInspector(FileInspector):
             'cipher_mode',
             'hash',
             'payload_offset',
+            'key_bytes',
+            'mk_digest',
+            'mk_digest_salt',
+            'mk_digest_iter',
         ]
-        return cast(LUKSHeader, dict(zip(names, fields)))
+        return cast(_luks.LUKSHeader, dict(zip(names, fields)))
 
     def check_version(self) -> None:
         header = self.header_items
@@ -1526,6 +1548,143 @@ class LUKSInspector(FileInspector):
             raise SafetyViolation(
                 f'LUKS version {int(header["version"])} is not supported'
             )
+
+    def check_passphrase(self) -> None:
+        if self._passphrase is not None and not self.inner_format:
+            raise SafetyViolation('Passphrase is incorrect')
+        elif not self._passphrase:
+            LOG.info(
+                'LUKS passphrase not provided, skipping decryption/detection'
+            )
+
+    def post_process(self) -> None:
+        """Capture key material and encrypted data."""
+        if not self.region('header').complete:
+            return
+
+        # After header is complete, capture the key material from the first
+        # active slot
+        header_data = self.region('header').data
+
+        if not self._key_material_captured and self._passphrase is not None:
+            for slot_num in range(_luks.NUM_KEY_SLOTS):
+                slot = _luks.parse_key_slot(header_data, slot_num)
+                if slot['active']:
+                    # Capture the encrypted key material
+                    header = self.header_items
+                    key_bytes = header.get('key_bytes', 32)
+                    split_key_size = key_bytes * slot['stripes']
+                    km_offset = slot['key_offset'] * _luks.LUKS_SECTOR_SIZE
+
+                    self._trace(
+                        'Capturing key material from slot %d: '
+                        'offset=%d size=%d',
+                        slot_num,
+                        km_offset,
+                        split_key_size,
+                    )
+                    self.new_region(
+                        'key_material',
+                        CaptureRegion(km_offset, split_key_size),
+                    )
+                    self._key_material_captured = True
+                    self._active_slot = slot_num
+                    break
+
+        # After we have the key material, capture the first encrypted block
+        if (
+            self.has_region('key_material')
+            and self.region('key_material').complete
+            and not self.has_region('encrypted_block')
+            and self._passphrase is not None
+        ):
+            header = self.header_items
+            payload_offset = header['payload_offset'] * _luks.LUKS_SECTOR_SIZE
+            self._trace(
+                'Payload offset is %d (%#x) (%d sectors)',
+                payload_offset,
+                payload_offset,
+                header['payload_offset'],
+            )
+            self.new_region(
+                'encrypted_block',
+                CaptureRegion(payload_offset, _luks.LUKS_SECTOR_SIZE),
+            )
+
+    def region_complete(self, region_name: str) -> None:
+        """Decrypt the data block when the encrypted block is captured."""
+        if region_name == 'encrypted_block':
+            # We only register this region if the passphrase is provided
+            first_block = self._decrypt_first_block()
+            wrapper = InspectWrapper(io.BytesIO(first_block), tracing=True)
+            wrapper.read(_luks.LUKS_SECTOR_SIZE * 2)
+            wrapper.close()
+            self._trace('LUKS inner format detected as %s', wrapper.format)
+            self._inner_format = wrapper.format
+
+    def _decrypt_first_block(self) -> bytes:
+        """Decrypt the first block of data using the recovered master key."""
+        # Recover master key from passphrase if needed
+        if self._master_key is None and self._passphrase is not None:
+            if (
+                not self.has_region('key_material')
+                or not self.region('key_material').complete
+            ):
+                raise ValueError('Key material not available')
+
+            header_data = self.region('header').data
+            active_slot = _luks.parse_key_slot(header_data, self._active_slot)
+            # NOTE(danms): The LUKS spec is not very specific about the
+            # expected encoding of the passphrase. Since it requires ASCII
+            # encoding for the header strings, assume the same here until we
+            # have better information.
+            self._master_key = _luks.recover_master_key(
+                self._passphrase.encode('ascii'),
+                self.header_items,
+                header_data,
+                active_slot,
+                self.region('key_material').data,
+                iter_limit=self._iter_limit,
+            )
+
+        if self._master_key is None:
+            # This likely means the passphrase is incorrect
+            raise ValueError(
+                'Could not recover master key for LUKS decryption'
+            )
+
+        if (
+            not self.has_region('encrypted_block')
+            or not self.region('encrypted_block').complete
+        ):
+            # This likely means we only found the heeader, or the image ended
+            # abruptly
+            raise ValueError('Encrypted block not found or complete')
+
+        header = self.header_items
+        cipher_name = header['cipher_alg'].rstrip(b'\x00').decode('ascii')
+        cipher_mode = header['cipher_mode'].rstrip(b'\x00').decode('ascii')
+        encrypted_data = self.region('encrypted_block').data
+
+        try:
+            # For bulk data, sector numbering starts at 0 (first sector of
+            # payload)
+            decrypted_data = _luks.decrypt_data(
+                encrypted_data,
+                self._master_key,
+                cipher_name,
+                cipher_mode,
+                start_sector=0,
+            )
+            self._trace(
+                'Successfully decrypted first LUKS block (%d bytes)',
+                len(decrypted_data),
+            )
+        except Exception as e:
+            LOG.error('Failed to decrypt LUKS data: %s', e)
+            raise ValueError('Failed to decrypt LUKS data')
+
+        return decrypted_data
 
     @property
     def virtual_size(self) -> int:
