@@ -35,7 +35,7 @@ TEST_IMAGE_PREFIX = 'oslo-unittest-formatinspector-'
 
 def get_size_format_from_qemu_img(filename):
     output = subprocess.check_output(
-        f'qemu-img info --output=json "{filename}"', shell=True
+        ['qemu-img', 'info', '--output=json', filename]
     )
     info = QemuImgInfo(output, format='json')
     return info.virtual_size, info.file_format
@@ -66,12 +66,14 @@ class TestFormatInspectors(test_base.BaseTestCase):
         # being installed and in the path,
         # if it is not installed, skip
         try:
-            subprocess.check_output('mkisofs --version', shell=True)
+            subprocess.check_output(
+                ['mkisofs', '--version'], stderr=subprocess.STDOUT
+            )
         except Exception:
             self.skipTest('mkisofs not installed')
 
         size = image_size // units.Mi
-        base_cmd = "mkisofs"
+        cmd = ['mkisofs']
         if subformat == 'udf':
             # depending on the distribution mkisofs may not support udf
             # and may be provided by genisoimage instead. As a result we
@@ -85,20 +87,22 @@ class TestFormatInspectors(test_base.BaseTestCase):
                 )
             except Exception:
                 self.skipTest('mkisofs does not support udf format')
-            base_cmd += " -udf"
+            cmd.append('-udf')
         prefix = TEST_IMAGE_PREFIX
         prefix += f'-{subformat}-'
         fn = tempfile.mktemp(prefix=prefix, suffix='.iso')
         self._created_files.append(fn)
         subprocess.check_output(
-            f'dd if=/dev/zero of={fn} bs=1M count={int(size)}', shell=True
+            ['dd', 'if=/dev/zero', f'of={fn}', 'bs=1M', f'count={int(size)}'],
+            stderr=subprocess.STDOUT,
         )
         # We need to use different file as input and output as the behavior
         # of mkisofs is version dependent if both the input and the output
         # are the same and can cause test failures
         out_fn = f"{fn}.iso"
         subprocess.check_output(
-            f'{base_cmd} -V "TEST" -o {out_fn}  {fn}', shell=True
+            cmd + ['-V', 'TEST', '-o', out_fn, fn],
+            stderr=subprocess.STDOUT,
         )
         self._created_files.append(out_fn)
         return out_fn
@@ -152,9 +156,7 @@ class TestFormatInspectors(test_base.BaseTestCase):
             fn,
             f'{int(image_size)}',
         ]
-        subprocess.check_output(
-            ' '.join(cmd), shell=True, stderr=subprocess.STDOUT
-        )
+        subprocess.check_output(cmd, stderr=subprocess.STDOUT)
         return fn
 
     def _create_img(
@@ -190,7 +192,9 @@ class TestFormatInspectors(test_base.BaseTestCase):
         # the help output.
         try:
             subprocess.check_output(
-                f'qemu-img --help | grep {fmt}', shell=True
+                f'qemu-img --help | grep {fmt}',
+                shell=True,
+                stderr=subprocess.STDOUT,
             )
         except Exception:
             self.skipTest(
@@ -199,24 +203,21 @@ class TestFormatInspectors(test_base.BaseTestCase):
 
         if options is None:
             options = {}
-        opt = ''
         prefix = TEST_IMAGE_PREFIX
 
         if subformat:
             options['subformat'] = subformat
             prefix += subformat + '-'
 
-        if options:
-            opt += '-o ' + ','.join(f'{k}={v}' for k, v in options.items())
-
-        if backing_file is not None:
-            opt += f' -b {backing_file} -F raw'
-
         fn = tempfile.mktemp(prefix=prefix, suffix=f'.{fmt}')
         self._created_files.append(fn)
-        subprocess.check_output(
-            f'qemu-img create -f {fmt} {opt} {fn} {int(size)}', shell=True
-        )
+        cmd = ['qemu-img', 'create', '-f', fmt]
+        if options:
+            cmd += ['-o', ','.join(f'{k}={v}' for k, v in options.items())]
+        if backing_file is not None:
+            cmd += ['-b', backing_file, '-F', 'raw']
+        cmd += [fn, str(int(size))]
+        subprocess.check_output(cmd, stderr=subprocess.STDOUT)
         return fn
 
     def _create_allocated_vmdk(self, size_mb, subformat=None):
@@ -238,15 +239,33 @@ class TestFormatInspectors(test_base.BaseTestCase):
         # Create a file with pseudo-random data, otherwise it will get
         # compressed in the streamOptimized format
         subprocess.check_output(
-            f'dd if=/dev/urandom of={raw} bs=1M count={int(size_mb)}',
-            shell=True,
+            [
+                'dd',
+                'if=/dev/urandom',
+                f'of={raw}',
+                'bs=1M',
+                f'count={int(size_mb)}',
+            ],
+            stderr=subprocess.STDOUT,
         )
 
         # Convert it to VMDK
         subprocess.check_output(
-            f'qemu-img convert -f raw -O vmdk -o subformat={subformat} '
-            f'-S 0 {raw} {fn}',
-            shell=True,
+            [
+                'qemu-img',
+                'convert',
+                '-f',
+                'raw',
+                '-O',
+                'vmdk',
+                '-o',
+                f'subformat={subformat}',
+                '-S',
+                '0',
+                raw,
+                fn,
+            ],
+            stderr=subprocess.STDOUT,
         )
         return fn
 
@@ -370,10 +389,12 @@ class TestFormatInspectors(test_base.BaseTestCase):
         fn = tempfile.mktemp(prefix=prefix, suffix='.iso')
         self._created_files.append(fn)
         subprocess.check_output(
-            f'dd if={qcow} of={fn} bs=32K count=1', shell=True
+            ['dd', f'if={qcow}', f'of={fn}', 'bs=32K', 'count=1'],
+            stderr=subprocess.STDOUT,
         )
         subprocess.check_output(
-            f'dd if={iso} of={fn} bs=32K skip=1 seek=1', shell=True
+            ['dd', f'if={iso}', f'of={fn}', 'bs=32K', 'skip=1', 'seek=1'],
+            stderr=subprocess.STDOUT,
         )
         return qcow, iso, fn
 
