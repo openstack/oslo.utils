@@ -37,6 +37,13 @@ from oslo_utils import reflection
 if TYPE_CHECKING:
     from typing_extensions import Self
 
+    # Needed until we bump our minimum to Python 3.11
+    #
+    # https://github.com/python/typeshed/issues/7855
+    _LoggerAdapter = logging.LoggerAdapter[logging.Logger]
+else:
+    _LoggerAdapter = logging.LoggerAdapter
+
 # ISO 8601 extended time format with microseconds
 PERFECT_TIME_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'
 
@@ -384,7 +391,7 @@ class Split:
 
 
 def time_it(
-    logger: logging.Logger,
+    logger: logging.Logger | _LoggerAdapter,
     log_level: int = logging.DEBUG,
     message: str = (
         "It took %(seconds).02f seconds to run function '%(func_name)s'"
