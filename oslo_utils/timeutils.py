@@ -39,8 +39,6 @@ _Logger: TypeAlias = logging.Logger | logging.LoggerAdapter[logging.Logger]
 # ISO 8601 extended time format with microseconds
 PERFECT_TIME_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'
 
-_MAX_DATETIME_SEC = 59
-
 now = time.monotonic
 
 
@@ -308,7 +306,7 @@ def unmarshall_time(tyme: dict[str, Any]) -> datetime.datetime:
     # NOTE(ihrachys): datetime does not support leap seconds,
     # so the best thing we can do for now is dropping them
     # http://bugs.python.org/issue23574
-    second = min(tyme['second'], _MAX_DATETIME_SEC)
+    second = min(tyme['second'], 59)
     dt = datetime.datetime(
         day=tyme['day'],
         month=tyme['month'],

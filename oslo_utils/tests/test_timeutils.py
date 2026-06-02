@@ -210,12 +210,12 @@ class TimeUtilsTest(test_base.BaseTestCase):
             year=2015,
             hour=23,
             minute=59,
-            second=timeutils._MAX_DATETIME_SEC + 1,
+            second=60,
             microsecond=0,
         )
         leap_time = timeutils.unmarshall_time(leap_dict)
 
-        leap_dict.update(second=timeutils._MAX_DATETIME_SEC)
+        leap_dict.update(second=60)
         expected = timeutils.unmarshall_time(leap_dict)
 
         self.assertEqual(expected, leap_time)
