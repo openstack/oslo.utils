@@ -153,7 +153,10 @@ class TimeUtilsTest(test_base.BaseTestCase):
 
     def test_utcnow_ts(self):
         skynet_self_aware_ts = 872835240
-        skynet_dt = datetime.datetime.utcfromtimestamp(skynet_self_aware_ts)
+        skynet_dt = datetime.datetime.fromtimestamp(
+            skynet_self_aware_ts,
+            tz=datetime.UTC,
+        ).replace(tzinfo=None)
         self.assertEqual(self.skynet_self_aware_time, skynet_dt)
 
         # NOTE(kgriffs): timeutils.utcnow_ts() uses time.time()
