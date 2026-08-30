@@ -142,7 +142,8 @@ def make_grammar() -> pyparsing.ParserElement:
      * ``"<range-in> ( 10 20 )"`` float(value) > 10 and float(value) < 20
 
     :returns: A pyparsing.MatchFirst object. See
-              https://pythonhosted.org/pyparsing/ for details on pyparsing.
+              https://pyparsing-docs.readthedocs.io/en/latest/ for details
+              on pyparsing.
     """  # noqa: E501
     # This is apparently how pyparsing recommends to be used,
     # as http://pyparsing.wikispaces.com/share/view/644825 states that
@@ -205,12 +206,12 @@ def match(cmp_value: Any, spec: str) -> bool:
     expr = make_grammar()
     tree: pyparsing.ParseResults | list[str]
     try:
-        # As of 2018-01-29 documentation on parseString()
-        # https://pythonhosted.org/pyparsing/pyparsing.ParserElement-class.html#parseString
+        # As of 2026-08-31 documentation on parse_string()
+        # https://pyparsing-docs.readthedocs.io/en/latest/pyparsing.html#pyparsing.ParserElement.parse_string
         #
-        # parseString() will take our specification string, for example "< 6"
+        # parse_string() will take our specification string, for example "< 6"
         # and convert it into a list of ['<', "6"]
-        tree = expr.parseString(spec)
+        tree = expr.parse_string(spec)
     except pyparsing.ParseException:
         # If an exception then we will just check if the value matches the spec
         tree = [spec]
