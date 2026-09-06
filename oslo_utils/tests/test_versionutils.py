@@ -56,7 +56,7 @@ class IsCompatibleTestCase(test_base.BaseTestCase):
         self.assertFalse(versionutils.is_compatible('1.0', '2.0'))
 
     def test_same_major_false(self):
-        """With `same_major` set to False, then major version compatibiity
+        """With `same_major` set to False, then major version compatibility
         rule is not enforced, so a current version of 2.0 is deemed to satisfy
         a requirement of 1.0.
         """
