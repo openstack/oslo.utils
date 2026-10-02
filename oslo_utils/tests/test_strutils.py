@@ -197,21 +197,21 @@ class StringToBytesTest(test_base.BaseTestCase):
     unit_system: str
     return_int: bool
 
-    _unit_system = [
+    _unit_system: list[tuple[str, dict[str, Any]]] = [
         ('si', dict(unit_system='SI')),
         ('iec', dict(unit_system='IEC')),
         ('mixed', dict(unit_system='mixed')),
         ('invalid_unit_system', dict(unit_system='KKK', assert_error=True)),
     ]
 
-    _sign = [
+    _sign: list[tuple[str, dict[str, Any]]] = [
         ('no_sign', dict(sign='')),
         ('positive', dict(sign='+')),
         ('negative', dict(sign='-')),
         ('invalid_sign', dict(sign='~', assert_error=True)),
     ]
 
-    _magnitude = [
+    _magnitude: list[tuple[str, dict[str, Any]]] = [
         ('integer', dict(magnitude='79')),
         ('decimal', dict(magnitude='7.9')),
         ('decimal_point_start', dict(magnitude='.9')),
@@ -220,7 +220,7 @@ class StringToBytesTest(test_base.BaseTestCase):
         ('garbage_value', dict(magnitude='asdf', assert_error=True)),
     ]
 
-    _unit_prefix = [
+    _unit_prefix: list[tuple[str, dict[str, Any]]] = [
         ('no_unit_prefix', dict(unit_prefix='')),
         ('k', dict(unit_prefix='k')),
         ('K', dict(unit_prefix='K')),
@@ -246,14 +246,14 @@ class StringToBytesTest(test_base.BaseTestCase):
         ('invalid_unit_prefix', dict(unit_prefix='B', assert_error=True)),
     ]
 
-    _unit_suffix = [
+    _unit_suffix: list[tuple[str, dict[str, Any]]] = [
         ('b', dict(unit_suffix='b')),
         ('bit', dict(unit_suffix='bit')),
         ('B', dict(unit_suffix='B')),
         ('invalid_unit_suffix', dict(unit_suffix='Kg', assert_error=True)),
     ]
 
-    _return_int = [
+    _return_int: list[tuple[str, dict[str, Any]]] = [
         ('return_dec', dict(return_int=False)),
         ('return_int', dict(return_int=True)),
     ]
