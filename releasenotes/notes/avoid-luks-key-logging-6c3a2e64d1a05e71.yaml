@@ -1,0 +1,10 @@
+---
+security:
+  - |
+    LUKS master-key recovery no longer logs derived keys, decrypted key
+    material, master keys, or master-key digests. This prevents future
+    disclosure only; it does not remove key material already present in logs,
+    archives, centralized logging systems, or backups. Operators should assess
+    existing logs separately. If key material was exposed, re-encrypt or
+    replace the affected image because applying this fix does not invalidate
+    an already exposed LUKS master key.

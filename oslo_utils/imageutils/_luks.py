@@ -394,7 +394,6 @@ def recover_master_key(
         backend=default_backend(),
     )
     pwd_derived = kdf.derive(passphrase)
-    LOG.debug('  Derived key: %s', pwd_derived.hex()[:32])
 
     # Step 2: Decrypt the key material
     LOG.debug('Decrypting key material')
@@ -417,7 +416,6 @@ def recover_master_key(
         return None
 
     LOG.debug('  Split key size: %d bytes', len(split_key))
-    LOG.debug('  First 32 bytes: %s', split_key[:32].hex())
 
     # Step 3: AFmerge to recover the master key candidate
     LOG.debug('Running AFmerge to recover master key')
@@ -425,7 +423,6 @@ def recover_master_key(
     master_key_candidate = af_merge(
         split_key, key_bytes, active_slot['stripes'], hash_fn
     )
-    LOG.debug('  Master key candidate: %s', master_key_candidate.hex())
 
     # Step 4: Verify the master key
     LOG.debug('Verifying master key')
@@ -439,8 +436,6 @@ def recover_master_key(
         backend=default_backend(),
     )
     mk_digest = kdf_verify.derive(master_key_candidate)
-    LOG.debug('  Computed digest: %s', mk_digest.hex())
-    LOG.debug('  Expected digest: %s', header['mk_digest'].hex())
 
     if mk_digest == header['mk_digest']:
         LOG.debug('Master key verified successfully!')

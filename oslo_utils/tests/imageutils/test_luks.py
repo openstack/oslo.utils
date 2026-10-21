@@ -11,6 +11,7 @@
 #    under the License.
 
 import hashlib
+import logging
 import os
 import struct
 
@@ -678,6 +679,8 @@ class TestRecoverMasterKey(test_base.BaseTestCase):
 
         return {
             'master_key': master_key,
+            'pwd_key': pwd_key,
+            'split_key': split_key,
             'header': header,
             'header_data': header_data,
             'active_slot': active_slot,
@@ -695,6 +698,30 @@ class TestRecoverMasterKey(test_base.BaseTestCase):
             data['encrypted_key_material'],
         )
         self.assertEqual(data['master_key'], result)
+
+    def test_recovery_does_not_log_key_material(self):
+        passphrase = b'correct-passphrase'
+        data = self._make_luks_test_data(passphrase=passphrase)
+
+        with self.assertLogs(_luks.LOG, level=logging.DEBUG) as logs:
+            result = _luks.recover_master_key(
+                passphrase,
+                data['header'],
+                data['header_data'],
+                data['active_slot'],
+                data['encrypted_key_material'],
+            )
+
+        self.assertEqual(data['master_key'], result)
+        log_output = '\n'.join(logs.output)
+        for sensitive_value in (
+            data['pwd_key'],
+            data['split_key'],
+            data['master_key'],
+            data['header']['mk_digest'],
+        ):
+            for logged_value in (sensitive_value[:16], sensitive_value):
+                self.assertNotIn(logged_value.hex(), log_output)
 
     def test_wrong_passphrase(self):
         data = self._make_luks_test_data(passphrase=b'correct')
