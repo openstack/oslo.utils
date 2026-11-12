@@ -45,11 +45,8 @@ def ensure_tree(path: str, mode: int = _DEFAULT_MODE) -> None:
     """
     try:
         os.makedirs(path, mode)
-    except OSError as exc:
-        if exc.errno == errno.EEXIST:
-            if not os.path.isdir(path):
-                raise
-        else:
+    except FileExistsError:
+        if not os.path.isdir(path):
             raise
 
 
@@ -64,9 +61,8 @@ def delete_if_exists(
 
     try:
         remove(path)
-    except OSError as e:
-        if e.errno != errno.ENOENT:
-            raise
+    except FileNotFoundError:
+        pass
 
 
 @contextlib.contextmanager
